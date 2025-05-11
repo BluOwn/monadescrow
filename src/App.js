@@ -1,3 +1,4 @@
+// src/App.js - Complete fixed version
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { Container, Alert, Nav, Modal, Button, Spinner, Badge } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -11,21 +12,60 @@ import useEscrowData from './hooks/useEscrowData';
 // Components
 import ThemeToggle from './components/ThemeToggle';
 import LoadingIndicator from './components/LoadingIndicator';
-import WalletInfo from './components/wallet/WalletInfo';
 import { SecurityWarningModal, SecurityBanner, NetworkWarning } from './components/SecurityComponents';
 import RateLimitAlert from './components/RateLimitAlert';
 
-// Lazy-loaded components
-const CreateEscrowTab = lazy(() => import('./components/tabs/CreateEscrowTab'));
-const MyEscrowsTab = lazy(() => import('./components/tabs/MyEscrowsTab'));
-const ArbitratedEscrowsTab = lazy(() => import('./components/tabs/ArbitratedEscrowsTab'));
-const FindEscrowTab = lazy(() => import('./components/tabs/FindEscrowTab'));
-const ContactForm = lazy(() => import('./components/tabs/ContactForm'));
-const EscrowDetails = lazy(() => import('./components/escrow/EscrowDetails'));
+// Lazy-loaded components - using correct paths for your project structure
+const CreateEscrowTab = lazy(() => import('./components/CreateEscrowTab'));
+const MyEscrowsTab = lazy(() => import('./components/MyEscrowsTab'));
+const ArbitratedEscrowsTab = lazy(() => import('./components/ArbitratedEscrowsTab'));
+const FindEscrowTab = lazy(() => import('./components/FindEscrowTab'));
+const ContactForm = lazy(() => import('./components/ContactForm'));
+const EscrowDetails = lazy(() => import('./components/EscrowDetails'));
 
 // Constants
 const CREATOR_WALLET = "0x0b977acab5d9b8f654f48090955f5e00973be0fe";
 const CREATOR_TWITTER = "@Oprimedev";
+
+// App footer component
+const AppFooter = () => (
+  <div className="footer">
+    <p>
+      Created by{" "}
+      <a
+        href={`https://twitter.com/${CREATOR_TWITTER.substring(1)}`}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        {CREATOR_TWITTER}
+      </a>
+    </p>
+    <p>
+      Creator wallet:{" "}
+      <a
+        href={`https://testnet.monadexplorer.com/address/${CREATOR_WALLET}`}
+        onClick={(e) => {
+          e.preventDefault();
+          navigator.clipboard.writeText(CREATOR_WALLET);
+          window.open(e.currentTarget.href, "_blank");
+        }}
+        style={{ cursor: "pointer", textDecoration: "underline" }}
+        title="Click to open and copy"
+      >
+        {CREATOR_WALLET}
+      </a>
+    </p>
+    <p>
+      <a
+        href="https://github.com/BluOwn/monadescrow"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        View on GitHub
+      </a>
+    </p>
+  </div>
+);
 
 function App() {
   // State from custom hooks
@@ -200,7 +240,7 @@ function App() {
     }, 1000);
   };
 
-// Retry loading escrows
+  // Retry loading escrows
   const retryLoadingEscrows = async () => {
     setRateLimited(false);
     await loadUserEscrows();
@@ -211,45 +251,26 @@ function App() {
   const error = walletError || contractError || escrowError;
   const loading = walletLoading || contractLoading;
 
-// App footer component
-const AppFooter = () => (
-  <div className="footer">
-    <p>
-      Created by{" "}
-      <a
-        href={`https://twitter.com/${CREATOR_TWITTER.substring(1)}`}
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        {CREATOR_TWITTER}
-      </a>
-    </p>
-    <p>
-      Creator wallet:{" "}
-      <a
-        href={`https://testnet.monadexplorer.com/address/${CREATOR_WALLET}`}
-        onClick={(e) => {
-          e.preventDefault();
-          navigator.clipboard.writeText(CREATOR_WALLET);
-          window.open(e.currentTarget.href, "_blank");
-        }}
-        style={{ cursor: "pointer", textDecoration: "underline" }}
-        title="Click to open and copy"
-      >
-        {CREATOR_WALLET}
-      </a>
-    </p>
-    <p>
-      <a
-        href="https://github.com/BluOwn/monadescrow"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        View on GitHub
-      </a>
-    </p>
-  </div>
-);
+  // Create a WalletInfo component inline since we don't have it as a separate component yet
+  const WalletInfo = () => (
+    <div className="wallet-info mb-4">
+      <div>
+        <small>Connected to: <span className="network-badge">{networkName}</span></small>
+        <p className="mb-0"><strong>Account:</strong> {account && account.slice(0, 6) + '...' + account.slice(-4)}</p>
+      </div>
+      <div className="d-flex">
+        <ThemeToggle />
+        <Button 
+          variant="outline-secondary" 
+          size="sm" 
+          className="ms-2" 
+          onClick={disconnectWallet}
+        >
+          Disconnect
+        </Button>
+      </div>
+    </div>
+  );
 
   return (
     <div className="app-wrapper">
@@ -283,11 +304,7 @@ const AppFooter = () => (
           </div>
         ) : (
           <>
-            <WalletInfo 
-              account={account} 
-              networkName={networkName} 
-              disconnectWallet={disconnectWallet} 
-            />
+            <WalletInfo />
             
             <SecurityBanner />
             
