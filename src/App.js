@@ -1,14 +1,15 @@
-// src/App.js - Refactored for better organization but without changing imports
-import React, { Suspense, lazy, useState, useEffect, useCallback } from 'react';
+import React, { Suspense, lazy, useState, useEffect, useCallback, useContext } from 'react';
 import { ethers } from 'ethers';
 import { Button, Card, Container, Form, Nav, Spinner, Alert, Modal, Badge } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 
-// Import all your existing components and utilities
+// Import theme context
 import { ThemeContext } from './contexts/ThemeContext';
 import ThemeToggle from './components/ThemeToggle';
 import DarkModeWrapper from './components/DarkModeWrapper';
+
+// Import enhanced components
 import LoadingIndicator from './components/LoadingIndicator';
 import AddressDisplay from './components/AddressDisplay';
 import { 
@@ -16,6 +17,8 @@ import {
   CreateEscrowFormSkeleton,
   EscrowDetailsSkeleton 
 } from './components/SkeletonLoaders';
+
+// Import network and caching utilities
 import { 
   delayBetweenCalls, 
   processBatches, 
@@ -26,6 +29,8 @@ import {
   invalidateEscrowCache 
 } from './utils/cacheUtils';
 import RateLimitAlert from './components/RateLimitAlert';
+
+// Import security utilities and components
 import {
   ESCROW_SERVICE_ADDRESS,
   validateNetwork,
@@ -36,6 +41,7 @@ import {
   handleError,
   addSecurityHeaders
 } from './utils/security';
+
 import {
   ContractInfo,
   SecurityWarningModal,
@@ -43,7 +49,7 @@ import {
   NetworkWarning
 } from './components/SecurityComponents';
 
-// Lazy load tab components - keep the existing paths
+// Lazy load tab components
 const CreateEscrowTab = lazy(() => import('./components/CreateEscrowTab'));
 const MyEscrowsTab = lazy(() => import('./components/MyEscrowsTab'));
 const ArbitratedEscrowsTab = lazy(() => import('./components/ArbitratedEscrowsTab'));
@@ -409,48 +415,11 @@ const ESCROW_SERVICE_ABI = [
 	}
 ];
 
-// App footer component - extracted to make App function cleaner
-const AppFooter = () => (
-  <div className="footer">
-    <p>
-      Created by{" "}
-      <a
-        href={`https://twitter.com/${CREATOR_TWITTER.substring(1)}`}
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        {CREATOR_TWITTER}
-      </a>
-    </p>
-    <p>
-      Creator wallet:{" "}
-      <a
-        href={`https://testnet.monadexplorer.com/address/${CREATOR_WALLET}`}
-        onClick={(e) => {
-          e.preventDefault();
-          navigator.clipboard.writeText(CREATOR_WALLET);
-          window.open(e.currentTarget.href, "_blank");
-        }}
-        style={{ cursor: "pointer", textDecoration: "underline" }}
-        title="Click to open and copy"
-      >
-        {CREATOR_WALLET}
-      </a>
-    </p>
-    <p>
-      <a
-        href="https://github.com/BluOwn/monadescrow"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        View on GitHub
-      </a>
-    </p>
-  </div>
-);
-
 function App() {
-  // Keep all your existing state variables
+  // Access theme context
+  const { darkMode } = useContext(ThemeContext);
+  
+  // State variables
   const [provider, setProvider] = useState(null);
   const [signer, setSigner] = useState(null);
   const [contract, setContract] = useState(null);
@@ -465,16 +434,24 @@ function App() {
   const [arbitratedEscrows, setArbitratedEscrows] = useState([]);
   const [selectedEscrow, setSelectedEscrow] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+
+  // Form states
   const [sellerAddress, setSellerAddress] = useState('');
   const [arbiterAddress, setArbiterAddress] = useState('');
   const [amount, setAmount] = useState('');
   const [escrowIdToView, setEscrowIdToView] = useState('');
   const [recipientForDispute, setRecipientForDispute] = useState('');
+
+  // Security states
   const [showSecurityWarning, setShowSecurityWarning] = useState(false);
   const [hasAcceptedSecurity, setHasAcceptedSecurity] = useState(false);
   const [firstTimeUser, setFirstTimeUser] = useState(true);
+
+  // Loading states for better UX
   const [loadingEscrows, setLoadingEscrows] = useState(false);
   const [loadingArbitratedEscrows, setLoadingArbitratedEscrows] = useState(false);
+  
+  // Rate limiting states
   const [rateLimited, setRateLimited] = useState(false);
   const [autoRetry, setAutoRetry] = useState({
     active: false,
@@ -539,8 +516,210 @@ function App() {
     }, 1000);
   };
 
-  // No changes to loadUserEscrows and loadArbitratedEscrows
-  // Keep your original implementation here
+ // In App.js, update the loadUserEscrows function
+const loadUserEscrows = useCallback(async (escrowContract, userAddress, maxRetries = 3) => {
+  let retries = 0;
+  setLoadingEscrows(true);
+  
+  // Show at least a loading UI immediately
+  if (escrows.length === 0) {
+    // Set empty array to show the "loading" state
+    setEscrows([]);
+  }
+  
+  while (retries < maxRetries) {
+    try {
+      // Add a small delay to ensure contract is properly initialized
+      if (retries > 0) {
+        await delayBetweenCalls(2000);
+      }
+      
+      // First check if contract is properly initialized
+      if (!escrowContract || !escrowContract.getUserEscrows) {
+        throw new Error('Contract not properly initialized');
+      }
+      
+      // Get the IDs first
+      const escrowIds = await escrowContract.getUserEscrows(userAddress);
+      
+      // Create a map to avoid duplicates
+      const escrowMap = {};
+      
+      // Immediately show the number of escrows, even before loading details
+      if (escrowIds.length > 0) {
+        // Create placeholder escrows with just IDs
+        const placeholders = escrowIds.map(id => {
+          const escrowId = id.toString();
+          const placeholder = {
+            id: escrowId,
+            placeholder: true,
+            amount: "Loading...",
+            buyer: userAddress,
+            seller: "Loading...",
+            arbiter: "Loading...",
+            fundsDisbursed: false,
+            disputeRaised: false
+          };
+          
+          // Store in map to avoid duplicates
+          escrowMap[escrowId] = placeholder;
+          return placeholder;
+        });
+        
+        // Set these immediately so user sees something
+        setEscrows(Object.values(escrowMap));
+        
+        // Now load details in batches
+        const BATCH_SIZE = 3;
+        for (let i = 0; i < escrowIds.length; i += BATCH_SIZE) {
+          const batch = escrowIds.slice(i, i + BATCH_SIZE);
+          
+          const batchDetails = await Promise.all(
+            batch.map(async (escrowId) => {
+              try {
+                const fullEscrow = await getAndCacheEscrow(escrowContract, escrowId, ethers);
+                // Update the map with the full data
+                escrowMap[fullEscrow.id.toString()] = fullEscrow;
+                return fullEscrow;
+              } catch (err) {
+                console.warn(`Error loading escrow ${escrowId}:`, err);
+                // Return a placeholder for failed items with error flag
+                const errorEscrow = {
+                  id: escrowId.toString(),
+                  error: true,
+                  amount: "Error",
+                  buyer: userAddress,
+                  seller: "Error loading data",
+                  arbiter: "Error loading data",
+                  fundsDisbursed: false,
+                  disputeRaised: false
+                };
+                escrowMap[escrowId.toString()] = errorEscrow;
+                return errorEscrow;
+              }
+            })
+          );
+          
+          // Update escrows with the complete map (removes duplicates)
+          setEscrows(Object.values(escrowMap));
+          
+          // Add delay between batches
+          if (i + BATCH_SIZE < escrowIds.length) {
+            await delayBetweenCalls(1000);
+          }
+        }
+      } else {
+        // No escrows found
+        setEscrows([]);
+      }
+      
+      setLoadingEscrows(false);
+      setRateLimited(false);
+      return;
+      
+    } catch (error) {
+      console.error(`Attempt ${retries + 1} failed loading escrows:`, error);
+      retries++;
+      
+      // Wait longer between retries
+      await delayBetweenCalls(2000 * retries);
+      
+      if (retries >= maxRetries) {
+        setLoadingEscrows(false);
+        if (error.message?.includes('missing revert data')) {
+          setError('Unable to load escrows. Please ensure you are connected to the correct network and the contract is deployed. Try refreshing the page.');
+        } else {
+          setError(handleRpcError(error, 'load escrows'));
+        }
+      }
+    }
+  }
+  }, [escrows.length]);
+  
+  // In App.js, update the loadArbitratedEscrows function similarly
+const loadArbitratedEscrows = useCallback(async (escrowContract, arbiterAddress, maxRetries = 3) => {
+  let retries = 0;
+  setLoadingArbitratedEscrows(true);
+  
+  while (retries < maxRetries) {
+    try {
+      // Add a small delay to ensure contract is properly initialized
+      if (retries > 0) {
+        await delayBetweenCalls(2000);
+      }
+      
+      // First check if contract is properly initialized
+      if (!escrowContract || !escrowContract.getEscrowCount) {
+        throw new Error('Contract not properly initialized');
+      }
+      
+      // Get total escrow count (with a limit to prevent too many calls)
+      const escrowCount = await escrowContract.getEscrowCount();
+      const maxToCheck = Math.min(Number(escrowCount), 25); // Limit how many we check
+      
+      // Create array of escrow IDs to check
+      const escrowsToCheck = Array.from({ length: maxToCheck }, (_, i) => i);
+      
+      // Create a map to store arbitrated escrows by ID
+      const arbitratedMap = {};
+      
+      // Process escrow details in batches
+      const BATCH_SIZE = 3;
+      
+      for (let i = 0; i < escrowsToCheck.length; i += BATCH_SIZE) {
+        const batch = escrowsToCheck.slice(i, i + BATCH_SIZE);
+        
+        const batchResults = await Promise.all(
+          batch.map(async (escrowId) => {
+            try {
+              const escrow = await getAndCacheEscrow(escrowContract, escrowId, ethers);
+              
+              // Check if the user is the arbiter for this escrow
+              if (escrow.arbiter.toLowerCase() === arbiterAddress.toLowerCase()) {
+                // Store in map to ensure uniqueness
+                arbitratedMap[escrow.id.toString()] = escrow;
+                return escrow;
+              }
+              return null; // Not an arbiter, don't include
+            } catch (err) {
+              console.warn(`Error fetching escrow #${escrowId}:`, err);
+              return null;
+            }
+          })
+        );
+        
+        // Update the UI with what we have so far (from the map)
+        setArbitratedEscrows(Object.values(arbitratedMap));
+        
+        // Add delay between batches
+        if (i + BATCH_SIZE < escrowsToCheck.length) {
+          await delayBetweenCalls(1000);
+        }
+      }
+      
+      // Final update to ensure we have the complete set
+      setArbitratedEscrows(Object.values(arbitratedMap));
+      
+      setLoadingArbitratedEscrows(false);
+      setRateLimited(false); // Clear rate limited state on success
+      return; // Success, exit the retry loop
+      
+    } catch (error) {
+      console.error(`Attempt ${retries + 1} failed loading arbitrated escrows:`, error);
+      retries++;
+      
+      if (retries >= maxRetries) {
+        setLoadingArbitratedEscrows(false);
+        // Only show error after all retries failed
+        if (error.message?.includes('missing revert data')) {
+          setError('Unable to load arbitrated escrows. Please ensure you are connected to the correct network and the contract is deployed. Try refreshing the page.');
+        } else {
+          setError(handleRpcError(error, 'load arbitrated escrows'));
+        }
+        }
+      }
+    }
+  }, [arbitratedEscrows.length]);
 
   // Connect to MetaMask
   const connectWallet = async () => {
@@ -621,6 +800,37 @@ function App() {
       setError('Please install MetaMask');
     }
   };
+
+  // Prefetch data for tabs
+  useEffect(() => {
+    // Prefetch data for tabs that aren't active yet
+    const prefetchData = async () => {
+      if (connected && contract) {
+        if (activeTab !== 'my' && escrows.length === 0) {
+          // Prefetch my escrows in the background
+          loadUserEscrows(contract, account).catch(e => {
+            // Silently handle errors
+            console.warn('Prefetch failed:', e);
+          });
+        }
+        
+        if (activeTab !== 'arbitrated' && arbitratedEscrows.length === 0) {
+          // Wait a bit before prefetching arbitrated escrows
+          setTimeout(() => {
+            loadArbitratedEscrows(contract, account).catch(e => {
+              // Silently handle errors
+              console.warn('Prefetch failed:', e);
+            });
+          }, 2000);
+        }
+      }
+    };
+    
+    // Start prefetching after a short delay
+    const timerId = setTimeout(prefetchData, 3000);
+    
+    return () => clearTimeout(timerId);
+  }, [connected, contract, account, activeTab, escrows.length, arbitratedEscrows.length, loadUserEscrows, loadArbitratedEscrows]);
 
   // Handle security warning acceptance
   const handleSecurityAccept = () => {
@@ -823,7 +1033,7 @@ function App() {
         window.ethereum.removeListener('chainChanged', handleChainChanged);
       };
     }
-  }, [contract]); // Note: removed loadUserEscrows and loadArbitratedEscrows from deps to avoid linter warnings
+  }, [contract, loadUserEscrows, loadArbitratedEscrows]);
 
   // Retry loading escrows button
   const retryLoadingEscrows = async () => {
@@ -840,9 +1050,6 @@ function App() {
       await loadArbitratedEscrows(contract, account);
     }
   };
-function App() {
-  // Access theme context (this remains unchanged)
-  const { darkMode } = useContext(ThemeContext);
 
   return (
     <DarkModeWrapper>
@@ -1047,7 +1254,44 @@ function App() {
                 </Modal.Footer>
               </Modal>
               
-              <AppFooter />
+              {/* Footer with creator info */}
+<div className="footer">
+  <p>
+    Created by{" "}
+    <a
+      href={`https://twitter.com/${CREATOR_TWITTER.substring(1)}`}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      {CREATOR_TWITTER}
+    </a>
+  </p>
+  <p>
+    Creator wallet:{" "}
+    <a
+      href={`https://testnet.monadexplorer.com/address/${CREATOR_WALLET}`}
+      onClick={(e) => {
+        e.preventDefault(); // prevent default to control the behavior
+        navigator.clipboard.writeText(CREATOR_WALLET); // copy to clipboard
+        window.open(e.currentTarget.href, "_blank"); // open in new tab
+      }}
+      style={{ cursor: "pointer", textDecoration: "underline" }}
+      title="Click to open and copy"
+    >
+      {CREATOR_WALLET}
+    </a>
+  </p>
+  <p>
+    <a
+      href="https://github.com/BluOwn/monadescrow"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      View on GitHub
+    </a>
+  </p>
+</div>
+
             </>
           )}
         </Container>
@@ -1055,5 +1299,5 @@ function App() {
     </DarkModeWrapper>
   );
 }
-}
-export default App;
+
+export default App; 
