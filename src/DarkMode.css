@@ -1,0 +1,231 @@
+/* Dark mode variables and styles */
+
+/* Light mode (default) */
+:root {
+  --primary-color: #6c5ce7;
+  --primary-hover: #5649c8;
+  --secondary-color: #00b894;
+  --secondary-hover: #00a381;
+  --danger-color: #e74c3c;
+  --warning-color: #f39c12;
+  --light-bg: #f8f9fa;
+  --dark-text: #2d3436;
+  --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+  --transition: all 0.3s ease;
+  
+  /* Role colors */
+  --buyer-color: #3498db;
+  --seller-color: #00b894;
+  --arbiter-color: #9b59b6;
+  
+  /* Theme specific */
+  --body-bg: linear-gradient(135deg, #dfe6e9 0%, #f8f9fa 100%);
+  --container-bg: white;
+  --border-color: #eaeaea;
+  --text-primary: #2d3436;
+  --text-secondary: #636e72;
+  --text-muted: #a0a0a0;
+  --nav-bg: transparent;
+  --nav-active: var(--primary-color);
+  --input-bg: white;
+  --input-border: #dfe6e9;
+  --input-text: #2d3436;
+  --card-bg: white;
+  --modal-bg: white;
+  --security-banner-bg: rgba(255, 193, 7, 0.1);
+}
+
+/* Dark mode */
+.dark-mode {
+  --primary-color: #7d6aee;
+  --primary-hover: #9181ff;
+  --secondary-color: #10ac84;
+  --secondary-hover: #1dd1a1;
+  --danger-color: #ff6b6b;
+  --warning-color: #feca57;
+  --light-bg: #2d3436;
+  --dark-text: #f5f6fa;
+  --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2);
+  
+  /* Theme specific */
+  --body-bg: linear-gradient(135deg, #1e272e 0%, #2d3436 100%);
+  --container-bg: #2d3436;
+  --border-color: #485460;
+  --text-primary: #f5f6fa;
+  --text-secondary: #dfe6e9;
+  --text-muted: #b2bec3;
+  --nav-bg: #222831;
+  --nav-active: var(--primary-color);
+  --input-bg: #222831;
+  --input-border: #485460;
+  --input-text: #f5f6fa;
+  --card-bg: #222831;
+  --modal-bg: #2d3436;
+  --security-banner-bg: rgba(255, 193, 7, 0.15);
+}
+
+/* Apply these variables */
+body {
+  background: var(--body-bg);
+  color: var(--text-primary);
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+.container {
+  background-color: var(--container-bg);
+  box-shadow: var(--card-shadow);
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card {
+  background-color: var(--card-bg);
+  border-color: var(--border-color);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.form-control {
+  background-color: var(--input-bg);
+  border-color: var(--input-border);
+  color: var(--input-text);
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+.form-control:focus {
+  background-color: var(--input-bg);
+  color: var(--input-text);
+}
+
+.form-text {
+  color: var(--text-muted);
+  transition: color 0.3s ease;
+}
+
+.modal-content {
+  background-color: var(--modal-bg);
+  transition: background-color 0.3s ease;
+}
+
+.nav-tabs {
+  border-color: var(--border-color);
+  transition: border-color 0.3s ease;
+}
+
+.nav-tabs .nav-link {
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
+}
+
+.nav-tabs .nav-link.active {
+  color: var(--nav-active);
+  background-color: transparent;
+}
+
+.list-group-item {
+  background-color: var(--card-bg);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+.list-group-item:hover {
+  background-color: var(--light-bg);
+}
+
+.security-banner {
+  background-color: var(--security-banner-bg);
+  transition: background-color 0.3s ease;
+}
+
+/* This helps maintain contrast in dark mode */
+.dark-mode .role-badge {
+  color: #222 !important;
+  font-weight: 700;
+}
+
+.dark-mode .buyer-badge {
+  background-color: #3498db;
+}
+
+.dark-mode .seller-badge {
+  background-color: #00b894;
+}
+
+.dark-mode .arbiter-badge {
+  background-color: #9b59b6;
+}
+
+/* Dark mode specific adjustments */
+.dark-mode .contract-info,
+.dark-mode .user-role-section {
+  background-color: rgba(45, 52, 54, 0.5) !important;
+}
+
+.dark-mode .card-title {
+  color: var(--primary-color);
+}
+
+.dark-mode .app-header h1 {
+  color: var(--primary-color);
+}
+
+.dark-mode .app-header p {
+  color: var(--text-secondary);
+}
+
+/* Dark mode for Bootstrap components */
+.dark-mode .alert-info {
+  background-color: #2c3e50;
+  color: #f1f1f1;
+  border-color: #34495e;
+}
+
+.dark-mode .alert-success {
+  background-color: #27ae60;
+  color: #f1f1f1;
+  border-color: #2ecc71;
+}
+
+.dark-mode .alert-danger {
+  background-color: #c0392b;
+  color: #f1f1f1;
+  border-color: #e74c3c;
+}
+
+.dark-mode .alert-warning {
+  background-color: #d35400;
+  color: #f1f1f1;
+  border-color: #e67e22;
+}
+
+.dark-mode .btn-outline-secondary {
+  color: #bdc3c7;
+  border-color: #7f8c8d;
+}
+
+.dark-mode .btn-outline-secondary:hover {
+  background-color: #7f8c8d;
+  color: #2c3e50;
+}
+
+.dark-mode .btn-outline-info {
+  color: #3498db;
+  border-color: #2980b9;
+}
+
+.dark-mode .btn-outline-info:hover {
+  background-color: #3498db;
+  color: #fff;
+}
+
+.dark-mode .modal-header,
+.dark-mode .modal-footer {
+  border-color: var(--border-color);
+}
+
+/* Make code elements visible in dark mode */
+.dark-mode code {
+  background-color: #34495e;
+  color: #f1c40f;
+  border-radius: 3px;
+  padding: 2px 4px;
+}

@@ -1,0 +1,93 @@
+/* Styles for progress bars and new components */
+
+/* Escrow card styling */
+.escrow-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.escrow-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Progress bar labels */
+.progress-labels {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+}
+
+/* Address display component */
+.address-display-container button {
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+.address-display-container:hover button {
+  opacity: 1;
+}
+
+/* Skeleton loaders */
+.placeholder-glow .placeholder {
+  background-color: var(--border-color);
+}
+
+/* Dark mode adjustments for skeleton loaders */
+body.dark-mode .placeholder-glow .placeholder {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Theme toggle button animation */
+.theme-toggle-btn {
+  transition: transform 0.3s ease;
+}
+
+.theme-toggle-btn:hover {
+  transform: rotate(15deg);
+}
+
+/* Escrow status badges */
+.escrow-status {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-top: 5px;
+}
+
+/* Progress bar transitions */
+.progress-bar {
+  transition: width 0.5s ease;
+}
+
+/* Enhanced role badges */
+.role-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  margin-right: 5px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  position: relative;
+  overflow: hidden;
+}
+
+.role-badge::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0) 100%);
+  animation: shimmer 2s infinite;
+  transform: translateX(-100%);
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}

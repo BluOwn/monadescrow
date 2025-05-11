@@ -1,0 +1,323 @@
+/* src/FullDarkMode.css
+   Replace this file entirely with the following content: */
+
+/* Full dark mode implementation */
+
+/* Global dark mode variables */
+:root.dark-mode,
+html.dark-mode,
+body.dark-mode,
+.dark-mode {
+  --body-bg: #121212;
+  --container-bg: #1e1e1e;
+  --card-bg: #262626;
+  --input-bg: #2d2d2d;
+  --border-color: #404040;
+  --text-primary: #e1e1e1;
+  --text-secondary: #b0b0b0;
+  --text-muted: #808080;
+  --primary-color: #8c6fff;
+  --primary-hover: #a28bff;
+  --secondary-color: #10ac84;
+  --secondary-hover: #1dd1a1;
+  --dark-text: #e1e1e1;
+  --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* Global elements */
+.dark-mode,
+body.dark-mode {
+  background: var(--body-bg) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Container elements */
+.dark-mode .container,
+.dark-mode .card,
+.dark-mode .modal-content,
+.dark-mode .list-group-item,
+.dark-mode .dropdown-menu {
+  background-color: var(--container-bg) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Card specific styles */
+.dark-mode .card {
+  background-color: var(--card-bg) !important;
+}
+
+.dark-mode .card-header,
+.dark-mode .card-footer {
+  background-color: rgba(0, 0, 0, 0.2) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Form elements */
+.dark-mode .form-control,
+.dark-mode .form-select {
+  background-color: var(--input-bg) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .form-control:focus,
+.dark-mode .form-select:focus {
+  background-color: var(--input-bg) !important;
+  border-color: var(--primary-color) !important;
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .form-label,
+.dark-mode .form-check-label {
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .form-text {
+  color: var(--text-secondary) !important;
+}
+
+/* Nav elements */
+.dark-mode .nav-tabs {
+  border-color: var(--border-color) !important;
+}
+
+.dark-mode .nav-tabs .nav-link {
+  color: var(--text-secondary) !important;
+}
+
+.dark-mode .nav-tabs .nav-link.active {
+  color: var(--primary-color) !important;
+  background-color: transparent !important;
+  border-color: transparent transparent var(--primary-color) !important;
+}
+
+.dark-mode .nav-tabs .nav-link:hover {
+  border-color: transparent transparent var(--border-color) !important;
+}
+
+/* Alerts */
+.dark-mode .alert-info {
+  background-color: #1a3253 !important;
+  color: #9bbade !important;
+  border-color: #235a97 !important;
+}
+
+.dark-mode .alert-success {
+  background-color: #1a472a !important;
+  color: #9bbba8 !important;
+  border-color: #2a623d !important;
+}
+
+.dark-mode .alert-danger {
+  background-color: #472a2a !important;
+  color: #dea3a3 !important;
+  border-color: #693434 !important;
+}
+
+.dark-mode .alert-warning {
+  background-color: #473a1a !important;
+  color: #dec683 !important;
+  border-color: #695b34 !important;
+}
+
+/* Buttons */
+.dark-mode .btn-primary {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+}
+
+.dark-mode .btn-primary:hover {
+  background-color: var(--primary-hover) !important;
+  border-color: var(--primary-hover) !important;
+}
+
+.dark-mode .btn-success {
+  background-color: var(--secondary-color) !important;
+  border-color: var(--secondary-color) !important;
+}
+
+.dark-mode .btn-success:hover {
+  background-color: var(--secondary-hover) !important;
+  border-color: var(--secondary-hover) !important;
+}
+
+.dark-mode .btn-outline-secondary {
+  color: var(--text-secondary) !important;
+  border-color: var(--border-color) !important;
+}
+
+.dark-mode .btn-outline-secondary:hover {
+  background-color: var(--input-bg) !important;
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .wallet-button {
+  background-color: var(--primary-color) !important;
+  color: white !important;
+}
+
+.dark-mode .wallet-button:hover {
+  background-color: var(--primary-hover) !important;
+}
+
+/* List groups */
+.dark-mode .list-group-item {
+  background-color: var(--card-bg) !important;
+  border-color: var(--border-color) !important;
+}
+
+.dark-mode .list-group-item:hover {
+  background-color: #303030 !important;
+}
+
+/* Modal components */
+.dark-mode .modal-header,
+.dark-mode .modal-footer {
+  border-color: var(--border-color) !important;
+}
+
+/* Progress bars */
+.dark-mode .progress {
+  background-color: var(--input-bg) !important;
+}
+
+/* Placeholders and skeletons */
+.dark-mode .placeholder {
+  background-color: #3a3a3a !important;
+}
+
+/* Table elements */
+.dark-mode table {
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .table {
+  --bs-table-bg: var(--card-bg) !important;
+  --bs-table-striped-bg: var(--container-bg) !important;
+  --bs-table-striped-color: var(--text-primary) !important;
+  --bs-table-active-bg: var(--input-bg) !important;
+  --bs-table-active-color: var(--text-primary) !important;
+  --bs-table-hover-bg: var(--input-bg) !important;
+  --bs-table-hover-color: var(--text-primary) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Badges */
+.dark-mode .badge.bg-primary {
+  background-color: var(--primary-color) !important;
+}
+
+.dark-mode .badge.bg-success {
+  background-color: var(--secondary-color) !important;
+}
+
+/* Specific components */
+.dark-mode .network-badge {
+  background-color: var(--secondary-color) !important;
+  color: #181818 !important;
+  font-weight: 600 !important;
+}
+
+.dark-mode .app-header h1 {
+  color: var(--primary-color) !important;
+}
+
+.dark-mode .app-header p {
+  color: var(--text-secondary) !important;
+}
+
+.dark-mode .contract-info {
+  background-color: rgba(0, 0, 0, 0.2) !important;
+}
+
+.dark-mode .security-banner {
+  background-color: rgba(255, 193, 7, 0.1) !important;
+}
+
+.dark-mode .footer {
+  border-top-color: var(--border-color) !important;
+  color: var(--text-secondary) !important;
+}
+
+.dark-mode .footer a {
+  color: var(--primary-color) !important;
+}
+
+.dark-mode code {
+  background-color: #2d2d2d !important;
+  color: #e9c46a !important;
+}
+
+/* Form control placeholders */
+.dark-mode input::placeholder,
+.dark-mode textarea::placeholder {
+  color: var(--text-muted) !important;
+}
+
+/* Scrollbars */
+.dark-mode ::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+.dark-mode ::-webkit-scrollbar-track {
+  background: var(--container-bg);
+}
+
+.dark-mode ::-webkit-scrollbar-thumb {
+  background-color: var(--border-color);
+  border-radius: 10px;
+  border: 3px solid var(--container-bg);
+}
+
+.dark-mode ::-webkit-scrollbar-thumb:hover {
+  background-color: var(--text-muted);
+}
+
+/* Make sure connect wallet container is dark */
+.dark-mode .connect-wallet-container {
+  background-color: var(--container-bg) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Force Bootstrap components to respect dark mode */
+.dark-mode [class*="bg-light"] {
+  background-color: var(--card-bg) !important;
+}
+
+.dark-mode .text-dark {
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .border {
+  border-color: var(--border-color) !important;
+}
+
+/* Specific component fixes */
+.dark-mode .user-role-section {
+  background-color: rgba(0, 0, 0, 0.2) !important;
+}
+
+.dark-mode .wallet-info {
+  background-color: var(--card-bg) !important;
+}
+
+/* App wrapper - important to target the entire app */
+.dark-mode .app-wrapper {
+  background-color: var(--body-bg) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Force dark mode on root elements */
+html.dark-mode,
+body.dark-mode {
+  background-color: var(--body-bg) !important;
+  color: var(--text-primary) !important;
+}
+
+/* !important on all colors to override Bootstrap */
+.dark-mode * {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
