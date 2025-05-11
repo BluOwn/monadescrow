@@ -840,7 +840,7 @@ function App() {
       await loadArbitratedEscrows(contract, account);
     }
   };
-
+function App() {
   // Access theme context (this remains unchanged)
   const { darkMode } = useContext(ThemeContext);
 
@@ -1055,5 +1055,5 @@ function App() {
     </DarkModeWrapper>
   );
 }
-
+}
 export default App;
