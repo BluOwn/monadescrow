@@ -149,4 +149,5 @@ This is an experimental application on a testnet blockchain. Do not use for prod
 Developer: [@Oprimedev](https://twitter.com/Oprimedev)
 
 Project Link: [https://github.com/BluOwn/monadescrowts](https://github.com/BluOwn/monadescrowts)
-Project Website: [https://testnet.monadescrow.xyz/](testnet.monadescrow.xyz)
+
+Project Website: [testnet.monadescrow.xyz](https://testnet.monadescrow.xyz/)
