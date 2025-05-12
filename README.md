@@ -2,7 +2,7 @@
 
 A secure, decentralized escrow application built on Monad Testnet using React, TypeScript, and ethers.js.
 
-![Monad Escrow](https://example.com/monad-escrow-screenshot.png)
+![Monad Escrow](https://github.com/BluOwn/monadescrow/blob/main/Screenshot.png)
 
 ## 🔍 Overview
 
@@ -84,8 +84,8 @@ src/
 
 1. Clone the repository:
    ```
-   git clone https://github.com/BluOwn/monadescrowts.git
-   cd monadescrowts
+   git clone https://github.com/BluOwn/monadescrow.git
+   cd monadescrow
    ```
 
 2. Install dependencies:
@@ -149,3 +149,4 @@ This is an experimental application on a testnet blockchain. Do not use for prod
 Developer: [@Oprimedev](https://twitter.com/Oprimedev)
 
 Project Link: [https://github.com/BluOwn/monadescrowts](https://github.com/BluOwn/monadescrowts)
+Project Website: [https://testnet.monadescrow.xyz/](testnet.monadescrow.xyz)
