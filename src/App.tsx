@@ -1,6 +1,6 @@
 // src/App.tsx
 import React, { Suspense, useState, useEffect, useContext } from 'react';
-import { Button, Card, Container, Form, Nav, Alert, Modal, Badge, Spinner } from 'react-bootstrap';
+import { Button, Container, Nav, Alert, Modal, Badge, Spinner } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 
@@ -62,7 +62,6 @@ const App: React.FC = () => {
   const [arbiterAddress, setArbiterAddress] = useState<string>('');
   const [amount, setAmount] = useState<string>('');
   const [escrowIdToView, setEscrowIdToView] = useState<string>('');
-  const [recipientForDispute, setRecipientForDispute] = useState<string>('');
 
   // Initialize security settings on component mount
   useEffect(() => {
@@ -78,7 +77,7 @@ const App: React.FC = () => {
   useEffect(() => {
     const cleanup = wallet.setupWalletListeners();
     return cleanup;
-  }, [wallet.setupWalletListeners]);
+  }, [wallet]); // Added wallet as a dependency
 
   // Prefetch data for tabs
   useEffect(() => {
@@ -121,7 +120,8 @@ const App: React.FC = () => {
     escrowLists.escrows.length, 
     escrowLists.arbitratedEscrows.length, 
     escrowLists.loadUserEscrows, 
-    escrowLists.loadArbitratedEscrows
+    escrowLists.loadArbitratedEscrows,
+    escrowLists // Added escrowLists as a dependency
   ]);
 
   // Connect to MetaMask
@@ -458,41 +458,41 @@ const App: React.FC = () => {
               
               {/* Footer with creator info */}
               <div className="footer">
-  <p>
-    Created by{" "}
-    <a
-      href={`https://twitter.com/${CREATOR_TWITTER.substring(1)}`}
-      target="_blank"
-      rel="noopener noreferrer"
-    >
-      {CREATOR_TWITTER}
-    </a>
-  </p>
-  <p>
-    Creator wallet:{" "}
-    <a
-      href={`https://testnet.monadexplorer.com/address/${CREATOR_WALLET}`}
-      onClick={(e) => {
-        e.preventDefault(); // prevent default to control the behavior
-        navigator.clipboard.writeText(CREATOR_WALLET); // copy to clipboard
-        window.open(e.currentTarget.href, "_blank"); // open in new tab
-      }}
-      style={{ cursor: "pointer", textDecoration: "underline" }}
-      title="Click to open and copy"
-    >
-      {CREATOR_WALLET}
-    </a>
-  </p>
-  <p>
-    <a
-      href="https://github.com/BluOwn/monadescrowts"
-      target="_blank"
-      rel="noopener noreferrer"
-    >
-      View on GitHub
-    </a>
-  </p>
-</div>
+                <p>
+                  Created by{" "}
+                  <a
+                    href={`https://twitter.com/${CREATOR_TWITTER.substring(1)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {CREATOR_TWITTER}
+                  </a>
+                </p>
+                <p>
+                  Creator wallet:{" "}
+                  <a
+                    href={`https://testnet.monadexplorer.com/address/${CREATOR_WALLET}`}
+                    onClick={(e) => {
+                      e.preventDefault(); // prevent default to control the behavior
+                      navigator.clipboard.writeText(CREATOR_WALLET); // copy to clipboard
+                      window.open(e.currentTarget.href, "_blank"); // open in new tab
+                    }}
+                    style={{ cursor: "pointer", textDecoration: "underline" }}
+                    title="Click to open and copy"
+                  >
+                    {CREATOR_WALLET}
+                  </a>
+                </p>
+                <p>
+                  <a
+                    href="https://github.com/BluOwn/monadescrowts"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    View on GitHub
+                  </a>
+                </p>
+              </div>
             </>
           )}
         </Container>
