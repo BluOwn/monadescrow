@@ -1,6 +1,6 @@
 // src/components/CreateEscrowTab.tsx
 import React from 'react';
-import { Card, Form, Button, Spinner } from 'react-bootstrap';
+import { Card, Form, Button, Spinner, Alert } from 'react-bootstrap';
 import { ContractInfo } from './SecurityComponents';
 import { CreateEscrowTabProps } from '../types';
 
@@ -12,13 +12,44 @@ const CreateEscrowTab: React.FC<CreateEscrowTabProps> = ({
   setArbiterAddress,
   amount, 
   setAmount,
-  loading 
+  loading,
+  currentAccount // Add this prop
 }) => {
+  // Helper to check if an address matches the current account
+  const isCurrentAccount = (address: string): boolean => {
+    if (!address || !currentAccount) return false;
+    return address.toLowerCase() === currentAccount.toLowerCase();
+  };
+
+  // Check if seller and arbiter are the same
+  const isSellerArbiterSame = (seller: string, arbiter: string): boolean => {
+    if (!seller || !arbiter) return false;
+    return seller.toLowerCase() === arbiter.toLowerCase();
+  };
+
+  // Check if form is valid
+  const isFormValid = (): boolean => {
+    return (
+      !isCurrentAccount(sellerAddress) && 
+      !isCurrentAccount(arbiterAddress) && 
+      !isSellerArbiterSame(sellerAddress, arbiterAddress) &&
+      !!sellerAddress &&
+      !!arbiterAddress &&
+      !!amount
+    );
+  };
+
   return (
     <Card>
       <Card.Body>
         <Card.Title>Create New Escrow</Card.Title>
         <ContractInfo />
+        
+        <Alert variant="info" className="mb-3">
+          <strong>Role Requirements:</strong>
+          <p className="mb-0">The buyer (you), seller, and arbiter must be different accounts. Your account will be the buyer.</p>
+        </Alert>
+        
         <Form onSubmit={handleCreateEscrow}>
           <Form.Group className="mb-3">
             <Form.Label>Seller Address</Form.Label>
@@ -27,8 +58,14 @@ const CreateEscrowTab: React.FC<CreateEscrowTabProps> = ({
               placeholder="0x..."
               value={sellerAddress}
               onChange={(e) => setSellerAddress(e.target.value)}
+              isInvalid={sellerAddress && isCurrentAccount(sellerAddress)}
               required
             />
+            {sellerAddress && isCurrentAccount(sellerAddress) && (
+              <Form.Control.Feedback type="invalid">
+                Seller cannot be the same as buyer (your account)
+              </Form.Control.Feedback>
+            )}
             <Form.Text className="text-muted">
               The address of the party who will receive the funds
             </Form.Text>
@@ -41,8 +78,22 @@ const CreateEscrowTab: React.FC<CreateEscrowTabProps> = ({
               placeholder="0x..."
               value={arbiterAddress}
               onChange={(e) => setArbiterAddress(e.target.value)}
+              isInvalid={
+                (arbiterAddress && isCurrentAccount(arbiterAddress)) || 
+                (arbiterAddress && sellerAddress && isSellerArbiterSame(sellerAddress, arbiterAddress))
+              }
               required
             />
+            {arbiterAddress && isCurrentAccount(arbiterAddress) && (
+              <Form.Control.Feedback type="invalid">
+                Arbiter cannot be the same as buyer (your account)
+              </Form.Control.Feedback>
+            )}
+            {arbiterAddress && sellerAddress && isSellerArbiterSame(sellerAddress, arbiterAddress) && (
+              <Form.Control.Feedback type="invalid">
+                Arbiter cannot be the same as seller
+              </Form.Control.Feedback>
+            )}
             <Form.Text className="text-muted">
               A trusted third party who can resolve disputes and refund funds if needed
             </Form.Text>
@@ -65,7 +116,7 @@ const CreateEscrowTab: React.FC<CreateEscrowTabProps> = ({
           <Button 
             variant="primary" 
             type="submit" 
-            disabled={loading}
+            disabled={loading || !isFormValid()}
           >
             {loading ? <Spinner animation="border" size="sm" /> : 'Create Escrow'}
           </Button>

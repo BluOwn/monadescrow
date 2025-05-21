@@ -79,6 +79,7 @@ export interface CreateEscrowTabProps {
   amount: string;
   setAmount: (amount: string) => void;
   loading: boolean;
+  currentAccount: string; // Add this property for address validation
 }
 
 export interface MyEscrowsTabProps {

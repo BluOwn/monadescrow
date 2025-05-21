@@ -103,6 +103,38 @@ export const validateAmount = (amount: string): boolean => {
   return true;
 };
 
+/**
+ * Validates that buyer, seller, and arbiter are all different addresses
+ * @param buyerAddress - The buyer's address
+ * @param sellerAddress - The seller's address
+ * @param arbiterAddress - The arbiter's address
+ * @returns True if all addresses are different
+ * @throws Error if any addresses match
+ */
+export const validateDifferentAddresses = (
+  buyerAddress: string,
+  sellerAddress: string,
+  arbiterAddress: string
+): boolean => {
+  buyerAddress = buyerAddress.toLowerCase();
+  sellerAddress = sellerAddress.toLowerCase();
+  arbiterAddress = arbiterAddress.toLowerCase();
+  
+  if (buyerAddress === sellerAddress) {
+    throw new Error('Buyer and seller must be different addresses');
+  }
+  
+  if (buyerAddress === arbiterAddress) {
+    throw new Error('Buyer and arbiter must be different addresses');
+  }
+  
+  if (sellerAddress === arbiterAddress) {
+    throw new Error('Seller and arbiter must be different addresses');
+  }
+  
+  return true;
+};
+
 // Enhanced error handling
 export const handleError = (error: any, operation: string = 'operation'): string => {
   console.error(`Error during ${operation}:`, error);

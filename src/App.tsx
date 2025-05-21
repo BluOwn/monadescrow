@@ -173,7 +173,8 @@ const App: React.FC = () => {
       wallet.contract,
       sellerAddress,
       arbiterAddress,
-      amount
+      amount,
+      wallet.account // Pass the buyer's address (current connected wallet)
     );
     
     if (success) {
@@ -387,6 +388,7 @@ const App: React.FC = () => {
                     amount={amount}
                     setAmount={setAmount}
                     loading={escrowOps.loading}
+                    currentAccount={wallet.account} // Add this prop
                   />
                 )}
                 
@@ -485,7 +487,7 @@ const App: React.FC = () => {
                 </p>
                 <p>
                   <a
-                    href="https://github.com/BluOwn/monadescrowts"
+                    href="https://github.com/BluOwn/monadescrow"
                     target="_blank"
                     rel="noopener noreferrer"
                   >

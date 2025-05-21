@@ -7,7 +7,12 @@ import {
   getAndCacheEscrow, 
   invalidateEscrowCache 
 } from '../utils/cacheUtils';
-import { validateAddress, validateAmount, handleError } from '../utils/security';
+import { 
+  validateAddress, 
+  validateAmount, 
+  validateDifferentAddresses,
+  handleError 
+} from '../utils/security';
 import { delayBetweenCalls, isRateLimitError } from '../utils/networkUtils';
 export interface EscrowOperationsState {
   loading: boolean;
@@ -98,13 +103,17 @@ export function useEscrowOperations() {
     contract: EscrowContract, 
     sellerAddress: string, 
     arbiterAddress: string, 
-    amount: string
+    amount: string,
+    buyerAddress: string // Add buyer address parameter
   ): Promise<boolean> => {
     try {
       // Validate inputs
       validateAddress(sellerAddress, 'Seller address');
       validateAddress(arbiterAddress, 'Arbiter address');
       validateAmount(amount);
+      
+      // Add validation to ensure all addresses are different
+      validateDifferentAddresses(buyerAddress, sellerAddress, arbiterAddress);
       
       if (!contract) {
         throw new Error('Contract not initialized');
