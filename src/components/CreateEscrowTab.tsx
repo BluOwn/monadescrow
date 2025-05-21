@@ -42,19 +42,19 @@ const CreateEscrowTab: React.FC<CreateEscrowTabProps> = ({
   // Calculate validation states for form controls
   const sellerAddressInvalid: boolean = 
     sellerAddress ? isCurrentAccount(sellerAddress) : false;
-  
+
   const arbiterAddressInvalid: boolean = 
     arbiterAddress ? (
       isCurrentAccount(arbiterAddress) || 
-      (sellerAddress && isSellerArbiterSame(sellerAddress, arbiterAddress))
+      Boolean(sellerAddress && isSellerArbiterSame(sellerAddress, arbiterAddress))
     ) : false;
-  
+
   // Booleans to control specific error message display
   const isArbiterSameAsBuyer: boolean = 
     arbiterAddress ? isCurrentAccount(arbiterAddress) : false;
-  
+
   const isArbiterSameAsSeller: boolean = 
-    (arbiterAddress && sellerAddress) ? isSellerArbiterSame(sellerAddress, arbiterAddress) : false;
+    Boolean(arbiterAddress && sellerAddress && isSellerArbiterSame(sellerAddress, arbiterAddress));
 
   return (
     <Card>
