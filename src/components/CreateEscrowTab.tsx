@@ -39,11 +39,22 @@ const CreateEscrowTab: React.FC<CreateEscrowTabProps> = ({
     );
   };
 
-  // Calculate validation states for the form controls
-  const sellerInvalid = sellerAddress ? isCurrentAccount(sellerAddress) : false;
-  const arbiterInvalid = arbiterAddress ? 
-    (isCurrentAccount(arbiterAddress) || 
-    (sellerAddress && isSellerArbiterSame(sellerAddress, arbiterAddress))) : false;
+  // Calculate validation states for form controls
+  const sellerAddressInvalid: boolean = 
+    sellerAddress ? isCurrentAccount(sellerAddress) : false;
+  
+  const arbiterAddressInvalid: boolean = 
+    arbiterAddress ? (
+      isCurrentAccount(arbiterAddress) || 
+      (sellerAddress && isSellerArbiterSame(sellerAddress, arbiterAddress))
+    ) : false;
+  
+  // Booleans to control specific error message display
+  const isArbiterSameAsBuyer: boolean = 
+    arbiterAddress ? isCurrentAccount(arbiterAddress) : false;
+  
+  const isArbiterSameAsSeller: boolean = 
+    (arbiterAddress && sellerAddress) ? isSellerArbiterSame(sellerAddress, arbiterAddress) : false;
 
   return (
     <Card>
@@ -64,10 +75,10 @@ const CreateEscrowTab: React.FC<CreateEscrowTabProps> = ({
               placeholder="0x..."
               value={sellerAddress}
               onChange={(e) => setSellerAddress(e.target.value)}
-              isInvalid={sellerInvalid}
+              isInvalid={sellerAddressInvalid}
               required
             />
-            {sellerInvalid && (
+            {sellerAddressInvalid && (
               <Form.Control.Feedback type="invalid">
                 Seller cannot be the same as buyer (your account)
               </Form.Control.Feedback>
@@ -84,15 +95,15 @@ const CreateEscrowTab: React.FC<CreateEscrowTabProps> = ({
               placeholder="0x..."
               value={arbiterAddress}
               onChange={(e) => setArbiterAddress(e.target.value)}
-              isInvalid={arbiterInvalid}
+              isInvalid={arbiterAddressInvalid}
               required
             />
-            {arbiterAddress && isCurrentAccount(arbiterAddress) && (
+            {isArbiterSameAsBuyer && (
               <Form.Control.Feedback type="invalid">
                 Arbiter cannot be the same as buyer (your account)
               </Form.Control.Feedback>
             )}
-            {arbiterAddress && sellerAddress && isSellerArbiterSame(sellerAddress, arbiterAddress) && (
+            {isArbiterSameAsSeller && (
               <Form.Control.Feedback type="invalid">
                 Arbiter cannot be the same as seller
               </Form.Control.Feedback>
