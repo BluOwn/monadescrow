@@ -13,7 +13,7 @@ const CreateEscrowTab: React.FC<CreateEscrowTabProps> = ({
   amount, 
   setAmount,
   loading,
-  currentAccount // Add this prop
+  currentAccount
 }) => {
   // Helper to check if an address matches the current account
   const isCurrentAccount = (address: string): boolean => {
@@ -39,6 +39,12 @@ const CreateEscrowTab: React.FC<CreateEscrowTabProps> = ({
     );
   };
 
+  // Calculate validation states for the form controls
+  const sellerInvalid = sellerAddress ? isCurrentAccount(sellerAddress) : false;
+  const arbiterInvalid = arbiterAddress ? 
+    (isCurrentAccount(arbiterAddress) || 
+    (sellerAddress && isSellerArbiterSame(sellerAddress, arbiterAddress))) : false;
+
   return (
     <Card>
       <Card.Body>
@@ -58,10 +64,10 @@ const CreateEscrowTab: React.FC<CreateEscrowTabProps> = ({
               placeholder="0x..."
               value={sellerAddress}
               onChange={(e) => setSellerAddress(e.target.value)}
-              isInvalid={sellerAddress && isCurrentAccount(sellerAddress)}
+              isInvalid={sellerInvalid}
               required
             />
-            {sellerAddress && isCurrentAccount(sellerAddress) && (
+            {sellerInvalid && (
               <Form.Control.Feedback type="invalid">
                 Seller cannot be the same as buyer (your account)
               </Form.Control.Feedback>
@@ -78,10 +84,7 @@ const CreateEscrowTab: React.FC<CreateEscrowTabProps> = ({
               placeholder="0x..."
               value={arbiterAddress}
               onChange={(e) => setArbiterAddress(e.target.value)}
-              isInvalid={
-                (arbiterAddress && isCurrentAccount(arbiterAddress)) || 
-                (arbiterAddress && sellerAddress && isSellerArbiterSame(sellerAddress, arbiterAddress))
-              }
+              isInvalid={arbiterInvalid}
               required
             />
             {arbiterAddress && isCurrentAccount(arbiterAddress) && (
