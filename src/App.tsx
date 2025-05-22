@@ -1,4 +1,4 @@
-// src/App.tsx
+// src/App.tsx - Enhanced with better debugging for arbitrated escrows
 import React, { Suspense, useState, useEffect, useContext } from 'react';
 import { Button, Container, Nav, Alert, Modal, Badge, Spinner } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -77,51 +77,40 @@ const App: React.FC = () => {
   useEffect(() => {
     const cleanup = wallet.setupWalletListeners();
     return cleanup;
-  }, [wallet]); // Added wallet as a dependency
+  }, [wallet]);
 
-  // Prefetch data for tabs
+  // Enhanced effect for loading escrows with better debugging
   useEffect(() => {
-    // Prefetch data for tabs that aren't active yet
-    const prefetchData = async () => {
-      if (wallet.connected && wallet.contract) {
-        if (activeTab !== 'my' && escrowLists.escrows.length === 0) {
-          // Prefetch my escrows in the background
-          try {
-            await escrowLists.loadUserEscrows(wallet.contract, wallet.account);
-          } catch (e) {
-            // Silently handle errors
-            console.warn('Prefetch failed:', e);
-          }
-        }
-        
-        if (activeTab !== 'arbitrated' && escrowLists.arbitratedEscrows.length === 0) {
-          // Wait a bit before prefetching arbitrated escrows
-          setTimeout(() => {
-            if (wallet.contract) {
-              escrowLists.loadArbitratedEscrows(wallet.contract, wallet.account).catch(e => {
-                // Silently handle errors
-                console.warn('Prefetch failed:', e);
-              });
-            }
-          }, 2000);
+    const loadEscrowData = async () => {
+      if (wallet.connected && wallet.contract && wallet.account) {
+        try {
+          console.log('Loading escrow data for account:', wallet.account);
+          
+          // Load user escrows
+          await escrowLists.loadUserEscrows(wallet.contract, wallet.account);
+          console.log('User escrows loaded:', escrowLists.escrows.length);
+          
+          // Load arbitrated escrows with explicit logging
+          console.log('Starting to load arbitrated escrows for:', wallet.account);
+          await escrowLists.loadArbitratedEscrows(wallet.contract, wallet.account);
+          console.log('Arbitrated escrows loaded:', escrowLists.arbitratedEscrows.length);
+        } catch (error) {
+          console.error('Error loading escrow data:', error);
         }
       }
     };
-    
-    // Start prefetching after a short delay
-    const timerId = setTimeout(prefetchData, 3000);
-    
-    return () => clearTimeout(timerId);
+
+    // Only load if we're connected and don't have data yet
+    if (wallet.connected && wallet.contract && wallet.account && 
+        (escrowLists.escrows.length === 0 || escrowLists.arbitratedEscrows.length === 0)) {
+      loadEscrowData();
+    }
   }, [
     wallet.connected, 
     wallet.contract, 
-    wallet.account, 
-    activeTab, 
-    escrowLists.escrows.length, 
-    escrowLists.arbitratedEscrows.length, 
-    escrowLists.loadUserEscrows, 
-    escrowLists.loadArbitratedEscrows,
-    escrowLists // Added escrowLists as a dependency
+    wallet.account,
+    escrowLists.loadUserEscrows,
+    escrowLists.loadArbitratedEscrows
   ]);
 
   // Connect to MetaMask
@@ -136,11 +125,8 @@ const App: React.FC = () => {
       const success = await wallet.connectWallet();
       
       if (success && wallet.contract) {
-        // Load user's escrows with retry logic
-        await escrowLists.loadUserEscrows(wallet.contract, wallet.account);
-        
-        // Load escrows where user is arbiter with retry logic
-        await escrowLists.loadArbitratedEscrows(wallet.contract, wallet.account);
+        console.log('Wallet connected successfully, loading escrows...');
+        // The useEffect above will handle loading the escrows
       }
     } catch (error) {
       console.error("Error in connect flow:", error);
@@ -174,7 +160,7 @@ const App: React.FC = () => {
       sellerAddress,
       arbiterAddress,
       amount,
-      wallet.account // Pass the buyer's address (current connected wallet)
+      wallet.account
     );
     
     if (success) {
@@ -240,9 +226,27 @@ const App: React.FC = () => {
       // Clear rate limited state
       escrowOps.setRateLimited(false);
       
+      console.log('Retrying to load escrows...');
       // Reload escrows
       await escrowLists.loadUserEscrows(wallet.contract, wallet.account);
       await escrowLists.loadArbitratedEscrows(wallet.contract, wallet.account);
+    }
+  };
+
+  // Debug function to manually refresh arbitrated escrows
+  const debugRefreshArbitratedEscrows = async (): Promise<void> => {
+    if (wallet.contract && wallet.account) {
+      console.log('=== DEBUG: Manually refreshing arbitrated escrows ===');
+      console.log('Account:', wallet.account);
+      console.log('Contract:', wallet.contract);
+      
+      try {
+        await escrowLists.loadArbitratedEscrows(wallet.contract, wallet.account);
+        console.log('=== DEBUG: Refresh complete ===');
+        console.log('Arbitrated escrows found:', escrowLists.arbitratedEscrows.length);
+      } catch (error) {
+        console.error('=== DEBUG: Error during refresh ===', error);
+      }
     }
   };
 
@@ -311,6 +315,23 @@ const App: React.FC = () => {
               {/* Network Warning */}
               <NetworkWarning currentNetwork={wallet.networkName} />
               
+              {/* Debug Controls - Only show in development */}
+              {process.env.NODE_ENV === 'development' && (
+                <Alert variant="warning" className="mb-3">
+                  <strong>Debug Controls:</strong>
+                  <div className="mt-2">
+                    <Button variant="outline-warning" size="sm" className="me-2" onClick={debugRefreshArbitratedEscrows}>
+                      🔍 Debug Refresh Arbitrated
+                    </Button>
+                    <small className="text-muted">
+                      Arbitrated: {escrowLists.arbitratedEscrows.length} | 
+                      My Escrows: {escrowLists.escrows.length} | 
+                      Account: {wallet.account?.slice(0, 8)}...
+                    </small>
+                  </div>
+                </Alert>
+              )}
+              
               {/* Error Alert */}
               {wallet.error && (
                 <Alert variant="danger" onClose={() => { /* Can't directly modify the state */ }} dismissible>
@@ -358,15 +379,18 @@ const App: React.FC = () => {
                   <Nav.Link eventKey="my">
                     My Escrows
                     {escrowLists.loadingEscrows && <Spinner animation="border" size="sm" className="ms-2" />}
+                    {escrowLists.escrows.length > 0 && (
+                      <Badge bg="primary" className="ms-2">{escrowLists.escrows.length}</Badge>
+                    )}
                   </Nav.Link>
                 </Nav.Item>
                 <Nav.Item>
                   <Nav.Link eventKey="arbitrated">
                     Arbitrated Escrows
-                    {escrowLists.arbitratedEscrows.length > 0 && (
-                      <Badge bg="primary" className="ms-2">{escrowLists.arbitratedEscrows.length}</Badge>
-                    )}
                     {escrowLists.loadingArbitratedEscrows && <Spinner animation="border" size="sm" className="ms-2" />}
+                    {escrowLists.arbitratedEscrows.length > 0 && (
+                      <Badge bg="warning" className="ms-2">{escrowLists.arbitratedEscrows.length}</Badge>
+                    )}
                   </Nav.Link>
                 </Nav.Item>
                 <Nav.Item>
@@ -388,7 +412,7 @@ const App: React.FC = () => {
                     amount={amount}
                     setAmount={setAmount}
                     loading={escrowOps.loading}
-                    currentAccount={wallet.account} // Add this prop
+                    currentAccount={wallet.account}
                   />
                 )}
                 
@@ -475,9 +499,9 @@ const App: React.FC = () => {
                   <a
                     href={`https://testnet.monadexplorer.com/address/${CREATOR_WALLET}`}
                     onClick={(e) => {
-                      e.preventDefault(); // prevent default to control the behavior
-                      navigator.clipboard.writeText(CREATOR_WALLET); // copy to clipboard
-                      window.open(e.currentTarget.href, "_blank"); // open in new tab
+                      e.preventDefault();
+                      navigator.clipboard.writeText(CREATOR_WALLET);
+                      window.open(e.currentTarget.href, "_blank");
                     }}
                     style={{ cursor: "pointer", textDecoration: "underline" }}
                     title="Click to open and copy"

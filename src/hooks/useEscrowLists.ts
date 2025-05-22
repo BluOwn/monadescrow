@@ -20,6 +20,15 @@ export function useEscrowLists() {
     loadingArbitratedEscrows: false
   });
 
+  // Helper function to sort escrows from newest to oldest (by ID)
+  const sortEscrowsNewestFirst = (escrows: Escrow[]): Escrow[] => {
+    return [...escrows].sort((a, b) => {
+      const idA = parseInt(a.id);
+      const idB = parseInt(b.id);
+      return idB - idA; // Descending order (newest first)
+    });
+  };
+
   // Load user escrows function
   const loadUserEscrows = useCallback(async (
     escrowContract: EscrowContract, 
@@ -74,8 +83,9 @@ export function useEscrowLists() {
             return placeholder;
           });
           
-          // Set these immediately so user sees something
-          setState(prev => ({ ...prev, escrows: Object.values(escrowMap) }));
+          // Sort placeholders and set them immediately
+          const sortedPlaceholders = sortEscrowsNewestFirst(Object.values(escrowMap));
+          setState(prev => ({ ...prev, escrows: sortedPlaceholders }));
           
           // Now load details in batches
           const BATCH_SIZE = 3;
@@ -108,8 +118,9 @@ export function useEscrowLists() {
               })
             );
             
-            // Update escrows with the complete map (removes duplicates)
-            setState(prev => ({ ...prev, escrows: Object.values(escrowMap) }));
+            // Update escrows with the complete map (removes duplicates) and sort
+            const sortedEscrows = sortEscrowsNewestFirst(Object.values(escrowMap));
+            setState(prev => ({ ...prev, escrows: sortedEscrows }));
             
             // Add delay between batches
             if (i + BATCH_SIZE < escrowIds.length) {
@@ -160,18 +171,18 @@ export function useEscrowLists() {
           throw new Error('Contract not properly initialized');
         }
         
-        // Get total escrow count (with a limit to prevent too many calls)
+        // Get total escrow count
         const escrowCount = await escrowContract.getEscrowCount();
-        const maxToCheck = Math.min(Number(escrowCount), 25); // Limit how many we check
+        const totalEscrows = Number(escrowCount);
         
-        // Create array of escrow IDs to check
-        const escrowsToCheck = Array.from({ length: maxToCheck }, (_, i) => i);
+        // Create array of escrow IDs to check (all escrows)
+        const escrowsToCheck = Array.from({ length: totalEscrows }, (_, i) => i);
         
         // Create a map to store arbitrated escrows by ID
         const arbitratedMap: Record<string, Escrow> = {};
         
         // Process escrow details in batches
-        const BATCH_SIZE = 3;
+        const BATCH_SIZE = 5; // Slightly larger batch for checking
         
         for (let i = 0; i < escrowsToCheck.length; i += BATCH_SIZE) {
           const batch = escrowsToCheck.slice(i, i + BATCH_SIZE);
@@ -181,10 +192,11 @@ export function useEscrowLists() {
               try {
                 const escrow = await getAndCacheEscrow(escrowContract as unknown as ethers.Contract, escrowId, ethers);
                 
-                // Check if the user is the arbiter for this escrow
+                // Check if the user is the arbiter for this escrow (case-insensitive comparison)
                 if (escrow.arbiter.toLowerCase() === arbiterAddress.toLowerCase()) {
                   // Store in map to ensure uniqueness
                   arbitratedMap[escrow.id.toString()] = escrow;
+                  console.log(`Found arbitrated escrow: ${escrow.id} - Arbiter: ${escrow.arbiter}, User: ${arbiterAddress}`);
                   return escrow;
                 }
                 return null; // Not an arbiter, don't include
@@ -195,8 +207,9 @@ export function useEscrowLists() {
             })
           );
           
-          // Update the UI with what we have so far (from the map)
-          setState(prev => ({ ...prev, arbitratedEscrows: Object.values(arbitratedMap) }));
+          // Update the UI with what we have so far (from the map) and sort
+          const sortedArbitratedEscrows = sortEscrowsNewestFirst(Object.values(arbitratedMap));
+          setState(prev => ({ ...prev, arbitratedEscrows: sortedArbitratedEscrows }));
           
           // Add delay between batches
           if (i + BATCH_SIZE < escrowsToCheck.length) {
@@ -204,13 +217,15 @@ export function useEscrowLists() {
           }
         }
         
-        // Final update to ensure we have the complete set
+        // Final update to ensure we have the complete set, sorted
+        const finalSortedEscrows = sortEscrowsNewestFirst(Object.values(arbitratedMap));
         setState(prev => ({ 
           ...prev, 
-          arbitratedEscrows: Object.values(arbitratedMap),
+          arbitratedEscrows: finalSortedEscrows,
           loadingArbitratedEscrows: false
         }));
         
+        console.log(`Total arbitrated escrows found: ${finalSortedEscrows.length}`);
         return; // Success, exit the retry loop
         
       } catch (error) {
@@ -229,8 +244,14 @@ export function useEscrowLists() {
     ...state,
     loadUserEscrows,
     loadArbitratedEscrows,
-    setEscrows: (escrows: Escrow[]) => setState(prev => ({ ...prev, escrows })),
-    setArbitratedEscrows: (arbitratedEscrows: Escrow[]) => setState(prev => ({ ...prev, arbitratedEscrows }))
+    setEscrows: (escrows: Escrow[]) => {
+      const sortedEscrows = sortEscrowsNewestFirst(escrows);
+      setState(prev => ({ ...prev, escrows: sortedEscrows }));
+    },
+    setArbitratedEscrows: (arbitratedEscrows: Escrow[]) => {
+      const sortedEscrows = sortEscrowsNewestFirst(arbitratedEscrows);
+      setState(prev => ({ ...prev, arbitratedEscrows: sortedEscrows }));
+    }
   };
 }
 

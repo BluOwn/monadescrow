@@ -17,14 +17,24 @@ const EscrowList: React.FC<EscrowListProps> = ({
   const [hasMore, setHasMore] = useState<boolean>(true);
   const PAGE_SIZE = 5;
 
+  // Helper function to sort escrows from newest to oldest (by ID)
+  const sortEscrowsNewestFirst = (escrowArray: Escrow[]): Escrow[] => {
+    return [...escrowArray].sort((a, b) => {
+      const idA = parseInt(a.id);
+      const idB = parseInt(b.id);
+      return idB - idA; // Descending order (newest first)
+    });
+  };
+
   useEffect(() => {
     if (escrows.length > 0) {
-      // Remove duplicates
+      // Remove duplicates and sort
       const uniqueEscrows = removeDuplicates(escrows);
+      const sortedEscrows = sortEscrowsNewestFirst(uniqueEscrows);
       
       // Initial load of first page
-      setDisplayedEscrows(uniqueEscrows.slice(0, PAGE_SIZE));
-      setHasMore(uniqueEscrows.length > PAGE_SIZE);
+      setDisplayedEscrows(sortedEscrows.slice(0, PAGE_SIZE));
+      setHasMore(sortedEscrows.length > PAGE_SIZE);
     } else {
       setDisplayedEscrows([]);
       setHasMore(false);
@@ -63,10 +73,11 @@ const EscrowList: React.FC<EscrowListProps> = ({
   const loadMore = (): void => {
     const nextPage = page + 1;
     const uniqueEscrows = removeDuplicates(escrows);
-    const nextEscrows = uniqueEscrows.slice(0, nextPage * PAGE_SIZE);
+    const sortedEscrows = sortEscrowsNewestFirst(uniqueEscrows);
+    const nextEscrows = sortedEscrows.slice(0, nextPage * PAGE_SIZE);
     setDisplayedEscrows(nextEscrows);
     setPage(nextPage);
-    setHasMore(nextEscrows.length < uniqueEscrows.length);
+    setHasMore(nextEscrows.length < sortedEscrows.length);
   };
 
   if (loadingEscrows && escrows.length === 0) {
@@ -90,8 +101,8 @@ const EscrowList: React.FC<EscrowListProps> = ({
     );
   }
 
-  // Ensure the displayed escrows don't have duplicates
-  const escrowsToShow = removeDuplicates(displayedEscrows);
+  // Ensure the displayed escrows don't have duplicates and are sorted
+  const escrowsToShow = sortEscrowsNewestFirst(removeDuplicates(displayedEscrows));
 
   return (
     <div>

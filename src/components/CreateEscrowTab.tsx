@@ -1,6 +1,6 @@
 // src/components/CreateEscrowTab.tsx
-import React from 'react';
-import { Card, Form, Button, Spinner, Alert } from 'react-bootstrap';
+import React, { useState } from 'react';
+import { Card, Form, Button, Spinner, Alert, Badge, Collapse } from 'react-bootstrap';
 import { ContractInfo } from './SecurityComponents';
 import { CreateEscrowTabProps } from '../types';
 
@@ -15,6 +15,11 @@ const CreateEscrowTab: React.FC<CreateEscrowTabProps> = ({
   loading,
   currentAccount
 }) => {
+  const [showArbiterHelper, setShowArbiterHelper] = useState<boolean>(false);
+  
+  // Website's recommended arbiter address
+  const WEBSITE_ARBITER = "0xC4E06Cd628D1ABA8436a812D8a1fA49a4b3BbC47";
+  
   // Helper to check if an address matches the current account
   const isCurrentAccount = (address: string): boolean => {
     if (!address || !currentAccount) return false;
@@ -37,6 +42,12 @@ const CreateEscrowTab: React.FC<CreateEscrowTabProps> = ({
       !!arbiterAddress &&
       !!amount
     );
+  };
+
+  // Copy website arbiter address to clipboard and set it
+  const useWebsiteArbiter = (): void => {
+    setArbiterAddress(WEBSITE_ARBITER);
+    navigator.clipboard.writeText(WEBSITE_ARBITER);
   };
 
   // Calculate validation states for form controls
@@ -89,10 +100,71 @@ const CreateEscrowTab: React.FC<CreateEscrowTabProps> = ({
           </Form.Group>
           
           <Form.Group className="mb-3">
-            <Form.Label>Arbiter Address</Form.Label>
+            <div className="d-flex justify-content-between align-items-center mb-2">
+              <Form.Label className="mb-0">Arbiter Address</Form.Label>
+              <Button 
+                variant="outline-info" 
+                size="sm"
+                onClick={() => setShowArbiterHelper(!showArbiterHelper)}
+              >
+                Need an Arbiter? {showArbiterHelper ? '▲' : '▼'}
+              </Button>
+            </div>
+            
+            <Collapse in={showArbiterHelper}>
+              <div>
+                <Alert variant="light" className="mb-3">
+                  <div className="d-flex justify-content-between align-items-start">
+                    <div style={{ flex: 1 }}>
+                      <h6 className="mb-2">🏛️ Website Arbiter Service</h6>
+                      <p className="mb-2">
+                        Use our trusted arbiter service for dispute resolution:
+                      </p>
+                      <div className="mb-2">
+                        <code 
+                          style={{ 
+                            fontSize: '0.9rem', 
+                            padding: '4px 8px', 
+                            backgroundColor: '#f8f9fa',
+                            border: '1px solid #dee2e6',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            display: 'inline-block',
+                            wordBreak: 'break-all'
+                          }}
+                          onClick={() => navigator.clipboard.writeText(WEBSITE_ARBITER)}
+                          title="Click to copy"
+                        >
+                          {WEBSITE_ARBITER}
+                        </code>
+                        <Badge bg="secondary" className="ms-2">Click to copy</Badge>
+                      </div>
+                      <div className="mb-2">
+                        <Button 
+                          variant="success" 
+                          size="sm" 
+                          className="me-2"
+                          onClick={useWebsiteArbiter}
+                        >
+                          Use This Arbiter
+                        </Button>
+                      </div>
+                      <div>
+                        <small className="text-muted">
+                          <strong>Contact for arbiter services:</strong><br/>
+                          📞 Telegram: <a href="https://t.me/oprimedev" target="_blank" rel="noopener noreferrer">@oprimedev</a><br/>
+                          📝 Request Form: <a href="https://forms.gle/oxkvRCLJNvC4vXjb7" target="_blank" rel="noopener noreferrer">Google Form</a>
+                        </small>
+                      </div>
+                    </div>
+                  </div>
+                </Alert>
+              </div>
+            </Collapse>
+            
             <Form.Control
               type="text"
-              placeholder="0x..."
+              placeholder="0x... or use website arbiter above"
               value={arbiterAddress}
               onChange={(e) => setArbiterAddress(e.target.value)}
               isInvalid={arbiterAddressInvalid}
