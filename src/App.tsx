@@ -1,4 +1,4 @@
-// src/App.tsx - Updated version with better loading logic
+// src/App.tsx - Updated version with simplified escrow loading
 import React, { Suspense, useState, useEffect, useContext, useCallback } from 'react';
 import { Button, Container, Nav, Alert, Modal, Badge, Spinner } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -9,7 +9,7 @@ import { ThemeContext } from './contexts/ThemeContext';
 
 // Import hooks
 import useWallet from './hooks/useWallet';
-import useEscrowLists from './hooks/useEscrowLists';
+import { useSimpleEscrowLoader } from './hooks/useSimpleEscrowLoader';
 import useEscrowOperations from './hooks/useEscrowOperations';
 
 // Import components
@@ -47,7 +47,7 @@ const App: React.FC = () => {
   
   // Use custom hooks
   const wallet = useWallet();
-  const escrowLists = useEscrowLists();
+  const escrowLoader = useSimpleEscrowLoader();
   const escrowOps = useEscrowOperations();
   
   // Local state
@@ -56,7 +56,6 @@ const App: React.FC = () => {
   const [showSecurityWarning, setShowSecurityWarning] = useState<boolean>(false);
   const [hasAcceptedSecurity, setHasAcceptedSecurity] = useState<boolean>(false);
   const [firstTimeUser, setFirstTimeUser] = useState<boolean>(true);
-  const [dataLoaded, setDataLoaded] = useState<boolean>(false);
 
   // Form states
   const [sellerAddress, setSellerAddress] = useState<string>('');
@@ -80,78 +79,34 @@ const App: React.FC = () => {
     return cleanup;
   }, [wallet]);
 
-  // FIXED: Enhanced effect for loading escrows - always loads when connected
+  // SIMPLIFIED: Single effect for loading escrows
   useEffect(() => {
-    const loadEscrowData = async () => {
+    const loadData = async () => {
       if (wallet.connected && wallet.contract && wallet.account) {
-        try {
-          console.log('Loading escrow data for account:', wallet.account);
-          
-          // Load user escrows and arbitrated escrows in parallel
-          const [userEscrowsResult, arbitratedEscrowsResult] = await Promise.allSettled([
-            escrowLists.loadUserEscrows(wallet.contract, wallet.account),
-            escrowLists.loadArbitratedEscrows(wallet.contract, wallet.account)
-          ]);
-          
-          if (userEscrowsResult.status === 'fulfilled') {
-            console.log('User escrows loaded:', escrowLists.escrows.length);
-          } else {
-            console.error('Failed to load user escrows:', userEscrowsResult.reason);
-          }
-          
-          if (arbitratedEscrowsResult.status === 'fulfilled') {
-            console.log('Arbitrated escrows loaded:', escrowLists.arbitratedEscrows.length);
-          } else {
-            console.error('Failed to load arbitrated escrows:', arbitratedEscrowsResult.reason);
-          }
-          
-          setDataLoaded(true);
-        } catch (error) {
-          console.error('Error loading escrow data:', error);
-        }
-      } else {
-        setDataLoaded(false);
-      }
-    };
-
-    // FIXED: Always load when wallet is connected, regardless of existing data
-    if (wallet.connected && wallet.contract && wallet.account) {
-      loadEscrowData();
-    }
-  }, [
-    wallet.connected, 
-    wallet.contract, 
-    wallet.account
-    // Removed escrowLists dependencies to prevent infinite loops
-  ]);
-
-  // Add a separate effect to handle force refresh on tab change
-  useEffect(() => {
-    const forceRefreshData = async () => {
-      if (wallet.connected && wallet.contract && wallet.account && dataLoaded) {
-        // Force refresh when switching to tabs that need current data
-        if (activeTab === 'my' && escrowLists.escrows.length === 0 && !escrowLists.loadingEscrows) {
-          console.log('Force refreshing user escrows for My Escrows tab');
-          try {
-            await escrowLists.forceRefreshUserEscrows(wallet.contract, wallet.account);
-          } catch (error) {
-            console.warn('Failed to refresh user escrows:', error);
-          }
-        }
+        console.log('👤 Wallet connected, loading escrows...');
         
-        if (activeTab === 'arbitrated' && escrowLists.arbitratedEscrows.length === 0 && !escrowLists.loadingArbitratedEscrows) {
-          console.log('Force refreshing arbitrated escrows for Arbitrated tab');
-          try {
-            await escrowLists.forceRefreshArbitratedEscrows(wallet.contract, wallet.account);
-          } catch (error) {
-            console.warn('Failed to refresh arbitrated escrows:', error);
-          }
-        }
+        // Use refreshIfStale to avoid unnecessary reloads
+        await escrowLoader.refreshIfStale(wallet.contract, wallet.account);
       }
     };
 
-    forceRefreshData();
-  }, [activeTab, wallet.connected, wallet.contract, wallet.account, dataLoaded]);
+    loadData();
+  }, [wallet.connected, wallet.contract, wallet.account, escrowLoader]);
+
+  // Handle tab changes - refresh stale data when switching to relevant tabs
+  useEffect(() => {
+    const handleTabChange = async () => {
+      if (!wallet.connected || !wallet.contract || !wallet.account) return;
+      
+      // Only refresh if switching to tabs that need data and data is stale
+      if ((activeTab === 'my' || activeTab === 'arbitrated') && escrowLoader.isStale) {
+        console.log(`🔄 Tab switched to ${activeTab}, refreshing stale data...`);
+        await escrowLoader.refreshIfStale(wallet.contract, wallet.account);
+      }
+    };
+
+    handleTabChange();
+  }, [activeTab, wallet.connected, wallet.contract, wallet.account, escrowLoader]);
 
   // Connect to MetaMask
   const connectWallet = async (): Promise<void> => {
@@ -189,7 +144,7 @@ const App: React.FC = () => {
     // Don't connect wallet if user declines
   };
 
-  // Create new escrow
+  // SIMPLIFIED: Create escrow handler
   const handleCreateEscrow = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     
@@ -208,15 +163,12 @@ const App: React.FC = () => {
       setArbiterAddress('');
       setAmount('');
       
-      // Force refresh both escrow lists
-      await Promise.all([
-        escrowLists.forceRefreshUserEscrows(wallet.contract, wallet.account),
-        escrowLists.forceRefreshArbitratedEscrows(wallet.contract, wallet.account)
-      ]);
+      // Force refresh after creating escrow
+      await escrowLoader.forceRefresh(wallet.contract, wallet.account);
     }
   };
 
-  // OPTIMIZED: View escrow details with better error handling
+  // View escrow details with better error handling
   const viewEscrowDetails = useCallback(async (escrowId: string): Promise<void> => {
     if (!wallet.contract) {
       escrowOps.setError('Wallet not connected');
@@ -240,7 +192,7 @@ const App: React.FC = () => {
     }
   }, [wallet.contract, escrowOps]);
 
-  // OPTIMIZED: Handle escrow action with better state management
+  // SIMPLIFIED: Escrow action handler
   const handleEscrowAction = useCallback(async (
     action: string, 
     escrowId: string, 
@@ -251,25 +203,21 @@ const App: React.FC = () => {
     const success = await escrowOps.handleEscrowAction(wallet.contract, action, escrowId, recipient);
     
     if (success) {
-      // Force refresh both escrow lists
-      Promise.all([
-        escrowLists.forceRefreshUserEscrows(wallet.contract, wallet.account),
-        escrowLists.forceRefreshArbitratedEscrows(wallet.contract, wallet.account)
-      ]).catch(error => {
-        console.warn('Failed to reload escrows after action:', error);
-      });
+      // Force refresh after any action
+      setTimeout(() => {
+        escrowLoader.forceRefresh(wallet.contract!, wallet.account);
+      }, 1000); // Small delay to ensure blockchain state is updated
       
-      // Refresh the modal data if it's still open
+      // Refresh modal if open
       if (showDetailsModal && escrowOps.selectedEscrow?.id === escrowId) {
-        // Small delay then refresh the modal data
         setTimeout(() => {
           viewEscrowDetails(escrowId);
-        }, 1000);
+        }, 1500);
       }
     }
-  }, [wallet.contract, escrowOps, escrowLists, wallet.account, showDetailsModal, viewEscrowDetails]);
+  }, [wallet.contract, wallet.account, showDetailsModal, escrowOps.selectedEscrow?.id, escrowLoader, viewEscrowDetails]);
 
-  // OPTIMIZED: Handle find escrow with better state management
+  // Handle find escrow with better state management
   const handleFindEscrow = useCallback(async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     
@@ -291,7 +239,7 @@ const App: React.FC = () => {
     }
   }, [escrowIdToView, wallet.contract, escrowOps, viewEscrowDetails]);
 
-  // OPTIMIZED: Modal close handler with state cleanup
+  // Modal close handler with state cleanup
   const handleModalClose = useCallback(() => {
     setShowDetailsModal(false);
     
@@ -302,28 +250,6 @@ const App: React.FC = () => {
     }, 150); // 150ms delay
   }, [escrowOps]);
 
-  // Force refresh all data
-  const forceRefreshAllData = useCallback(async (): Promise<void> => {
-    if (wallet.contract && wallet.account) {
-      console.log('Force refreshing all escrow data...');
-      
-      // Clear any cached data
-      escrowLists.clearAllEscrows();
-      
-      try {
-        // Force reload both types
-        await Promise.all([
-          escrowLists.forceRefreshUserEscrows(wallet.contract, wallet.account),
-          escrowLists.forceRefreshArbitratedEscrows(wallet.contract, wallet.account)
-        ]);
-        
-        console.log('Force refresh completed');
-      } catch (error) {
-        console.error('Force refresh failed:', error);
-      }
-    }
-  }, [wallet.contract, wallet.account, escrowLists]);
-
   // Retry loading escrows button
   const retryLoadingEscrows = async (): Promise<void> => {
     if (wallet.contract && wallet.account) {
@@ -332,24 +258,7 @@ const App: React.FC = () => {
       
       console.log('Retrying to load escrows...');
       // Force refresh all data
-      await forceRefreshAllData();
-    }
-  };
-
-  // Debug function to manually refresh arbitrated escrows
-  const debugRefreshArbitratedEscrows = async (): Promise<void> => {
-    if (wallet.contract && wallet.account) {
-      console.log('=== DEBUG: Manually refreshing arbitrated escrows ===');
-      console.log('Account:', wallet.account);
-      console.log('Contract:', wallet.contract);
-      
-      try {
-        await escrowLists.forceRefreshArbitratedEscrows(wallet.contract, wallet.account);
-        console.log('=== DEBUG: Refresh complete ===');
-        console.log('Arbitrated escrows found:', escrowLists.arbitratedEscrows.length);
-      } catch (error) {
-        console.error('=== DEBUG: Error during refresh ===', error);
-      }
+      await escrowLoader.forceRefresh(wallet.contract, wallet.account);
     }
   };
 
@@ -418,24 +327,49 @@ const App: React.FC = () => {
               {/* Network Warning */}
               <NetworkWarning currentNetwork={wallet.networkName} />
               
+              {/* Show loading state */}
+              {escrowLoader.loading && (
+                <Alert variant="info" className="mb-3">
+                  <Spinner animation="border" size="sm" className="me-2" />
+                  Loading escrows...
+                </Alert>
+              )}
+              
+              {/* Show error state */}
+              {escrowLoader.error && (
+                <Alert variant="danger" className="mb-3">
+                  <strong>Loading Error:</strong> {escrowLoader.error}
+                  <div className="mt-2">
+                    <Button 
+                      variant="outline-danger" 
+                      size="sm" 
+                      onClick={() => escrowLoader.forceRefresh(wallet.contract!, wallet.account)}
+                    >
+                      Retry
+                    </Button>
+                  </div>
+                </Alert>
+              )}
+              
               {/* Debug Controls - Only show in development */}
               {process.env.NODE_ENV === 'development' && (
-                <Alert variant="warning" className="mb-3">
-                  <strong>Debug Controls:</strong>
-                  <div className="mt-2">
-                    <Button variant="outline-warning" size="sm" className="me-2" onClick={debugRefreshArbitratedEscrows}>
-                      🔍 Debug Refresh Arbitrated
-                    </Button>
-                    <Button variant="outline-info" size="sm" className="me-2" onClick={forceRefreshAllData}>
-                      🔄 Force Refresh All
-                    </Button>
-                    <small className="text-muted">
-                      Arbitrated: {escrowLists.arbitratedEscrows.length} | 
-                      My Escrows: {escrowLists.escrows.length} | 
-                      Account: {wallet.account?.slice(0, 8)}... | 
-                      Data Loaded: {dataLoaded ? 'Yes' : 'No'}
-                    </small>
+                <Alert variant="info" className="mb-3">
+                  <strong>Debug Info:</strong>
+                  <div>
+                    User Escrows: {escrowLoader.userEscrows.length} | 
+                    Arbitrated: {escrowLoader.arbitratedEscrows.length} | 
+                    Loading: {escrowLoader.loading ? 'Yes' : 'No'} | 
+                    Last Updated: {escrowLoader.lastUpdated ? new Date(escrowLoader.lastUpdated).toLocaleTimeString() : 'Never'} | 
+                    Account: {wallet.account?.slice(0, 8)}...
                   </div>
+                  <Button 
+                    variant="outline-info" 
+                    size="sm" 
+                    className="mt-2"
+                    onClick={() => escrowLoader.forceRefresh(wallet.contract!, wallet.account)}
+                  >
+                    🔄 Force Refresh
+                  </Button>
                 </Alert>
               )}
               
@@ -485,156 +419,155 @@ const App: React.FC = () => {
                 <Nav.Item>
                   <Nav.Link eventKey="my">
                     My Escrows
-                    {escrowLists.loadingEscrows && <Spinner animation="border" size="sm" className="ms-2" />}
-                    {escrowLists.escrows.length > 0 && (
-                      <Badge bg="primary" className="ms-2">{escrowLists.escrows.length}</Badge>
+                    {escrowLoader.loading && <Spinner animation="border" size="sm" className="ms-2" />}
+                    {escrowLoader.userEscrows.length > 0 && (
+                      <Badge bg="primary" className="ms-2">{escrowLoader.userEscrows.length}</Badge>
                     )}
                   </Nav.Link>
                 </Nav.Item>
                 <Nav.Item>
-                 <Nav.Link eventKey="arbitrated">
-                   Arbitrated Escrows
-                   {escrowLists.loadingArbitratedEscrows && <Spinner animation="border" size="sm" className="ms-2" />}
-                   {escrowLists.arbitratedEscrows.length > 0 && (
-                     <Badge bg="warning" className="ms-2">{escrowLists.arbitratedEscrows.length}</Badge>
-                   )}
-                 </Nav.Link>
-               </Nav.Item>
-               <Nav.Item>
-                 <Nav.Link eventKey="find">Find Escrow</Nav.Link>
-               </Nav.Item>
-               <Nav.Item>
-                 <Nav.Link eventKey="contact">Contact</Nav.Link>
-               </Nav.Item>
-             </Nav>
-             
-             <Suspense fallback={<LoadingIndicator message="Loading tab content..." />}>
-               {activeTab === 'create' && (
-                 <CreateEscrowTab 
-                   handleCreateEscrow={handleCreateEscrow}
-                   sellerAddress={sellerAddress}
-                   setSellerAddress={setSellerAddress}
-                   arbiterAddress={arbiterAddress}
-                   setArbiterAddress={setArbiterAddress}
-                   amount={amount}
-                   setAmount={setAmount}
-                   loading={escrowOps.loading}
-                   currentAccount={wallet.account}
-                 />
-               )}
-               
-               {activeTab === 'my' && (
-                 <MyEscrowsTab 
-                   escrows={escrowLists.escrows} 
-                   onViewDetails={viewEscrowDetails} 
-                   loadingEscrows={escrowLists.loadingEscrows}
-                   retryLoadingEscrows={retryLoadingEscrows}
-                   account={wallet.account}
-                   onAction={handleEscrowAction}
-                 />
-               )}
+                  <Nav.Link eventKey="arbitrated">
+                    Arbitrated Escrows
+                    {escrowLoader.loading && <Spinner animation="border" size="sm" className="ms-2" />}
+                    {escrowLoader.arbitratedEscrows.length > 0 && (
+                      <Badge bg="warning" className="ms-2">{escrowLoader.arbitratedEscrows.length}</Badge>
+                    )}
+                  </Nav.Link>
+                </Nav.Item>
+                <Nav.Item>
+                  <Nav.Link eventKey="find">Find Escrow</Nav.Link>
+                </Nav.Item>
+                <Nav.Item>
+                  <Nav.Link eventKey="contact">Contact</Nav.Link>
+                </Nav.Item>
+              </Nav>
+              
+              <Suspense fallback={<LoadingIndicator message="Loading tab content..." />}>
+                {activeTab === 'create' && (
+                  <CreateEscrowTab 
+                    handleCreateEscrow={handleCreateEscrow}
+                    sellerAddress={sellerAddress}
+                    setSellerAddress={setSellerAddress}
+                    arbiterAddress={arbiterAddress}
+                    setArbiterAddress={setArbiterAddress}
+                    amount={amount}
+                    setAmount={setAmount}
+                    loading={escrowOps.loading}
+                    currentAccount={wallet.account}
+                  />
+                )}
+                
+                {activeTab === 'my' && (
+                  <MyEscrowsTab 
+                    escrows={escrowLoader.userEscrows} 
+                    onViewDetails={viewEscrowDetails} 
+                    loadingEscrows={escrowLoader.loading}
+                    retryLoadingEscrows={() => escrowLoader.forceRefresh(wallet.contract!, wallet.account)}
+                    account={wallet.account}
+                    onAction={handleEscrowAction}
+                  />
+                )}
 
-               {activeTab === 'arbitrated' && (
-                 <ArbitratedEscrowsTab 
-                   arbitratedEscrows={escrowLists.arbitratedEscrows} 
-                   onViewDetails={viewEscrowDetails} 
-                   loadingArbitratedEscrows={escrowLists.loadingArbitratedEscrows}
-                   retryLoadingEscrows={retryLoadingEscrows}
-                   account={wallet.account}
-                   onAction={handleEscrowAction}
-                 />
-               )}
-               
-               {activeTab === 'find' && (
-                 <FindEscrowTab 
-                   escrowIdToView={escrowIdToView}
-                   setEscrowIdToView={setEscrowIdToView}
-                   handleFindEscrow={handleFindEscrow}
-                   loading={escrowOps.loading}
-                 />
-               )}
-               
-               {activeTab === 'contact' && (
-                 <ContactForm />
-               )}
-             </Suspense>
-             
-             {/* OPTIMIZED: Escrow Details Modal with better handling */}
-             <Modal 
-               show={showDetailsModal} 
-               onHide={handleModalClose}
-               contentClassName={darkMode ? "bg-dark text-light" : ""}
-               backdrop="static"
-               keyboard={false}
-             >
-               <Modal.Header closeButton>
-                 <Modal.Title>Escrow Details</Modal.Title>
-               </Modal.Header>
-               <Modal.Body>
-                 <Suspense fallback={<EscrowDetailsSkeleton />}>
-                   {escrowOps.selectedEscrow ? (
-                     <EscrowDetails
-                       escrow={escrowOps.selectedEscrow}
-                       account={wallet.account}
-                       onAction={handleEscrowAction}
-                       loading={escrowOps.loading}
-                     />
-                   ) : (
-                     <EscrowDetailsSkeleton />
-                   )}
-                 </Suspense>
-               </Modal.Body>
-               <Modal.Footer>
-                 <Button variant="secondary" onClick={handleModalClose}>
-                   Close
-                 </Button>
-               </Modal.Footer>
-             </Modal>
-             
-             {/* Footer with creator info */}
-<div className="footer">
-  <p>
-    Created by{" "}
-    <a
-      href={`https://twitter.com/${CREATOR_TWITTER.substring(1)}`}
-      target="_blank"
-      rel="noopener noreferrer"
-    >
-      {CREATOR_TWITTER}
-    </a>
-  </p>
-  <p>
-    Creator wallet:{" "}
-    <a
-      href={`https://testnet.monadexplorer.com/address/${CREATOR_WALLET}`}
-      onClick={(e) => {
-        e.preventDefault();
-        navigator.clipboard.writeText(CREATOR_WALLET);
-        window.open(e.currentTarget.href, "_blank");
-      }}
-      style={{ cursor: "pointer", textDecoration: "underline" }}
-      title="Click to open and copy"
-    >
-      {CREATOR_WALLET}
-    </a>
-  </p>
-  <p>
-    <a
-      href="https://github.com/BluOwn/monadescrow"
-      target="_blank"
-      rel="noopener noreferrer"
-    >
-      View on GitHub
-    </a>
-  </p>
-</div>
-
-           </>
-         )}
-       </Container>
-     </div>
-   </DarkModeWrapper>
- );
+                {activeTab === 'arbitrated' && (
+                  <ArbitratedEscrowsTab 
+                    arbitratedEscrows={escrowLoader.arbitratedEscrows} 
+                    onViewDetails={viewEscrowDetails} 
+                    loadingArbitratedEscrows={escrowLoader.loading}
+                    retryLoadingEscrows={() => escrowLoader.forceRefresh(wallet.contract!, wallet.account)}
+                    account={wallet.account}
+                    onAction={handleEscrowAction}
+                  />
+                )}
+                
+                {activeTab === 'find' && (
+                  <FindEscrowTab 
+                    escrowIdToView={escrowIdToView}
+                    setEscrowIdToView={setEscrowIdToView}
+                    handleFindEscrow={handleFindEscrow}
+                    loading={escrowOps.loading}
+                  />
+                )}
+                
+                {activeTab === 'contact' && (
+                  <ContactForm />
+                )}
+              </Suspense>
+              
+              {/* Escrow Details Modal with better handling */}
+              <Modal 
+                show={showDetailsModal} 
+                onHide={handleModalClose}
+                contentClassName={darkMode ? "bg-dark text-light" : ""}
+                backdrop="static"
+                keyboard={false}
+              >
+                <Modal.Header closeButton>
+                  <Modal.Title>Escrow Details</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                  <Suspense fallback={<EscrowDetailsSkeleton />}>
+                    {escrowOps.selectedEscrow ? (
+                      <EscrowDetails
+                        escrow={escrowOps.selectedEscrow}
+                        account={wallet.account}
+                        onAction={handleEscrowAction}
+                        loading={escrowOps.loading}
+                      />
+                    ) : (
+                      <EscrowDetailsSkeleton />
+                    )}
+                  </Suspense>
+                </Modal.Body>
+                <Modal.Footer>
+                  <Button variant="secondary" onClick={handleModalClose}>
+                    Close
+                  </Button>
+                </Modal.Footer>
+              </Modal>
+              
+              {/* Footer with creator info */}
+              <div className="footer">
+                <p>
+                  Created by{" "}
+                  <a
+                    href={`https://twitter.com/${CREATOR_TWITTER.substring(1)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {CREATOR_TWITTER}
+                  </a>
+                </p>
+                <p>
+                  Creator wallet:{" "}
+                  <a
+                    href={`https://testnet.monadexplorer.com/address/${CREATOR_WALLET}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      navigator.clipboard.writeText(CREATOR_WALLET);
+                      window.open(e.currentTarget.href, "_blank");
+                    }}
+                    style={{ cursor: "pointer", textDecoration: "underline" }}
+                    title="Click to open and copy"
+                  >
+                    {CREATOR_WALLET}
+                  </a>
+                </p>
+                <p>
+                  <a
+                    href="https://github.com/BluOwn/monadescrow"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    View on GitHub
+                  </a>
+                </p>
+              </div>
+            </>
+          )}
+        </Container>
+      </div>
+    </DarkModeWrapper>
+  );
 };
 
 export default App;
