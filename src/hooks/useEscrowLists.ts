@@ -76,9 +76,9 @@ export function useEscrowLists() {
             batch.map(async (escrowId: any) => {
               try {
                 return await getAndCacheEscrow(escrowContract as unknown as ethers.Contract, escrowId, ethers);
-              } catch (err) {
+              } catch (err: any) {
                 // Silent handling - don't log expected errors
-                if (err && !err.message?.includes('does not exist')) {
+                if (err && typeof err === 'object' && err.message && !err.message.includes('does not exist')) {
                   console.warn(`Error loading escrow ${escrowId}:`, err);
                 }
                 return null; // Return null for non-existent escrows
@@ -184,9 +184,9 @@ export function useEscrowLists() {
                   return escrow;
                 }
                 return null;
-              } catch (err) {
+              } catch (err: any) {
                 // Silent handling - don't log expected errors for non-existent escrows
-                if (err && !err.message?.includes('does not exist')) {
+                if (err && typeof err === 'object' && err.message && !err.message.includes('does not exist')) {
                   console.warn(`Error fetching escrow #${escrowId}:`, err);
                 }
                 return null;
