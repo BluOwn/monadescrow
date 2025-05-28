@@ -1,5 +1,5 @@
-/* Modern Dark Mode Implementation
-   Enhanced to work seamlessly with the updated App.css */
+/* Optimized Modern Dark Mode Implementation
+   Performance-focused version with reduced backdrop-filter usage */
 
 /* Global dark mode variables */
 :root.dark-mode,
@@ -31,25 +31,17 @@ body.dark-mode,
   --info-color: #60a5fa;
   --info-hover: #3b82f6;
   
-  /* Shadows - Dark Mode */
+  /* Optimized Shadows - Reduced complexity */
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
-  --shadow: 0 4px 6px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
-  
-  /* Gradients - Dark Mode */
-  --primary-gradient: linear-gradient(135deg, #818cf8, #6366f1);
-  --secondary-gradient: linear-gradient(135deg, #34d399, #10b981);
-  --danger-gradient: linear-gradient(135deg, #f87171, #ef4444);
-  --warning-gradient: linear-gradient(135deg, #fbbf24, #f59e0b);
-  --info-gradient: linear-gradient(135deg, #60a5fa, #3b82f6);
-  --dark-gradient: linear-gradient(135deg, #1e293b, #0f172a);
+  --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.4);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.4);
 }
 
-/* Global elements */
+/* Global elements - Simplified background */
 .dark-mode,
 body.dark-mode {
-  background: linear-gradient(135deg, #0f172a, #1e293b, #0f172a) !important;
+  background: var(--body-bg) !important;
   color: var(--text-primary) !important;
 }
 
@@ -59,11 +51,9 @@ body.dark-mode {
   color: var(--text-primary) !important;
 }
 
-/* Container elements */
+/* Container elements - Removed backdrop-filter for performance */
 .dark-mode .container {
-  background-color: rgba(30, 41, 59, 0.8) !important;
-  backdrop-filter: blur(10px) !important;
-  -webkit-backdrop-filter: blur(10px) !important;
+  background-color: var(--container-bg) !important;
   border: 1px solid rgba(255, 255, 255, 0.05) !important;
   box-shadow: var(--shadow-lg) !important;
   color: var(--text-primary) !important;
@@ -87,18 +77,16 @@ body.dark-mode {
   opacity: 0.7;
 }
 
-/* Connect wallet container */
+/* Connect wallet container - Simplified background */
 .dark-mode .connect-wallet-container {
-  background: linear-gradient(135deg, 
-    rgba(129, 140, 248, 0.1), 
-    rgba(52, 211, 153, 0.1)) !important;
+  background: rgba(129, 140, 248, 0.1) !important;
   border: 1px solid rgba(255, 255, 255, 0.05) !important;
   color: var(--text-primary) !important;
 }
 
-/* Wallet button */
+/* Wallet button - Simplified gradient */
 .dark-mode .wallet-button {
-  background: var(--primary-gradient) !important;
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-hover)) !important;
   color: white !important;
   box-shadow: var(--shadow) !important;
 }
@@ -108,27 +96,23 @@ body.dark-mode {
   transform: translateY(-2px) !important;
 }
 
-/* Wallet info */
+/* Wallet info - Solid background instead of gradient */
 .dark-mode .wallet-info {
-  background: linear-gradient(to right, 
-    rgba(30, 41, 59, 0.8), 
-    rgba(15, 23, 42, 0.8)) !important;
+  background: var(--card-bg) !important;
   border: 1px solid var(--border-color) !important;
   box-shadow: var(--shadow-sm) !important;
 }
 
 .dark-mode .network-badge {
-  background: var(--secondary-gradient) !important;
+  background: var(--secondary-color) !important;
   color: #0f172a !important;
   font-weight: 600 !important;
   box-shadow: var(--shadow-sm) !important;
 }
 
-/* Cards */
+/* Cards - Removed backdrop-filter */
 .dark-mode .card {
-  background: rgba(30, 41, 59, 0.8) !important;
-  backdrop-filter: blur(10px) !important;
-  -webkit-backdrop-filter: blur(10px) !important;
+  background: var(--card-bg) !important;
   border: 1px solid rgba(255, 255, 255, 0.05) !important;
   box-shadow: var(--shadow) !important;
 }
@@ -140,7 +124,7 @@ body.dark-mode {
 
 .dark-mode .card-header,
 .dark-mode .card-footer {
-  background: rgba(15, 23, 42, 0.5) !important;
+  background: var(--card-header-bg) !important;
   border-color: var(--border-color) !important;
 }
 
@@ -148,10 +132,10 @@ body.dark-mode {
   color: var(--primary-color) !important;
 }
 
-/* Form elements */
+/* Form elements - Simplified styling */
 .dark-mode .form-control,
 .dark-mode .form-select {
-  background-color: rgba(15, 23, 42, 0.8) !important;
+  background-color: var(--input-bg) !important;
   border: 2px solid var(--border-color) !important;
   color: var(--text-primary) !important;
   box-shadow: none !important;
@@ -177,9 +161,9 @@ body.dark-mode {
   color: var(--text-secondary) !important;
 }
 
-/* Nav tabs */
+/* Nav tabs - Solid background */
 .dark-mode .nav-tabs {
-  background: rgba(15, 23, 42, 0.5) !important;
+  background: var(--card-header-bg) !important;
   border-color: var(--border-color) !important;
   border-radius: 12px !important;
 }
@@ -195,12 +179,12 @@ body.dark-mode {
 
 .dark-mode .nav-tabs .nav-link.active {
   color: white !important;
-  background: var(--primary-gradient) !important;
+  background: var(--primary-color) !important;
   border-color: transparent !important;
   box-shadow: var(--shadow-sm) !important;
 }
 
-/* Alerts */
+/* Alerts - Simplified styling */
 .dark-mode .alert-info {
   background: rgba(96, 165, 250, 0.1) !important;
   color: #bfdbfe !important;
@@ -237,39 +221,49 @@ body.dark-mode {
   border-bottom: none !important;
 }
 
-/* Buttons */
+/* Buttons - Simplified gradients */
 .dark-mode .btn-primary {
-  background: var(--primary-gradient) !important;
+  background: var(--primary-color) !important;
   border: none !important;
   box-shadow: var(--shadow-sm) !important;
 }
 
 .dark-mode .btn-primary:hover {
+  background: var(--primary-hover) !important;
   box-shadow: var(--shadow) !important;
   transform: translateY(-1px) !important;
 }
 
 .dark-mode .btn-success {
-  background: var(--secondary-gradient) !important;
+  background: var(--secondary-color) !important;
   border: none !important;
   box-shadow: var(--shadow-sm) !important;
 }
 
 .dark-mode .btn-success:hover {
+  background: var(--secondary-hover) !important;
   box-shadow: var(--shadow) !important;
   transform: translateY(-1px) !important;
 }
 
 .dark-mode .btn-danger {
-  background: var(--danger-gradient) !important;
+  background: var(--danger-color) !important;
   border: none !important;
   box-shadow: var(--shadow-sm) !important;
 }
 
+.dark-mode .btn-danger:hover {
+  background: var(--danger-hover) !important;
+}
+
 .dark-mode .btn-warning {
-  background: var(--warning-gradient) !important;
+  background: var(--warning-color) !important;
   border: none !important;
   box-shadow: var(--shadow-sm) !important;
+}
+
+.dark-mode .btn-warning:hover {
+  background: var(--warning-hover) !important;
 }
 
 .dark-mode .btn-outline-secondary {
@@ -285,13 +279,13 @@ body.dark-mode {
 
 /* List groups */
 .dark-mode .list-group-item {
-  background-color: rgba(30, 41, 59, 0.8) !important;
+  background-color: var(--card-bg) !important;
   border-color: var(--border-color) !important;
   color: var(--text-primary) !important;
 }
 
 .dark-mode .list-group-item:hover {
-  background-color: rgba(15, 23, 42, 0.8) !important;
+  background-color: var(--card-header-bg) !important;
   transform: translateX(4px);
 }
 
@@ -303,12 +297,12 @@ body.dark-mode {
 }
 
 .dark-mode .modal-header {
-  background: linear-gradient(to right, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.8)) !important;
+  background: var(--card-header-bg) !important;
   border-color: var(--border-color) !important;
 }
 
 .dark-mode .modal-footer {
-  background: rgba(15, 23, 42, 0.5) !important;
+  background: var(--card-header-bg) !important;
   border-color: var(--border-color) !important;
 }
 
@@ -318,22 +312,13 @@ body.dark-mode {
 
 /* Progress bars */
 .dark-mode .progress {
-  background-color: rgba(15, 23, 42, 0.8) !important;
+  background-color: var(--input-bg) !important;
 }
 
-/* Placeholders and skeletons */
+/* Placeholders and skeletons - Simplified animation */
 .dark-mode .placeholder {
-  background: linear-gradient(90deg, 
-    rgba(30, 41, 59, 0.7), 
-    rgba(51, 65, 85, 0.7), 
-    rgba(30, 41, 59, 0.7)) !important;
-  background-size: 200% 100% !important;
-  animation: placeholderShimmer 2s infinite !important;
-}
-
-@keyframes placeholderShimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  background: var(--card-header-bg) !important;
+  opacity: 0.7 !important;
 }
 
 /* Table elements */
@@ -342,46 +327,46 @@ body.dark-mode {
 }
 
 .dark-mode .table {
-  --bs-table-bg: rgba(30, 41, 59, 0.8) !important;
-  --bs-table-striped-bg: rgba(15, 23, 42, 0.8) !important;
+  --bs-table-bg: var(--card-bg) !important;
+  --bs-table-striped-bg: var(--card-header-bg) !important;
   --bs-table-striped-color: var(--text-primary) !important;
-  --bs-table-active-bg: rgba(51, 65, 85, 0.8) !important;
+  --bs-table-active-bg: var(--border-color) !important;
   --bs-table-active-color: var(--text-primary) !important;
-  --bs-table-hover-bg: rgba(51, 65, 85, 0.8) !important;
+  --bs-table-hover-bg: var(--border-color) !important;
   --bs-table-hover-color: var(--text-primary) !important;
   color: var(--text-primary) !important;
   border-color: var(--border-color) !important;
 }
 
-/* Badges */
+/* Badges - Solid colors instead of gradients */
 .dark-mode .badge.bg-primary {
-  background: var(--primary-gradient) !important;
+  background: var(--primary-color) !important;
   box-shadow: var(--shadow-sm) !important;
 }
 
 .dark-mode .badge.bg-success {
-  background: var(--secondary-gradient) !important;
+  background: var(--secondary-color) !important;
   box-shadow: var(--shadow-sm) !important;
 }
 
 .dark-mode .badge.bg-danger {
-  background: var(--danger-gradient) !important;
+  background: var(--danger-color) !important;
   box-shadow: var(--shadow-sm) !important;
 }
 
 .dark-mode .badge.bg-warning {
-  background: var(--warning-gradient) !important;
+  background: var(--warning-color) !important;
   box-shadow: var(--shadow-sm) !important;
 }
 
 /* Specific components */
 .dark-mode .contract-info {
-  background: linear-gradient(135deg, rgba(96, 165, 250, 0.15), rgba(59, 130, 246, 0.05)) !important;
+  background: rgba(96, 165, 250, 0.1) !important;
   border-radius: 8px !important;
 }
 
 .dark-mode .security-banner {
-  background: linear-gradient(135deg, rgba(251, 191, 36, 0.15), rgba(245, 158, 11, 0.05)) !important;
+  background: rgba(251, 191, 36, 0.1) !important;
   border-radius: 8px !important;
 }
 
@@ -399,7 +384,7 @@ body.dark-mode {
 }
 
 .dark-mode code {
-  background-color: rgba(15, 23, 42, 0.8) !important;
+  background-color: var(--card-header-bg) !important;
   color: #fcd34d !important;
   padding: 0.2em 0.4em !important;
   border-radius: 4px !important;
@@ -412,21 +397,20 @@ body.dark-mode {
   opacity: 0.7 !important;
 }
 
-/* Scrollbars */
+/* Optimized scrollbars */
 .dark-mode ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
 }
 
 .dark-mode ::-webkit-scrollbar-track {
   background: var(--container-bg);
-  border-radius: 10px;
+  border-radius: 8px;
 }
 
 .dark-mode ::-webkit-scrollbar-thumb {
   background-color: var(--border-color);
-  border-radius: 10px;
-  border: 3px solid var(--container-bg);
+  border-radius: 8px;
 }
 
 .dark-mode ::-webkit-scrollbar-thumb:hover {
@@ -448,60 +432,60 @@ body.dark-mode {
 
 /* Specific component fixes */
 .dark-mode .user-role-section {
-  background: rgba(15, 23, 42, 0.5) !important;
+  background: var(--card-header-bg) !important;
   border-radius: 8px !important;
 }
 
 /* Address display */
 .dark-mode .address-display {
-  background: rgba(15, 23, 42, 0.8) !important;
+  background: var(--card-header-bg) !important;
   color: var(--text-primary) !important;
   border: 1px solid var(--border-color) !important;
 }
 
-/* Role badges */
+/* Role badges - Solid colors */
 .dark-mode .role-badge {
   box-shadow: var(--shadow-sm) !important;
 }
 
 .dark-mode .buyer-badge {
-  background: linear-gradient(135deg, var(--info-color), var(--info-hover)) !important;
+  background: var(--info-color) !important;
 }
 
 .dark-mode .seller-badge {
-  background: linear-gradient(135deg, var(--secondary-color), var(--secondary-hover)) !important;
+  background: var(--secondary-color) !important;
 }
 
 .dark-mode .arbiter-badge {
-  background: linear-gradient(135deg, #a78bfa, #8b5cf6) !important;
+  background: #a78bfa !important;
 }
 
-/* Escrow status */
+/* Escrow status - Solid colors */
 .dark-mode .status-active {
-  background: linear-gradient(135deg, var(--primary-color), var(--primary-hover)) !important;
+  background: var(--primary-color) !important;
   box-shadow: var(--shadow-sm) !important;
 }
 
 .dark-mode .status-disputed {
-  background: linear-gradient(135deg, var(--danger-color), var(--danger-hover)) !important;
+  background: var(--danger-color) !important;
   box-shadow: var(--shadow-sm) !important;
 }
 
 .dark-mode .status-completed {
-  background: linear-gradient(135deg, var(--secondary-color), var(--secondary-hover)) !important;
+  background: var(--secondary-color) !important;
   box-shadow: var(--shadow-sm) !important;
 }
 
 /* Theme toggle */
 .dark-mode .theme-toggle {
-  background: var(--dark-gradient) !important;
+  background: var(--card-bg) !important;
   border-color: var(--border-color) !important;
   color: var(--text-primary) !important;
 }
 
-/* Transitions */
+/* Optimized transitions - Reduced properties */
 .dark-mode * {
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease !important;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease !important;
 }
 
 /* Force dark mode on root elements */
@@ -514,7 +498,7 @@ body.dark-mode {
 /* Arbiter specific styles */
 .dark-mode .arbiter-item {
   border-left: 4px solid #8b5cf6 !important;
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(139, 92, 246, 0.05)) !important;
+  background: rgba(139, 92, 246, 0.1) !important;
 }
 
 .dark-mode .arbiter-notice {
@@ -522,7 +506,7 @@ body.dark-mode {
   border: 1px solid rgba(139, 92, 246, 0.2) !important;
 }
 
-/* Loading animation */
+/* Loading animation - Simplified */
 .dark-mode .escrow-item.loading::after {
   background: linear-gradient(90deg, 
     transparent, 
@@ -530,11 +514,9 @@ body.dark-mode {
     transparent) !important;
 }
 
-/* Stats card */
+/* Stats card - Removed backdrop-filter */
 .dark-mode .stats-card {
-  background: rgba(30, 41, 59, 0.8) !important;
-  backdrop-filter: blur(10px) !important;
-  -webkit-backdrop-filter: blur(10px) !important;
+  background: var(--card-bg) !important;
   border: 1px solid rgba(255, 255, 255, 0.05) !important;
 }
 
@@ -551,4 +533,24 @@ body.dark-mode {
 
 .dark-mode .stat-label {
   color: var(--text-secondary) !important;
+}
+
+/* Performance optimizations */
+.dark-mode .card,
+.dark-mode .btn,
+.dark-mode .list-group-item {
+  will-change: auto !important;
+}
+
+/* Disable expensive effects on mobile */
+@media (max-width: 768px) {
+  .dark-mode * {
+    transition: none !important;
+  }
+  
+  .dark-mode .card:hover,
+  .dark-mode .btn:hover,
+  .dark-mode .list-group-item:hover {
+    transform: none !important;
+  }
 }
