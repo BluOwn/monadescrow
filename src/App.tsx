@@ -1,6 +1,6 @@
-// src/App.tsx - Simplified with only active escrows
-import React, { Suspense, useState, useEffect, useContext, useCallback, useMemo } from 'react';
-import { Button, Container, Nav, Alert, Modal, Badge, Spinner, Card, Row, Col } from 'react-bootstrap';
+// src/App.tsx - With robust loading and progress tracking
+import React, { Suspense, useState, useEffect, useContext, useCallback } from 'react';
+import { Button, Container, Nav, Alert, Modal, Badge, Spinner, Card, Row, Col, ProgressBar } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 
@@ -9,7 +9,7 @@ import { ThemeContext } from './contexts/ThemeContext';
 
 // Import hooks
 import useWallet from './hooks/useWallet';
-import useActiveEscrowLoader from './hooks/useActiveEscrowLoader'; // New simplified hook
+import useRobustEscrowLoader from './hooks/useRobustEscrowLoader'; // New robust loader
 import useEscrowOperations from './hooks/useEscrowOperations';
 
 // Import components
@@ -46,10 +46,10 @@ const App: React.FC = () => {
   
   // Use custom hooks
   const wallet = useWallet();
-  const escrowLoader = useActiveEscrowLoader(); // Simplified loader
+  const escrowLoader = useRobustEscrowLoader(); // Robust loader
   const escrowOps = useEscrowOperations();
   
-  // Local state - Simplified (removed arbitrated tab)
+  // Local state
   const [activeTab, setActiveTab] = useState<string>('create');
   const [showDetailsModal, setShowDetailsModal] = useState<boolean>(false);
   const [showSecurityWarning, setShowSecurityWarning] = useState<boolean>(false);
@@ -77,23 +77,23 @@ const App: React.FC = () => {
     return cleanup;
   }, [wallet]);
 
-  // OPTIMIZED: Load only active escrows when wallet connects
+  // Load escrows when wallet connects
   useEffect(() => {
     let isEffectActive = true;
     
     const loadData = async () => {
       if (wallet.connected && wallet.contract && wallet.account && isEffectActive) {
-        console.log('👤 Wallet connected, loading active escrows...');
+        console.log('👤 Wallet connected, loading escrows...');
         
         try {
           await escrowLoader.refreshIfStale(wallet.contract, wallet.account);
         } catch (error) {
-          console.error('Error loading active escrows:', error);
+          console.error('Error loading escrows:', error);
         }
       }
     };
 
-    const timeoutId = setTimeout(loadData, 300); // Reduced delay
+    const timeoutId = setTimeout(loadData, 300);
     
     return () => {
       isEffectActive = false;
@@ -150,7 +150,7 @@ const App: React.FC = () => {
       setArbiterAddress('');
       setAmount('');
       
-      // Refresh active escrows after creating
+      // Refresh after creating
       setTimeout(() => {
         escrowLoader.forceRefresh(wallet.contract!, wallet.account);
       }, 2000);
@@ -242,45 +242,100 @@ const App: React.FC = () => {
     }
   };
 
+  // Stats and Progress Component
+  const LoadingProgress = () => {
+    if (!escrowLoader.loading && !escrowLoader.progress.total) return null;
+
+    return (
+      <Card className="mb-4">
+        <Card.Body>
+          <div className="d-flex justify-content-between align-items-center mb-3">
+            <h6 className="mb-0">
+              {escrowLoader.loading ? '🔄 Loading Your Escrows...' : '📊 Loading Complete'}
+            </h6>
+            {escrowLoader.loading && (
+              <Button 
+                variant="outline-danger" 
+                size="sm"
+                onClick={escrowLoader.cancelLoading}
+              >
+                Cancel
+              </Button>
+            )}
+          </div>
+          
+          {escrowLoader.progress.total > 0 && (
+            <>
+              <ProgressBar 
+                now={escrowLoader.progress.percentage} 
+                variant={escrowLoader.progress.failed > 0 ? "warning" : "info"}
+                style={{ height: '8px' }}
+                className="mb-2"
+              />
+              <div className="d-flex justify-content-between">
+                <small>
+                  Progress: {escrowLoader.progress.loaded}/{escrowLoader.progress.total} loaded
+                  {escrowLoader.progress.failed > 0 && (
+                    <span className="text-warning"> ({escrowLoader.progress.failed} failed)</span>
+                  )}
+                </small>
+                <small>{escrowLoader.progress.percentage}%</small>
+              </div>
+            </>
+          )}
+        </Card.Body>
+      </Card>
+    );
+  };
+
   // Stats display component
-  const StatsCard = () => (
-    <Card className="mb-4">
-      <Card.Body>
-        <Card.Title>📊 Your Active Escrows</Card.Title>
-        <Row>
-          <Col xs={6} sm={3}>
-            <div className="text-center">
-              <h3 className="text-primary">{escrowLoader.stats.total}</h3>
-              <small>Total Active</small>
-            </div>
-          </Col>
-          <Col xs={6} sm={3}>
-            <div className="text-center">
-              <h3 className="text-info">{escrowLoader.stats.asBuyer}</h3>
-              <small>As Buyer</small>
-            </div>
-          </Col>
-          <Col xs={6} sm={3}>
-            <div className="text-center">
-              <h3 className="text-success">{escrowLoader.stats.asSeller}</h3>
-              <small>As Seller</small>
-            </div>
-          </Col>
-          <Col xs={6} sm={3}>
-            <div className="text-center">
-              <h3 className="text-warning">{escrowLoader.stats.asArbiter}</h3>
-              <small>As Arbiter</small>
-            </div>
-          </Col>
-        </Row>
-        {escrowLoader.stats.disputed > 0 && (
-          <Alert variant="warning" className="mt-3 mb-0">
-            ⚠️ {escrowLoader.stats.disputed} escrow{escrowLoader.stats.disputed > 1 ? 's' : ''} in dispute
-          </Alert>
-        )}
-      </Card.Body>
-    </Card>
-  );
+  const StatsCard = () => {
+    if (!escrowLoader.hasData) return null;
+
+    return (
+      <Card className="mb-4">
+        <Card.Body>
+          <Card.Title>📊 Your Active Escrows</Card.Title>
+          <Row>
+            <Col xs={6} sm={3}>
+              <div className="text-center">
+                <h3 className="text-primary">{escrowLoader.stats.total}</h3>
+                <small>Total Active</small>
+              </div>
+            </Col>
+            <Col xs={6} sm={3}>
+              <div className="text-center">
+                <h3 className="text-info">{escrowLoader.stats.asBuyer}</h3>
+                <small>As Buyer</small>
+              </div>
+            </Col>
+            <Col xs={6} sm={3}>
+              <div className="text-center">
+                <h3 className="text-success">{escrowLoader.stats.asSeller}</h3>
+                <small>As Seller</small>
+              </div>
+            </Col>
+            <Col xs={6} sm={3}>
+              <div className="text-center">
+                <h3 className="text-warning">{escrowLoader.stats.asArbiter}</h3>
+                <small>As Arbiter</small>
+              </div>
+            </Col>
+          </Row>
+          {escrowLoader.stats.disputed > 0 && (
+            <Alert variant="warning" className="mt-3 mb-0">
+              ⚠️ {escrowLoader.stats.disputed} escrow{escrowLoader.stats.disputed > 1 ? 's' : ''} in dispute
+            </Alert>
+          )}
+          {escrowLoader.isPartiallyLoaded && (
+            <Alert variant="info" className="mt-3 mb-0">
+              ℹ️ Some escrows failed to load. Try refreshing for complete data.
+            </Alert>
+          )}
+        </Card.Body>
+      </Card>
+    );
+  };
 
   return (
     <DarkModeWrapper>
@@ -344,28 +399,23 @@ const App: React.FC = () => {
               <SecurityBanner />
               <NetworkWarning currentNetwork={wallet.networkName} />
               
-              {/* Stats Card - Show when we have data */}
-              {escrowLoader.hasData && !escrowLoader.loading && <StatsCard />}
+              {/* Loading Progress */}
+              <LoadingProgress />
               
-              {/* Loading State */}
-              {escrowLoader.loading && (
-                <Alert variant="info" className="mb-3">
-                  <Spinner animation="border" size="sm" className="me-2" />
-                  Loading active escrows...
-                </Alert>
-              )}
+              {/* Stats Card */}
+              <StatsCard />
               
               {/* Error State */}
               {escrowLoader.error && (
-                <Alert variant="danger" className="mb-3">
-                  <strong>Error:</strong> {escrowLoader.error}
+                <Alert variant={escrowLoader.isPartiallyLoaded ? "warning" : "danger"} className="mb-3">
+                  <strong>{escrowLoader.isPartiallyLoaded ? "Partial Load:" : "Error:"}</strong> {escrowLoader.error}
                   <div className="mt-2">
                     <Button 
-                      variant="outline-danger" 
+                      variant={escrowLoader.isPartiallyLoaded ? "outline-warning" : "outline-danger"}
                       size="sm" 
                       onClick={() => escrowLoader.forceRefresh(wallet.contract!, wallet.account)}
                     >
-                      Retry
+                      {escrowLoader.isPartiallyLoaded ? "Retry Failed" : "Retry All"}
                     </Button>
                   </div>
                 </Alert>
@@ -395,7 +445,7 @@ const App: React.FC = () => {
                 />
               )}
               
-              {/* Simplified Navigation - No more Arbitrated tab */}
+              {/* Navigation */}
               <Nav variant="tabs" className="mb-4" activeKey={activeTab} onSelect={(k) => k && setActiveTab(k)}>
                 <Nav.Item>
                   <Nav.Link eventKey="create">Create Escrow</Nav.Link>
