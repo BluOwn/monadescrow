@@ -1,71 +1,171 @@
-/* src/FullDarkMode.css
-   Replace this file entirely with the following content: */
-
-/* Full dark mode implementation */
+/* Modern Dark Mode Implementation
+   Enhanced to work seamlessly with the updated App.css */
 
 /* Global dark mode variables */
 :root.dark-mode,
 html.dark-mode,
 body.dark-mode,
 .dark-mode {
-  --body-bg: #121212;
-  --container-bg: #1e1e1e;
-  --card-bg: #262626;
-  --input-bg: #2d2d2d;
-  --border-color: #404040;
-  --text-primary: #e1e1e1;
-  --text-secondary: #b0b0b0;
-  --text-muted: #808080;
-  --primary-color: #8c6fff;
-  --primary-hover: #a28bff;
-  --secondary-color: #10ac84;
-  --secondary-hover: #1dd1a1;
-  --dark-text: #e1e1e1;
-  --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  /* Modern Dark Mode Color Palette */
+  --body-bg: #0f172a;
+  --container-bg: #1e293b;
+  --card-bg: #1e293b;
+  --card-header-bg: #0f172a;
+  --input-bg: #1e293b;
+  --border-color: #334155;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  
+  /* Brand Colors - Dark Mode */
+  --primary-color: #818cf8;
+  --primary-hover: #6366f1;
+  --primary-light: rgba(99, 102, 241, 0.2);
+  --secondary-color: #34d399;
+  --secondary-hover: #10b981;
+  --secondary-light: rgba(16, 185, 129, 0.2);
+  --danger-color: #f87171;
+  --danger-hover: #ef4444;
+  --warning-color: #fbbf24;
+  --warning-hover: #f59e0b;
+  --info-color: #60a5fa;
+  --info-hover: #3b82f6;
+  
+  /* Shadows - Dark Mode */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow: 0 4px 6px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+  
+  /* Gradients - Dark Mode */
+  --primary-gradient: linear-gradient(135deg, #818cf8, #6366f1);
+  --secondary-gradient: linear-gradient(135deg, #34d399, #10b981);
+  --danger-gradient: linear-gradient(135deg, #f87171, #ef4444);
+  --warning-gradient: linear-gradient(135deg, #fbbf24, #f59e0b);
+  --info-gradient: linear-gradient(135deg, #60a5fa, #3b82f6);
+  --dark-gradient: linear-gradient(135deg, #1e293b, #0f172a);
 }
 
 /* Global elements */
 .dark-mode,
 body.dark-mode {
-  background: var(--body-bg) !important;
+  background: linear-gradient(135deg, #0f172a, #1e293b, #0f172a) !important;
+  color: var(--text-primary) !important;
+}
+
+/* App wrapper */
+.dark-mode .app-wrapper {
+  background-color: transparent !important;
   color: var(--text-primary) !important;
 }
 
 /* Container elements */
-.dark-mode .container,
-.dark-mode .card,
-.dark-mode .modal-content,
-.dark-mode .list-group-item,
-.dark-mode .dropdown-menu {
-  background-color: var(--container-bg) !important;
-  border-color: var(--border-color) !important;
+.dark-mode .container {
+  background-color: rgba(30, 41, 59, 0.8) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  box-shadow: var(--shadow-lg) !important;
   color: var(--text-primary) !important;
 }
 
-/* Card specific styles */
+/* Header */
+.dark-mode .app-header h1 {
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  text-fill-color: transparent !important;
+}
+
+.dark-mode .app-header p {
+  color: var(--text-secondary) !important;
+}
+
+.dark-mode .app-header::after {
+  background: linear-gradient(90deg, var(--primary-color), var(--secondary-color)) !important;
+  opacity: 0.7;
+}
+
+/* Connect wallet container */
+.dark-mode .connect-wallet-container {
+  background: linear-gradient(135deg, 
+    rgba(129, 140, 248, 0.1), 
+    rgba(52, 211, 153, 0.1)) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Wallet button */
+.dark-mode .wallet-button {
+  background: var(--primary-gradient) !important;
+  color: white !important;
+  box-shadow: var(--shadow) !important;
+}
+
+.dark-mode .wallet-button:hover {
+  box-shadow: var(--shadow-lg) !important;
+  transform: translateY(-2px) !important;
+}
+
+/* Wallet info */
+.dark-mode .wallet-info {
+  background: linear-gradient(to right, 
+    rgba(30, 41, 59, 0.8), 
+    rgba(15, 23, 42, 0.8)) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.dark-mode .network-badge {
+  background: var(--secondary-gradient) !important;
+  color: #0f172a !important;
+  font-weight: 600 !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+/* Cards */
 .dark-mode .card {
-  background-color: var(--card-bg) !important;
+  background: rgba(30, 41, 59, 0.8) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  box-shadow: var(--shadow) !important;
+}
+
+.dark-mode .card:hover {
+  box-shadow: var(--shadow-lg) !important;
+  transform: translateY(-2px);
 }
 
 .dark-mode .card-header,
 .dark-mode .card-footer {
-  background-color: rgba(0, 0, 0, 0.2) !important;
+  background: rgba(15, 23, 42, 0.5) !important;
   border-color: var(--border-color) !important;
+}
+
+.dark-mode .card-title {
+  color: var(--primary-color) !important;
 }
 
 /* Form elements */
 .dark-mode .form-control,
 .dark-mode .form-select {
-  background-color: var(--input-bg) !important;
-  border-color: var(--border-color) !important;
+  background-color: rgba(15, 23, 42, 0.8) !important;
+  border: 2px solid var(--border-color) !important;
   color: var(--text-primary) !important;
+  box-shadow: none !important;
 }
 
 .dark-mode .form-control:focus,
 .dark-mode .form-select:focus {
-  background-color: var(--input-bg) !important;
   border-color: var(--primary-color) !important;
-  color: var(--text-primary) !important;
+  box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.25) !important;
+}
+
+.dark-mode .form-control:hover,
+.dark-mode .form-select:hover {
+  border-color: var(--primary-hover) !important;
 }
 
 .dark-mode .form-label,
@@ -77,114 +177,163 @@ body.dark-mode {
   color: var(--text-secondary) !important;
 }
 
-/* Nav elements */
+/* Nav tabs */
 .dark-mode .nav-tabs {
+  background: rgba(15, 23, 42, 0.5) !important;
   border-color: var(--border-color) !important;
+  border-radius: 12px !important;
 }
 
 .dark-mode .nav-tabs .nav-link {
   color: var(--text-secondary) !important;
 }
 
-.dark-mode .nav-tabs .nav-link.active {
+.dark-mode .nav-tabs .nav-link:hover {
   color: var(--primary-color) !important;
-  background-color: transparent !important;
-  border-color: transparent transparent var(--primary-color) !important;
+  background: rgba(129, 140, 248, 0.1) !important;
 }
 
-.dark-mode .nav-tabs .nav-link:hover {
-  border-color: transparent transparent var(--border-color) !important;
+.dark-mode .nav-tabs .nav-link.active {
+  color: white !important;
+  background: var(--primary-gradient) !important;
+  border-color: transparent !important;
+  box-shadow: var(--shadow-sm) !important;
 }
 
 /* Alerts */
 .dark-mode .alert-info {
-  background-color: #1a3253 !important;
-  color: #9bbade !important;
-  border-color: #235a97 !important;
+  background: rgba(96, 165, 250, 0.1) !important;
+  color: #bfdbfe !important;
+  border-left: 4px solid var(--info-color) !important;
+  border-top: none !important;
+  border-right: none !important;
+  border-bottom: none !important;
 }
 
 .dark-mode .alert-success {
-  background-color: #1a472a !important;
-  color: #9bbba8 !important;
-  border-color: #2a623d !important;
+  background: rgba(52, 211, 153, 0.1) !important;
+  color: #a7f3d0 !important;
+  border-left: 4px solid var(--secondary-color) !important;
+  border-top: none !important;
+  border-right: none !important;
+  border-bottom: none !important;
 }
 
 .dark-mode .alert-danger {
-  background-color: #472a2a !important;
-  color: #dea3a3 !important;
-  border-color: #693434 !important;
+  background: rgba(248, 113, 113, 0.1) !important;
+  color: #fca5a5 !important;
+  border-left: 4px solid var(--danger-color) !important;
+  border-top: none !important;
+  border-right: none !important;
+  border-bottom: none !important;
 }
 
 .dark-mode .alert-warning {
-  background-color: #473a1a !important;
-  color: #dec683 !important;
-  border-color: #695b34 !important;
+  background: rgba(251, 191, 36, 0.1) !important;
+  color: #fcd34d !important;
+  border-left: 4px solid var(--warning-color) !important;
+  border-top: none !important;
+  border-right: none !important;
+  border-bottom: none !important;
 }
 
 /* Buttons */
 .dark-mode .btn-primary {
-  background-color: var(--primary-color) !important;
-  border-color: var(--primary-color) !important;
+  background: var(--primary-gradient) !important;
+  border: none !important;
+  box-shadow: var(--shadow-sm) !important;
 }
 
 .dark-mode .btn-primary:hover {
-  background-color: var(--primary-hover) !important;
-  border-color: var(--primary-hover) !important;
+  box-shadow: var(--shadow) !important;
+  transform: translateY(-1px) !important;
 }
 
 .dark-mode .btn-success {
-  background-color: var(--secondary-color) !important;
-  border-color: var(--secondary-color) !important;
+  background: var(--secondary-gradient) !important;
+  border: none !important;
+  box-shadow: var(--shadow-sm) !important;
 }
 
 .dark-mode .btn-success:hover {
-  background-color: var(--secondary-hover) !important;
-  border-color: var(--secondary-hover) !important;
+  box-shadow: var(--shadow) !important;
+  transform: translateY(-1px) !important;
+}
+
+.dark-mode .btn-danger {
+  background: var(--danger-gradient) !important;
+  border: none !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.dark-mode .btn-warning {
+  background: var(--warning-gradient) !important;
+  border: none !important;
+  box-shadow: var(--shadow-sm) !important;
 }
 
 .dark-mode .btn-outline-secondary {
   color: var(--text-secondary) !important;
-  border-color: var(--border-color) !important;
+  border: 2px solid var(--border-color) !important;
+  background: transparent !important;
 }
 
 .dark-mode .btn-outline-secondary:hover {
-  background-color: var(--input-bg) !important;
+  background: rgba(148, 163, 184, 0.1) !important;
   color: var(--text-primary) !important;
-}
-
-.dark-mode .wallet-button {
-  background-color: var(--primary-color) !important;
-  color: white !important;
-}
-
-.dark-mode .wallet-button:hover {
-  background-color: var(--primary-hover) !important;
 }
 
 /* List groups */
 .dark-mode .list-group-item {
-  background-color: var(--card-bg) !important;
+  background-color: rgba(30, 41, 59, 0.8) !important;
   border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
 }
 
 .dark-mode .list-group-item:hover {
-  background-color: #303030 !important;
+  background-color: rgba(15, 23, 42, 0.8) !important;
+  transform: translateX(4px);
 }
 
 /* Modal components */
-.dark-mode .modal-header,
-.dark-mode .modal-footer {
+.dark-mode .modal-content {
+  background-color: var(--container-bg) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  box-shadow: var(--shadow-xl) !important;
+}
+
+.dark-mode .modal-header {
+  background: linear-gradient(to right, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.8)) !important;
   border-color: var(--border-color) !important;
+}
+
+.dark-mode .modal-footer {
+  background: rgba(15, 23, 42, 0.5) !important;
+  border-color: var(--border-color) !important;
+}
+
+.dark-mode .modal-title {
+  color: var(--primary-color) !important;
 }
 
 /* Progress bars */
 .dark-mode .progress {
-  background-color: var(--input-bg) !important;
+  background-color: rgba(15, 23, 42, 0.8) !important;
 }
 
 /* Placeholders and skeletons */
 .dark-mode .placeholder {
-  background-color: #3a3a3a !important;
+  background: linear-gradient(90deg, 
+    rgba(30, 41, 59, 0.7), 
+    rgba(51, 65, 85, 0.7), 
+    rgba(30, 41, 59, 0.7)) !important;
+  background-size: 200% 100% !important;
+  animation: placeholderShimmer 2s infinite !important;
+}
+
+@keyframes placeholderShimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
 /* Table elements */
@@ -193,12 +342,12 @@ body.dark-mode {
 }
 
 .dark-mode .table {
-  --bs-table-bg: var(--card-bg) !important;
-  --bs-table-striped-bg: var(--container-bg) !important;
+  --bs-table-bg: rgba(30, 41, 59, 0.8) !important;
+  --bs-table-striped-bg: rgba(15, 23, 42, 0.8) !important;
   --bs-table-striped-color: var(--text-primary) !important;
-  --bs-table-active-bg: var(--input-bg) !important;
+  --bs-table-active-bg: rgba(51, 65, 85, 0.8) !important;
   --bs-table-active-color: var(--text-primary) !important;
-  --bs-table-hover-bg: var(--input-bg) !important;
+  --bs-table-hover-bg: rgba(51, 65, 85, 0.8) !important;
   --bs-table-hover-color: var(--text-primary) !important;
   color: var(--text-primary) !important;
   border-color: var(--border-color) !important;
@@ -206,34 +355,34 @@ body.dark-mode {
 
 /* Badges */
 .dark-mode .badge.bg-primary {
-  background-color: var(--primary-color) !important;
+  background: var(--primary-gradient) !important;
+  box-shadow: var(--shadow-sm) !important;
 }
 
 .dark-mode .badge.bg-success {
-  background-color: var(--secondary-color) !important;
+  background: var(--secondary-gradient) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.dark-mode .badge.bg-danger {
+  background: var(--danger-gradient) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.dark-mode .badge.bg-warning {
+  background: var(--warning-gradient) !important;
+  box-shadow: var(--shadow-sm) !important;
 }
 
 /* Specific components */
-.dark-mode .network-badge {
-  background-color: var(--secondary-color) !important;
-  color: #181818 !important;
-  font-weight: 600 !important;
-}
-
-.dark-mode .app-header h1 {
-  color: var(--primary-color) !important;
-}
-
-.dark-mode .app-header p {
-  color: var(--text-secondary) !important;
-}
-
 .dark-mode .contract-info {
-  background-color: rgba(0, 0, 0, 0.2) !important;
+  background: linear-gradient(135deg, rgba(96, 165, 250, 0.15), rgba(59, 130, 246, 0.05)) !important;
+  border-radius: 8px !important;
 }
 
 .dark-mode .security-banner {
-  background-color: rgba(255, 193, 7, 0.1) !important;
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.15), rgba(245, 158, 11, 0.05)) !important;
+  border-radius: 8px !important;
 }
 
 .dark-mode .footer {
@@ -245,25 +394,33 @@ body.dark-mode {
   color: var(--primary-color) !important;
 }
 
+.dark-mode .footer a:hover {
+  color: white !important;
+}
+
 .dark-mode code {
-  background-color: #2d2d2d !important;
-  color: #e9c46a !important;
+  background-color: rgba(15, 23, 42, 0.8) !important;
+  color: #fcd34d !important;
+  padding: 0.2em 0.4em !important;
+  border-radius: 4px !important;
 }
 
 /* Form control placeholders */
 .dark-mode input::placeholder,
 .dark-mode textarea::placeholder {
   color: var(--text-muted) !important;
+  opacity: 0.7 !important;
 }
 
 /* Scrollbars */
 .dark-mode ::-webkit-scrollbar {
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
 }
 
 .dark-mode ::-webkit-scrollbar-track {
   background: var(--container-bg);
+  border-radius: 10px;
 }
 
 .dark-mode ::-webkit-scrollbar-thumb {
@@ -274,12 +431,6 @@ body.dark-mode {
 
 .dark-mode ::-webkit-scrollbar-thumb:hover {
   background-color: var(--text-muted);
-}
-
-/* Make sure connect wallet container is dark */
-.dark-mode .connect-wallet-container {
-  background-color: var(--container-bg) !important;
-  color: var(--text-primary) !important;
 }
 
 /* Force Bootstrap components to respect dark mode */
@@ -297,17 +448,60 @@ body.dark-mode {
 
 /* Specific component fixes */
 .dark-mode .user-role-section {
-  background-color: rgba(0, 0, 0, 0.2) !important;
+  background: rgba(15, 23, 42, 0.5) !important;
+  border-radius: 8px !important;
 }
 
-.dark-mode .wallet-info {
-  background-color: var(--card-bg) !important;
-}
-
-/* App wrapper - important to target the entire app */
-.dark-mode .app-wrapper {
-  background-color: var(--body-bg) !important;
+/* Address display */
+.dark-mode .address-display {
+  background: rgba(15, 23, 42, 0.8) !important;
   color: var(--text-primary) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+/* Role badges */
+.dark-mode .role-badge {
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.dark-mode .buyer-badge {
+  background: linear-gradient(135deg, var(--info-color), var(--info-hover)) !important;
+}
+
+.dark-mode .seller-badge {
+  background: linear-gradient(135deg, var(--secondary-color), var(--secondary-hover)) !important;
+}
+
+.dark-mode .arbiter-badge {
+  background: linear-gradient(135deg, #a78bfa, #8b5cf6) !important;
+}
+
+/* Escrow status */
+.dark-mode .status-active {
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-hover)) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.dark-mode .status-disputed {
+  background: linear-gradient(135deg, var(--danger-color), var(--danger-hover)) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.dark-mode .status-completed {
+  background: linear-gradient(135deg, var(--secondary-color), var(--secondary-hover)) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+/* Theme toggle */
+.dark-mode .theme-toggle {
+  background: var(--dark-gradient) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Transitions */
+.dark-mode * {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease !important;
 }
 
 /* Force dark mode on root elements */
@@ -317,7 +511,44 @@ body.dark-mode {
   color: var(--text-primary) !important;
 }
 
-/* !important on all colors to override Bootstrap */
-.dark-mode * {
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+/* Arbiter specific styles */
+.dark-mode .arbiter-item {
+  border-left: 4px solid #8b5cf6 !important;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(139, 92, 246, 0.05)) !important;
+}
+
+.dark-mode .arbiter-notice {
+  background: rgba(139, 92, 246, 0.1) !important;
+  border: 1px solid rgba(139, 92, 246, 0.2) !important;
+}
+
+/* Loading animation */
+.dark-mode .escrow-item.loading::after {
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(129, 140, 248, 0.2), 
+    transparent) !important;
+}
+
+/* Stats card */
+.dark-mode .stats-card {
+  background: rgba(30, 41, 59, 0.8) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+.dark-mode .stats-card:hover {
+  box-shadow: var(--shadow-lg) !important;
+}
+
+.dark-mode .stat-item h3 {
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+}
+
+.dark-mode .stat-label {
+  color: var(--text-secondary) !important;
 }

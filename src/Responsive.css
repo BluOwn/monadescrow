@@ -1,120 +1,7 @@
-/* Modern Responsive Styles with Effects
-   A comprehensive responsive design system with animations and effects */
+/* src/Responsive.css
+   Create this file with the following content: */
 
-/* ========== CSS VARIABLES ========== */
-:root {
-  /* Breakpoints */
-  --breakpoint-xs: 360px;
-  --breakpoint-sm: 480px;
-  --breakpoint-md: 768px;
-  --breakpoint-lg: 1024px;
-  --breakpoint-xl: 1280px;
-  
-  /* Animation Speeds */
-  --transition-fast: 0.15s;
-  --transition-medium: 0.3s;
-  --transition-slow: 0.5s;
-  
-  /* Effects */
-  --hover-lift: translateY(-2px);
-  --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  --card-shadow-hover: 0 10px 15px rgba(0, 0, 0, 0.15);
-  --button-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
-  --button-shadow-hover: 0 5px 15px rgba(0, 0, 0, 0.2);
-}
-
-/* ========== GLOBAL RESPONSIVE STYLES ========== */
-
-/* Fluid Typography */
-html {
-  font-size: clamp(14px, 0.5vw + 13px, 18px);
-}
-
-/* Container Padding - Fluid */
-.container {
-  padding: clamp(10px, 3vw, 30px);
-  border-radius: clamp(8px, 1vw, 12px);
-  transition: padding var(--transition-medium) ease, 
-              border-radius var(--transition-medium) ease,
-              box-shadow var(--transition-medium) ease;
-}
-
-/* Card Effects */
-.card {
-  box-shadow: var(--card-shadow);
-  transition: transform var(--transition-medium) ease,
-              box-shadow var(--transition-medium) ease;
-}
-
-.card:hover {
-  transform: var(--hover-lift);
-  box-shadow: var(--card-shadow-hover);
-}
-
-/* Button Effects */
-.btn {
-  position: relative;
-  overflow: hidden;
-  transition: transform var(--transition-fast) ease,
-              box-shadow var(--transition-fast) ease,
-              background-color var(--transition-fast) ease;
-}
-
-.btn:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--button-shadow-hover);
-}
-
-.btn:active {
-  transform: translateY(1px);
-}
-
-/* Ripple Effect for Buttons */
-.btn::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 5px;
-  height: 5px;
-  background: rgba(255, 255, 255, 0.5);
-  opacity: 0;
-  border-radius: 100%;
-  transform: scale(1, 1) translate(-50%, -50%);
-  transform-origin: 50% 50%;
-}
-
-.btn:focus:not(:active)::after {
-  animation: ripple 1s ease-out;
-}
-
-@keyframes ripple {
-  0% {
-    transform: scale(0, 0);
-    opacity: 0.5;
-  }
-  20% {
-    transform: scale(25, 25);
-    opacity: 0.3;
-  }
-  100% {
-    opacity: 0;
-    transform: scale(40, 40);
-  }
-}
-
-/* Form Control Effects */
-.form-control {
-  transition: border-color var(--transition-fast) ease,
-              box-shadow var(--transition-fast) ease,
-              background-color var(--transition-fast) ease;
-}
-
-.form-control:focus {
-  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.25);
-}
-
-/* ========== RESPONSIVE LAYOUTS ========== */
+/* Enhanced responsive styles */
 
 /* Base mobile styles (for phones < 480px) */
 @media (max-width: 480px) {
@@ -126,41 +13,30 @@ html {
   }
   
   .app-header h1 {
-    font-size: clamp(1.3rem, 5vw, 1.5rem);
+    font-size: 1.5rem;
     margin-bottom: 10px;
   }
   
   .app-header p {
-    font-size: clamp(0.8rem, 3vw, 0.9rem);
+    font-size: 0.9rem;
   }
   
   .wallet-info {
-    display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 10px;
+  }
+  
+  .wallet-info button {
+    margin-top: 10px;
   }
   
   .address-display {
     max-width: 120px;
   }
   
-  .nav-tabs {
-    display: flex;
-    overflow-x: auto;
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE and Edge */
-    scroll-behavior: smooth;
-  }
-  
-  .nav-tabs::-webkit-scrollbar {
-    display: none; /* Chrome, Safari, Opera */
-  }
-  
   .nav-tabs .nav-link {
     padding: 8px 10px;
     font-size: 0.85rem;
-    white-space: nowrap;
   }
   
   .card-title {
@@ -168,22 +44,24 @@ html {
   }
   
   .escrow-item {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 10px;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .escrow-item button {
+    margin-top: 10px;
+    width: 100%;
   }
   
   /* Make form elements larger for touch */
   .form-control {
     padding: 12px;
     font-size: 16px; /* prevents iOS zoom on focus */
-    border-radius: 8px;
   }
   
   .btn {
     padding: 12px;
     font-size: 16px;
-    border-radius: 8px;
   }
   
   /* Adjust modal content for small screens */
@@ -203,14 +81,6 @@ html {
     max-width: 100%;
     margin-top: 5px;
     margin-bottom: 5px;
-  }
-  
-  /* Two-column layout for landscape */
-  .escrow-item {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    align-items: center;
   }
 }
 
@@ -242,87 +112,16 @@ html {
   }
 }
 
-/* ========== COMPONENT-SPECIFIC STYLES ========== */
-
-/* Modern Address Display Component */
+/* Optimize address display component */
 .address-display-container {
   display: inline-flex;
   align-items: center;
-  background: rgba(0, 0, 0, 0.05);
-  border-radius: 20px;
-  padding: 4px 12px;
-  transition: background-color var(--transition-medium) ease;
-}
-
-.dark-mode .address-display-container {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.address-display-container:hover {
-  background: rgba(0, 0, 0, 0.08);
-}
-
-.dark-mode .address-display-container:hover {
-  background: rgba(255, 255, 255, 0.15);
 }
 
 .address-display {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  transition: max-width var(--transition-medium) ease;
-}
-
-/* Copy button effect */
-.copy-address-btn {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 4px;
-  margin-left: 4px;
-  border-radius: 50%;
-  transition: transform var(--transition-fast) ease, 
-              background-color var(--transition-fast) ease;
-}
-
-.copy-address-btn:hover {
-  background-color: rgba(0, 0, 0, 0.05);
-  transform: scale(1.1);
-}
-
-.dark-mode .copy-address-btn:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-.copy-address-btn:active {
-  transform: scale(0.95);
-}
-
-/* Copy success animation */
-.copy-success {
-  position: relative;
-}
-
-.copy-success::after {
-  content: 'Copied!';
-  position: absolute;
-  top: -20px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.7);
-  color: white;
-  padding: 3px 8px;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  opacity: 0;
-  animation: fadeInOut 1.5s ease forwards;
-}
-
-@keyframes fadeInOut {
-  0% { opacity: 0; transform: translate(-50%, 10px); }
-  15% { opacity: 1; transform: translate(-50%, 0); }
-  85% { opacity: 1; transform: translate(-50%, 0); }
-  100% { opacity: 0; transform: translate(-50%, -10px); }
 }
 
 /* Different max-width based on screen size */
@@ -349,203 +148,3 @@ html {
     max-width: 90px;
   }
 }
-
-/* ========== MODERN EFFECTS & ANIMATIONS ========== */
-
-/* Skeleton Loading Animation */
-.skeleton {
-  background: linear-gradient(90deg, 
-    rgba(0, 0, 0, 0.06) 25%, 
-    rgba(0, 0, 0, 0.12) 37%, 
-    rgba(0, 0, 0, 0.06) 63%);
-  background-size: 400% 100%;
-  animation: skeleton-loading 1.4s ease infinite;
-}
-
-.dark-mode .skeleton {
-  background: linear-gradient(90deg, 
-    rgba(255, 255, 255, 0.06) 25%, 
-    rgba(255, 255, 255, 0.12) 37%, 
-    rgba(255, 255, 255, 0.06) 63%);
-  background-size: 400% 100%;
-}
-
-@keyframes skeleton-loading {
-  0% { background-position: 100% 50%; }
-  100% { background-position: 0 50%; }
-}
-
-/* Fade In Animation for Content */
-.fade-in {
-  animation: fadeIn 0.5s ease-in-out;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* Staggered List Animation */
-.staggered-list > * {
-  opacity: 0;
-  transform: translateY(10px);
-  animation: staggerFadeIn 0.5s ease forwards;
-}
-
-.staggered-list > *:nth-child(1) { animation-delay: 0.1s; }
-.staggered-list > *:nth-child(2) { animation-delay: 0.2s; }
-.staggered-list > *:nth-child(3) { animation-delay: 0.3s; }
-.staggered-list > *:nth-child(4) { animation-delay: 0.4s; }
-.staggered-list > *:nth-child(5) { animation-delay: 0.5s; }
-.staggered-list > *:nth-child(n+6) { animation-delay: 0.6s; }
-
-@keyframes staggerFadeIn {
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* Pulse Animation for Notifications */
-.pulse {
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
-}
-
-/* Shake Animation for Errors */
-.shake {
-  animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both;
-}
-
-@keyframes shake {
-  10%, 90% { transform: translate3d(-1px, 0, 0); }
-  20%, 80% { transform: translate3d(2px, 0, 0); }
-  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-  40%, 60% { transform: translate3d(4px, 0, 0); }
-}
-
-/* Floating Animation */
-.floating {
-  animation: floating 3s ease-in-out infinite;
-}
-
-@keyframes floating {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-  100% { transform: translateY(0px); }
-}
-
-/* ========== MODERN LAYOUT ENHANCEMENTS ========== */
-
-/* CSS Grid Layout for Card Groups */
-.card-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px;
-}
-
-@media (max-width: 480px) {
-  .card-grid {
-    grid-template-columns: 1fr;
-    gap: 15px;
-  }
-}
-
-/* Modern Tab Navigation */
-.modern-tabs {
-  display: flex;
-  background: rgba(0, 0, 0, 0.03);
-  border-radius: 10px;
-  padding: 4px;
-  margin-bottom: 20px;
-}
-
-.dark-mode .modern-tabs {
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.modern-tabs .nav-link {
-  border: none;
-  border-radius: 8px;
-  padding: 10px 16px;
-  transition: all var(--transition-medium) ease;
-}
-
-.modern-tabs .nav-link.active {
-  background: #fff;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-.dark-mode .modern-tabs .nav-link.active {
-  background: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-}
-
-/* Glassmorphism Effect */
-.glass-effect {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-}
-
-.dark-mode .glass-effect {
-  background: rgba(30, 30, 30, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-/* Scroll Reveal Animation */
-@media (prefers-reduced-motion: no-preference) {
-  .scroll-reveal {
-    opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.6s ease, transform 0.6s ease;
-  }
-  
-  .scroll-reveal.revealed {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* ========== UTILITY CLASSES ========== */
-
-/* Modern Spacing Utilities */
-.gap-xs { gap: 4px; }
-.gap-sm { gap: 8px; }
-.gap-md { gap: 16px; }
-.gap-lg { gap: 24px; }
-.gap-xl { gap: 32px; }
-
-/* Modern Display Utilities */
-.flex-center {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.flex-between {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-/* Add JavaScript to enable scroll reveal animation */
-/* 
-document.addEventListener('DOMContentLoaded', function() {
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('revealed');
-      }
-    });
-  }, { threshold: 0.1 });
-  
-  document.querySelectorAll('.scroll-reveal').forEach(el => {
-    observer.observe(el);
-  });
-});
-*/
