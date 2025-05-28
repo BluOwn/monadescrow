@@ -1,4 +1,4 @@
-// src/utils/suppressConsole.ts
+// src/utils/suppressConsole.ts - Updated to handle new error patterns
 
 /**
  * Suppresses selected console error messages to keep the console clean
@@ -22,7 +22,16 @@ export const suppressConsoleErrors = (): void => {
       'validateDOMNesting',
       'CALL_EXCEPTION',
       'BigInt',
-      'serialize'
+      'serialize',
+      'Error in getAndCacheEscrow for ID', // New pattern for escrow fetch errors
+      'action="call"', // Ethers.js call exceptions
+      'transaction={', // Transaction error details
+      'CALL_EXCEPTION', // Duplicate but keeping for clarity
+      'code=CALL_EXCEPTION', // More specific pattern
+      'reason=null', // Contract revert with no reason
+      'data=null', // Missing revert data
+      'invocation=null', // Contract invocation errors
+      'revert=null' // Contract revert errors
     ];
     
     // Check if this error contains any of the patterns we want to hide
@@ -49,7 +58,11 @@ export const suppressConsoleErrors = (): void => {
       'serialize',
       'BigInt',
       'save',
-      'cache'
+      'cache',
+      'Error in getAndCacheEscrow for ID', // Also suppress warnings
+      'Cache error:', // Cache operation warnings
+      'Error loading escrow', // Escrow loading warnings
+      'Error fetching escrow' // Escrow fetching warnings
     ];
     
     // Check if this warning contains any of the patterns we want to hide

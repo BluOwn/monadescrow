@@ -1,4 +1,4 @@
-// src/hooks/useEscrowLists.ts - Optimized for faster loading
+// src/hooks/useEscrowLists.ts - Final version with better error handling
 import { useState, useCallback } from 'react';
 import { Escrow, EscrowContract } from '../types';
 import { getAndCacheEscrow } from '../utils/cacheUtils';
@@ -29,20 +29,19 @@ export function useEscrowLists() {
     });
   };
 
-  // OPTIMIZED: Load user escrows function - much faster approach
+  // OPTIMIZED: Load user escrows function with silent error handling
   const loadUserEscrows = useCallback(async (
     escrowContract: EscrowContract, 
     userAddress: string, 
-    maxRetries: number = 2 // Reduced retries
+    maxRetries: number = 2
   ): Promise<void> => {
     let retries = 0;
     setState(prev => ({ ...prev, loadingEscrows: true }));
     
     while (retries < maxRetries) {
       try {
-        // Minimal delay for contract initialization
         if (retries > 0) {
-          await delayBetweenCalls(1000); // Reduced from 2000ms
+          await delayBetweenCalls(1000);
         }
         
         if (!escrowContract || !escrowContract.getUserEscrows) {
@@ -58,21 +57,19 @@ export function useEscrowLists() {
         }
         
         // OPTIMIZATION: Load all escrow details in parallel with larger batches
-        const BATCH_SIZE = 10; // Increased from 3
+        const BATCH_SIZE = 10;
         const batches: any[][] = [];
         
-        // Create batches
         for (let i = 0; i < escrowIds.length; i += BATCH_SIZE) {
           batches.push(escrowIds.slice(i, i + BATCH_SIZE));
         }
         
         const allEscrows: Escrow[] = [];
         
-        // Process batches in parallel (not sequentially)
+        // Process batches in parallel
         const batchPromises = batches.map(async (batch, batchIndex) => {
-          // Small staggered delay only for subsequent batches
           if (batchIndex > 0) {
-            await delayBetweenCalls(200); // Much smaller delay
+            await delayBetweenCalls(200);
           }
           
           const batchResults = await Promise.allSettled(
@@ -80,33 +77,26 @@ export function useEscrowLists() {
               try {
                 return await getAndCacheEscrow(escrowContract as unknown as ethers.Contract, escrowId, ethers);
               } catch (err) {
-                console.warn(`Error loading escrow ${escrowId}:`, err);
-                // Return minimal error escrow
-                return {
-                  id: escrowId.toString(),
-                  error: true,
-                  amount: "Error",
-                  buyer: userAddress,
-                  seller: "Error",
-                  arbiter: "Error",
-                  fundsDisbursed: false,
-                  disputeRaised: false
-                } as Escrow;
+                // Silent handling - don't log expected errors
+                if (err && !err.message?.includes('does not exist')) {
+                  console.warn(`Error loading escrow ${escrowId}:`, err);
+                }
+                return null; // Return null for non-existent escrows
               }
             })
           );
           
           return batchResults
-            .filter(result => result.status === 'fulfilled')
+            .filter(result => result.status === 'fulfilled' && result.value !== null)
             .map(result => (result as PromiseFulfilledResult<Escrow>).value);
         });
         
         // Wait for all batches to complete
         const batchResults = await Promise.all(batchPromises);
         
-        // Flatten results
+        // Flatten results and filter out nulls
         batchResults.forEach(batchEscrows => {
-          allEscrows.push(...batchEscrows);
+          allEscrows.push(...batchEscrows.filter(escrow => escrow !== null));
         });
         
         // Sort and set final results
@@ -128,17 +118,16 @@ export function useEscrowLists() {
           throw error;
         }
         
-        // Shorter wait between retries
         await delayBetweenCalls(1000 * retries);
       }
     }
   }, []);
 
-  // OPTIMIZED: Load arbitrated escrows function
+  // OPTIMIZED: Load arbitrated escrows function with silent error handling
   const loadArbitratedEscrows = useCallback(async (
     escrowContract: EscrowContract, 
     arbiterAddress: string, 
-    maxRetries: number = 2 // Reduced retries
+    maxRetries: number = 2
   ): Promise<void> => {
     let retries = 0;
     setState(prev => ({ ...prev, loadingArbitratedEscrows: true }));
@@ -146,7 +135,7 @@ export function useEscrowLists() {
     while (retries < maxRetries) {
       try {
         if (retries > 0) {
-          await delayBetweenCalls(1000); // Reduced delay
+          await delayBetweenCalls(1000);
         }
         
         if (!escrowContract || !escrowContract.getEscrowCount) {
@@ -170,7 +159,7 @@ export function useEscrowLists() {
         const escrowsToCheck = Array.from({ length: totalEscrows }, (_, i) => i);
         
         // OPTIMIZATION: Process in larger parallel batches
-        const BATCH_SIZE = 15; // Increased batch size
+        const BATCH_SIZE = 15;
         const batches: number[][] = [];
         
         for (let i = 0; i < escrowsToCheck.length; i += BATCH_SIZE) {
@@ -181,9 +170,8 @@ export function useEscrowLists() {
         
         // Process all batches in parallel
         const batchPromises = batches.map(async (batch, batchIndex) => {
-          // Small staggered delay only for subsequent batches
           if (batchIndex > 0) {
-            await delayBetweenCalls(150); // Very small delay
+            await delayBetweenCalls(150);
           }
           
           const batchResults = await Promise.allSettled(
@@ -197,7 +185,10 @@ export function useEscrowLists() {
                 }
                 return null;
               } catch (err) {
-                console.warn(`Error fetching escrow #${escrowId}:`, err);
+                // Silent handling - don't log expected errors for non-existent escrows
+                if (err && !err.message?.includes('does not exist')) {
+                  console.warn(`Error fetching escrow #${escrowId}:`, err);
+                }
                 return null;
               }
             })

@@ -1,4 +1,4 @@
-// src/utils/cacheUtils.ts - Optimized for faster performance
+// src/utils/cacheUtils.ts - Improved with silent error handling
 import { ethers } from 'ethers';
 import { Escrow } from '../types';
 
@@ -85,7 +85,7 @@ class FastCache {
 export const escrowCache = new FastCache();
 
 /**
- * OPTIMIZED: Gets and caches escrow data with improved error handling
+ * OPTIMIZED: Gets and caches escrow data with silent error handling
  */
 export const getAndCacheEscrow = async (
   contract: ethers.Contract, 
@@ -126,11 +126,21 @@ export const getAndCacheEscrow = async (
     return escrow;
     
   } catch (error) {
-    // OPTIMIZATION: If cache fails, don't retry - just fetch directly
-    console.warn(`Error in getAndCacheEscrow for ID ${escrowId}:`, error);
+    // OPTIMIZATION: Silent error handling - these errors are expected for non-existent escrows
+    // Don't log errors for missing escrows (CALL_EXCEPTION with missing revert data)
+    const isExpectedError = error && (
+      error.code === 'CALL_EXCEPTION' || 
+      error.message?.includes('missing revert data') ||
+      error.message?.includes('CALL_EXCEPTION')
+    );
+    
+    if (!isExpectedError) {
+      // Only log unexpected errors
+      console.warn(`Unexpected error in getAndCacheEscrow for ID ${escrowId}:`, error);
+    }
     
     try {
-      // One more direct attempt without caching
+      // One more direct attempt without caching - also silent
       const details = await contract.getEscrow(escrowId);
       return {
         id: escrowId.toString(),
@@ -142,17 +152,9 @@ export const getAndCacheEscrow = async (
         disputeRaised: Boolean(details[5])
       };
     } catch (finalError) {
-      // Return error escrow instead of throwing
-      return {
-        id: escrowId.toString(),
-        buyer: 'Error',
-        seller: 'Error loading',
-        arbiter: 'Error loading',
-        amount: '0',
-        fundsDisbursed: false,
-        disputeRaised: false,
-        error: true
-      };
+      // Silent failure - return null to indicate this escrow doesn't exist
+      // This is expected behavior when escrow IDs don't exist
+      throw new Error(`Escrow ${escrowId} does not exist`);
     }
   }
 };
