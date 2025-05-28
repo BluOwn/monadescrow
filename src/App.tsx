@@ -525,42 +525,43 @@ const App: React.FC = () => {
               </Modal>
               
               {/* Footer with creator info */}
-              <div className="footer">
-                <p>
-                  Created by{" "}
-                  
-                    href={`https://twitter.com/${CREATOR_TWITTER.substring(1)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {CREATOR_TWITTER}
-                  </a>
-                </p>
-                <p>
-                  Creator wallet:{" "}
-                  
-                    href={`https://testnet.monadexplorer.com/address/${CREATOR_WALLET}`}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      navigator.clipboard.writeText(CREATOR_WALLET);
-                      window.open(e.currentTarget.href, "_blank");
-                    }}
-                    style={{ cursor: "pointer", textDecoration: "underline" }}
-                    title="Click to open and copy"
-                  >
-                    {CREATOR_WALLET}
-                  </a>
-                </p>
-                <p>
-                  
-                    href="https://github.com/BluOwn/monadescrow"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    View on GitHub
-                  </a>
-                </p>
-              </div>
+<div className="footer">
+  <p>
+    Created by{" "}
+    <a
+      href={`https://twitter.com/${CREATOR_TWITTER.substring(1)}`}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      {CREATOR_TWITTER}
+    </a>
+  </p>
+  <p>
+    Creator wallet:{" "}
+    <a
+      href={`https://testnet.monadexplorer.com/address/${CREATOR_WALLET}`}
+      onClick={(e) => {
+        e.preventDefault();
+        navigator.clipboard.writeText(CREATOR_WALLET);
+        window.open(e.currentTarget.href, "_blank");
+      }}
+      style={{ cursor: "pointer", textDecoration: "underline" }}
+      title="Click to open and copy"
+    >
+      {CREATOR_WALLET}
+    </a>
+  </p>
+  <p>
+    <a
+      href="https://github.com/BluOwn/monadescrow"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      View on GitHub
+    </a>
+  </p>
+</div>
+
             </>
           )}
         </Container>
