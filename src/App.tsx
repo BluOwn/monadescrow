@@ -1,4 +1,4 @@
-// src/App.tsx - With robust loading and progress tracking
+// src/App.tsx - Added How to Use guide tab
 import React, { Suspense, useState, useEffect, useContext, useCallback } from 'react';
 import { Button, Container, Nav, Alert, Modal, Badge, Spinner, Card, Row, Col, ProgressBar } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -9,7 +9,7 @@ import { ThemeContext } from './contexts/ThemeContext';
 
 // Import hooks
 import useWallet from './hooks/useWallet';
-import useRobustEscrowLoader from './hooks/useRobustEscrowLoader'; // New robust loader
+import useRobustEscrowLoader from './hooks/useRobustEscrowLoader';
 import useEscrowOperations from './hooks/useEscrowOperations';
 
 // Import components
@@ -38,6 +38,7 @@ const MyEscrowsTab = React.lazy(() => import('./components/MyEscrowsTab'));
 const FindEscrowTab = React.lazy(() => import('./components/FindEscrowTab'));
 const ContactForm = React.lazy(() => import('./components/ContactForm'));
 const EscrowDetails = React.lazy(() => import('./components/EscrowDetails'));
+const HowToUseTab = React.lazy(() => import('./components/HowToUseTab')); // New guide component
 
 // Main App component
 const App: React.FC = () => {
@@ -46,11 +47,11 @@ const App: React.FC = () => {
   
   // Use custom hooks
   const wallet = useWallet();
-  const escrowLoader = useRobustEscrowLoader(); // Robust loader
+  const escrowLoader = useRobustEscrowLoader();
   const escrowOps = useEscrowOperations();
   
-  // Local state
-  const [activeTab, setActiveTab] = useState<string>('create');
+  // Local state - Start with guide tab for new users
+  const [activeTab, setActiveTab] = useState<string>('guide');
   const [showDetailsModal, setShowDetailsModal] = useState<boolean>(false);
   const [showSecurityWarning, setShowSecurityWarning] = useState<boolean>(false);
   const [hasAcceptedSecurity, setHasAcceptedSecurity] = useState<boolean>(false);
@@ -65,9 +66,16 @@ const App: React.FC = () => {
   // Initialize security settings
   useEffect(() => {
     const hasAccepted = localStorage.getItem('monad-escrow-security-accepted');
+    const hasVisited = localStorage.getItem('monad-escrow-visited');
+    
     if (hasAccepted === 'true') {
       setHasAcceptedSecurity(true);
       setFirstTimeUser(false);
+    }
+    
+    // If returning user, start with create tab instead of guide
+    if (hasVisited === 'true' && hasAccepted === 'true') {
+      setActiveTab('create');
     }
   }, []);
   
@@ -112,6 +120,11 @@ const App: React.FC = () => {
       const success = await wallet.connectWallet();
       if (success && wallet.contract) {
         console.log('Wallet connected successfully');
+        // Mark as visited and switch to create tab
+        localStorage.setItem('monad-escrow-visited', 'true');
+        if (activeTab === 'guide') {
+          setActiveTab('create');
+        }
       }
     } catch (error) {
       console.error("Error in connect flow:", error);
@@ -124,6 +137,7 @@ const App: React.FC = () => {
     setFirstTimeUser(false);
     setShowSecurityWarning(false);
     localStorage.setItem('monad-escrow-security-accepted', 'true');
+    localStorage.setItem('monad-escrow-visited', 'true');
     connectWallet();
   };
 
@@ -150,7 +164,8 @@ const App: React.FC = () => {
       setArbiterAddress('');
       setAmount('');
       
-      // Refresh after creating
+      // Switch to My Escrows tab and refresh
+      setActiveTab('my');
       setTimeout(() => {
         escrowLoader.forceRefresh(wallet.contract!, wallet.account);
       }, 2000);
@@ -242,7 +257,7 @@ const App: React.FC = () => {
     }
   };
 
-  // Stats and Progress Component
+  // Loading Progress Component
   const LoadingProgress = () => {
     if (!escrowLoader.loading && !escrowLoader.progress.total) return null;
 
@@ -444,132 +459,166 @@ const App: React.FC = () => {
                   autoRetryIn={escrowOps.autoRetry.countdown}
                 />
               )}
-              
-              {/* Navigation */}
-              <Nav variant="tabs" className="mb-4" activeKey={activeTab} onSelect={(k) => k && setActiveTab(k)}>
-                <Nav.Item>
-                  <Nav.Link eventKey="create">Create Escrow</Nav.Link>
-                </Nav.Item>
-                <Nav.Item>
-                  <Nav.Link eventKey="my">
-                    My Active Escrows
-                    {escrowLoader.loading && <Spinner animation="border" size="sm" className="ms-2" />}
-                    {escrowLoader.stats.total > 0 && (
-                      <Badge bg="primary" className="ms-2">{escrowLoader.stats.total}</Badge>
-                    )}
-                  </Nav.Link>
-                </Nav.Item>
-                <Nav.Item>
-                  <Nav.Link eventKey="find">Find Escrow</Nav.Link>
-                </Nav.Item>
-                <Nav.Item>
-                  <Nav.Link eventKey="contact">Contact</Nav.Link>
-                </Nav.Item>
-              </Nav>
-              
-              <Suspense fallback={<LoadingIndicator message="Loading..." />}>
-                {activeTab === 'create' && (
-                  <CreateEscrowTab 
-                    handleCreateEscrow={handleCreateEscrow}
-                    sellerAddress={sellerAddress}
-                    setSellerAddress={setSellerAddress}
-                    arbiterAddress={arbiterAddress}
-                    setArbiterAddress={setArbiterAddress}
-                    amount={amount}
-                    setAmount={setAmount}
-                    loading={escrowOps.loading}
-                    currentAccount={wallet.account}
-                  />
-                )}
-                
-                {activeTab === 'my' && (
-                  <MyEscrowsTab 
-                    escrows={escrowLoader.activeEscrows} 
-                    onViewDetails={viewEscrowDetails} 
-                    loadingEscrows={escrowLoader.loading}
-                    retryLoadingEscrows={() => escrowLoader.forceRefresh(wallet.contract!, wallet.account)}
-                    account={wallet.account}
-                    onAction={handleEscrowAction}
-                  />
-                )}
-                
-                {activeTab === 'find' && (
-                  <FindEscrowTab 
-                    escrowIdToView={escrowIdToView}
-                    setEscrowIdToView={setEscrowIdToView}
-                    handleFindEscrow={handleFindEscrow}
-                    loading={escrowOps.loading}
-                  />
-                )}
-                
-                {activeTab === 'contact' && (
-                  <ContactForm />
-                )}
-              </Suspense>
-              
-              {/* Escrow Details Modal */}
-              <Modal 
-                show={showDetailsModal} 
-                onHide={handleModalClose}
-                contentClassName={darkMode ? "bg-dark text-light" : ""}
-                backdrop="static"
-                keyboard={false}
-              >
-                <Modal.Header closeButton>
-                  <Modal.Title>Escrow Details</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                  <Suspense fallback={<EscrowDetailsSkeleton />}>
-                    {escrowOps.selectedEscrow ? (
-                      <EscrowDetails
-                        escrow={escrowOps.selectedEscrow}
-                        account={wallet.account}
-                        onAction={handleEscrowAction}
-                        loading={escrowOps.loading}
-                      />
-                    ) : (
-                      <EscrowDetailsSkeleton />
-                    )}
-                  </Suspense>
-                </Modal.Body>
-                <Modal.Footer>
-                  <Button variant="secondary" onClick={handleModalClose}>
-                    Close
-                  </Button>
-                </Modal.Footer>
-              </Modal>
-              
-              {/* Footer */}
-              <div className="footer">
-                <p>
-                  Created by{" "}
-                  <a href={`https://twitter.com/${CREATOR_TWITTER.substring(1)}`} target="_blank" rel="noopener noreferrer">
-                    {CREATOR_TWITTER}
-                  </a>
-                </p>
-                <p>
-                  Creator wallet:{" "}
-                  <a
-                    href={`https://testnet.monadexplorer.com/address/${CREATOR_WALLET}`}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      navigator.clipboard.writeText(CREATOR_WALLET);
-                      window.open(e.currentTarget.href, "_blank");
-                    }}
-                    style={{ cursor: "pointer", textDecoration: "underline" }}
-                    title="Click to open and copy"
-                  >
-                    {CREATOR_WALLET}
-                  </a>
-                </p>
-                <p>
-                  <a href="https://github.com/BluOwn/monadescrow" target="_blank" rel="noopener noreferrer">
-                    View on GitHub
-                  </a>
-                </p>
-              </div>
             </>
           )}
+          
+          {/* Navigation - Always visible */}
+          <Nav variant="tabs" className="mb-4" activeKey={activeTab} onSelect={(k) => k && setActiveTab(k)}>
+            <Nav.Item>
+              <Nav.Link eventKey="guide">
+                📖 How to Use
+                {activeTab === 'guide' && !wallet.connected && (
+                  <Badge bg="info" className="ms-2">Start Here</Badge>
+                )}
+              </Nav.Link>
+            </Nav.Item>
+            <Nav.Item>
+              <Nav.Link eventKey="create" disabled={!wallet.connected}>
+                Create Escrow
+                {!wallet.connected && <small className="ms-1">(Connect wallet)</small>}
+              </Nav.Link>
+            </Nav.Item>
+            <Nav.Item>
+              <Nav.Link eventKey="my" disabled={!wallet.connected}>
+                My Active Escrows
+                {wallet.connected && escrowLoader.loading && <Spinner animation="border" size="sm" className="ms-2" />}
+                {wallet.connected && escrowLoader.stats.total > 0 && (
+                  <Badge bg="primary" className="ms-2">{escrowLoader.stats.total}</Badge>
+                )}
+                {!wallet.connected && <small className="ms-1">(Connect wallet)</small>}
+              </Nav.Link>
+            </Nav.Item>
+            <Nav.Item>
+              <Nav.Link eventKey="find" disabled={!wallet.connected}>
+                Find Escrow
+                {!wallet.connected && <small className="ms-1">(Connect wallet)</small>}
+              </Nav.Link>
+            </Nav.Item>
+            <Nav.Item>
+              <Nav.Link eventKey="contact">Contact</Nav.Link>
+            </Nav.Item>
+          </Nav>
+          
+          <Suspense fallback={<LoadingIndicator message="Loading..." />}>
+            {activeTab === 'guide' && <HowToUseTab />}
+            
+            {activeTab === 'create' && wallet.connected && (
+              <CreateEscrowTab 
+                handleCreateEscrow={handleCreateEscrow}
+                sellerAddress={sellerAddress}
+                setSellerAddress={setSellerAddress}
+                arbiterAddress={arbiterAddress}
+                setArbiterAddress={setArbiterAddress}
+                amount={amount}
+                setAmount={setAmount}
+                loading={escrowOps.loading}
+                currentAccount={wallet.account}
+              />
+            )}
+            
+            {activeTab === 'my' && wallet.connected && (
+              <MyEscrowsTab 
+                escrows={escrowLoader.activeEscrows} 
+                onViewDetails={viewEscrowDetails} 
+                loadingEscrows={escrowLoader.loading}
+                retryLoadingEscrows={() => escrowLoader.forceRefresh(wallet.contract!, wallet.account)}
+                account={wallet.account}
+                onAction={handleEscrowAction}
+              />
+            )}
+            
+            {activeTab === 'find' && wallet.connected && (
+              <FindEscrowTab 
+                escrowIdToView={escrowIdToView}
+                setEscrowIdToView={setEscrowIdToView}
+                handleFindEscrow={handleFindEscrow}
+                loading={escrowOps.loading}
+              />
+            )}
+            
+            {activeTab === 'contact' && <ContactForm />}
+          </Suspense>
+          
+          {/* Show wallet connection prompt for disabled tabs */}
+          {!wallet.connected && (activeTab === 'create' || activeTab === 'my' || activeTab === 'find') && (
+            <Card>
+              <Card.Body className="text-center">
+                <h4>🔗 Connect Your Wallet</h4>
+                <p>Please connect your MetaMask wallet to access this feature</p>
+                <Button 
+                  variant="primary"
+                  onClick={connectWallet}
+                  disabled={wallet.loading}
+                >
+                  {wallet.loading ? <Spinner animation="border" size="sm" /> : 'Connect Wallet'}
+                </Button>
+              </Card.Body>
+            </Card>
+          )}
+          
+          {/* Escrow Details Modal */}
+          {wallet.connected && (
+            <Modal 
+              show={showDetailsModal} 
+              onHide={handleModalClose}
+              contentClassName={darkMode ? "bg-dark text-light" : ""}
+              backdrop="static"
+              keyboard={false}
+            >
+              <Modal.Header closeButton>
+                <Modal.Title>Escrow Details</Modal.Title>
+              </Modal.Header>
+              <Modal.Body>
+                <Suspense fallback={<EscrowDetailsSkeleton />}>
+                  {escrowOps.selectedEscrow ? (
+                    <EscrowDetails
+                      escrow={escrowOps.selectedEscrow}
+                      account={wallet.account}
+                      onAction={handleEscrowAction}
+                      loading={escrowOps.loading}
+                    />
+                  ) : (
+                    <EscrowDetailsSkeleton />
+                  )}
+                </Suspense>
+              </Modal.Body>
+              <Modal.Footer>
+                <Button variant="secondary" onClick={handleModalClose}>
+                  Close
+                </Button>
+              </Modal.Footer>
+            </Modal>
+          )}
+          
+          {/* Footer */}
+          <div className="footer">
+            <p>
+              Created by{" "}
+              <a href={`https://twitter.com/${CREATOR_TWITTER.substring(1)}`} target="_blank" rel="noopener noreferrer">
+                {CREATOR_TWITTER}
+              </a>
+            </p>
+            <p>
+              Creator wallet:{" "}
+              <a
+                href={`https://testnet.monadexplorer.com/address/${CREATOR_WALLET}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigator.clipboard.writeText(CREATOR_WALLET);
+                  window.open(e.currentTarget.href, "_blank");
+                }}
+                style={{ cursor: "pointer", textDecoration: "underline" }}
+                title="Click to open and copy"
+              >
+                {CREATOR_WALLET}
+              </a>
+            </p>
+            <p>
+              <a href="https://github.com/BluOwn/monadescrow" target="_blank" rel="noopener noreferrer">
+                View on GitHub
+              </a>
+            </p>
+          </div>
         </Container>
       </div>
     </DarkModeWrapper>
