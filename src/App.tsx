@@ -1,5 +1,5 @@
-// src/App.tsx - Enhanced with better debugging for arbitrated escrows
-import React, { Suspense, useState, useEffect, useContext } from 'react';
+// src/App.tsx - Optimized version with better modal handling
+import React, { Suspense, useState, useEffect, useContext, useCallback } from 'react';
 import { Button, Container, Nav, Alert, Modal, Badge, Spinner } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
@@ -174,37 +174,61 @@ const App: React.FC = () => {
     }
   };
 
-  // View escrow details
-  const viewEscrowDetails = async (escrowId: string): Promise<void> => {
-    if (!wallet.contract) return;
-    
-    const escrow = await escrowOps.viewEscrowDetails(wallet.contract, escrowId);
-    
-    if (escrow) {
-      setShowDetailsModal(true);
+  // OPTIMIZED: View escrow details with better error handling
+  const viewEscrowDetails = useCallback(async (escrowId: string): Promise<void> => {
+    if (!wallet.contract) {
+      escrowOps.setError('Wallet not connected');
+      return;
     }
-  };
+    
+    try {
+      // Clear any previous state before loading new escrow
+      escrowOps.clearMessages();
+      
+      const escrow = await escrowOps.viewEscrowDetails(wallet.contract, escrowId);
+      
+      if (escrow) {
+        setShowDetailsModal(true);
+      } else {
+        escrowOps.setError('Escrow not found or failed to load');
+      }
+    } catch (error) {
+      console.error("Error in viewEscrowDetails:", error);
+      escrowOps.setError('Failed to load escrow details');
+    }
+  }, [wallet.contract, escrowOps]);
 
-  // Handle action on escrow
-  const handleEscrowAction = async (action: string, escrowId: string, recipient: string | null = null): Promise<void> => {
+  // OPTIMIZED: Handle escrow action with better state management
+  const handleEscrowAction = useCallback(async (
+    action: string, 
+    escrowId: string, 
+    recipient: string | null = null
+  ): Promise<void> => {
     if (!wallet.contract) return;
     
     const success = await escrowOps.handleEscrowAction(wallet.contract, action, escrowId, recipient);
     
     if (success) {
-      // Reload escrows
-      await escrowLists.loadUserEscrows(wallet.contract, wallet.account);
-      await escrowLists.loadArbitratedEscrows(wallet.contract, wallet.account);
+      // Reload escrows in background
+      Promise.all([
+        escrowLists.loadUserEscrows(wallet.contract, wallet.account),
+        escrowLists.loadArbitratedEscrows(wallet.contract, wallet.account)
+      ]).catch(error => {
+        console.warn('Failed to reload escrows after action:', error);
+      });
       
-      // If we were showing a modal for this escrow, refresh its details
-      if (escrowOps.selectedEscrow && escrowOps.selectedEscrow.id === escrowId) {
-        viewEscrowDetails(escrowId);
+      // Refresh the modal data if it's still open
+      if (showDetailsModal && escrowOps.selectedEscrow?.id === escrowId) {
+        // Small delay then refresh the modal data
+        setTimeout(() => {
+          viewEscrowDetails(escrowId);
+        }, 1000);
       }
     }
-  };
+  }, [wallet.contract, escrowOps, escrowLists, wallet.account, showDetailsModal, viewEscrowDetails]);
 
-  // Find escrow by ID
-  const handleFindEscrow = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
+  // OPTIMIZED: Handle find escrow with better state management
+  const handleFindEscrow = useCallback(async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     
     if (!escrowIdToView || !wallet.contract) {
@@ -213,12 +237,28 @@ const App: React.FC = () => {
     }
     
     try {
+      // Clear previous errors and state
+      escrowOps.clearMessages();
+      
+      // Use the optimized viewEscrowDetails function
       await viewEscrowDetails(escrowIdToView);
-      setEscrowIdToView('');
+      setEscrowIdToView(''); // Clear input only on success
     } catch (error) {
       console.error("Error finding escrow", error);
+      escrowOps.setError('Failed to find escrow. Please check the ID and try again.');
     }
-  };
+  }, [escrowIdToView, wallet.contract, escrowOps, viewEscrowDetails]);
+
+  // OPTIMIZED: Modal close handler with state cleanup
+  const handleModalClose = useCallback(() => {
+    setShowDetailsModal(false);
+    
+    // Small delay to ensure modal is closed before clearing state
+    setTimeout(() => {
+      escrowOps.setSelectedEscrow(null);
+      escrowOps.clearMessages();
+    }, 150); // 150ms delay
+  }, [escrowOps]);
 
   // Retry loading escrows button
   const retryLoadingEscrows = async (): Promise<void> => {
@@ -452,11 +492,13 @@ const App: React.FC = () => {
                 )}
               </Suspense>
               
-              {/* Escrow Details Modal */}
+              {/* OPTIMIZED: Escrow Details Modal with better handling */}
               <Modal 
                 show={showDetailsModal} 
-                onHide={() => setShowDetailsModal(false)}
+                onHide={handleModalClose}
                 contentClassName={darkMode ? "bg-dark text-light" : ""}
+                backdrop="static"
+                keyboard={false}
               >
                 <Modal.Header closeButton>
                   <Modal.Title>Escrow Details</Modal.Title>
@@ -476,7 +518,7 @@ const App: React.FC = () => {
                   </Suspense>
                 </Modal.Body>
                 <Modal.Footer>
-                  <Button variant="secondary" onClick={() => setShowDetailsModal(false)}>
+                  <Button variant="secondary" onClick={handleModalClose}>
                     Close
                   </Button>
                 </Modal.Footer>
@@ -486,7 +528,7 @@ const App: React.FC = () => {
               <div className="footer">
                 <p>
                   Created by{" "}
-                  <a
+                  
                     href={`https://twitter.com/${CREATOR_TWITTER.substring(1)}`}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -496,7 +538,7 @@ const App: React.FC = () => {
                 </p>
                 <p>
                   Creator wallet:{" "}
-                  <a
+                  
                     href={`https://testnet.monadexplorer.com/address/${CREATOR_WALLET}`}
                     onClick={(e) => {
                       e.preventDefault();
@@ -510,7 +552,7 @@ const App: React.FC = () => {
                   </a>
                 </p>
                 <p>
-                  <a
+                  
                     href="https://github.com/BluOwn/monadescrow"
                     target="_blank"
                     rel="noopener noreferrer"

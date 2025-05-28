@@ -1,5 +1,5 @@
-// src/hooks/useEscrowOperations.ts
-import { useState, useCallback } from 'react';
+// src/hooks/useEscrowOperations.ts - Optimized to prevent lagging
+import { useState, useCallback, useRef } from 'react';
 import { ethers } from 'ethers';
 import { EscrowContract, Escrow } from '../types';
 import { executeTransactionSecurely } from '../utils/security';
@@ -14,6 +14,7 @@ import {
   handleError 
 } from '../utils/security';
 import { delayBetweenCalls, isRateLimitError } from '../utils/networkUtils';
+
 export interface EscrowOperationsState {
   loading: boolean;
   error: string;
@@ -40,6 +41,10 @@ export function useEscrowOperations() {
       progress: 0
     }
   });
+
+  // OPTIMIZATION: Use ref to track active requests and prevent multiple concurrent requests
+  const activeRequestRef = useRef<string | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Handle RPC error with rate limit detection
   const handleRpcError = useCallback((error: any, operation: string = 'operation'): string => {
@@ -84,7 +89,6 @@ export function useEscrowOperations() {
             progress: 100
           }
         }));
-        // Auto retry logic would go here
       } else {
         setState(prev => ({
           ...prev,
@@ -104,15 +108,13 @@ export function useEscrowOperations() {
     sellerAddress: string, 
     arbiterAddress: string, 
     amount: string,
-    buyerAddress: string // Add buyer address parameter
+    buyerAddress: string
   ): Promise<boolean> => {
     try {
       // Validate inputs
       validateAddress(sellerAddress, 'Seller address');
       validateAddress(arbiterAddress, 'Arbiter address');
       validateAmount(amount);
-      
-      // Add validation to ensure all addresses are different
       validateDifferentAddresses(buyerAddress, sellerAddress, arbiterAddress);
       
       if (!contract) {
@@ -123,7 +125,6 @@ export function useEscrowOperations() {
       
       const amountInWei = ethers.parseEther(amount);
       
-      // Use secure transaction execution
       const receipt = await executeTransactionSecurely(
         contract as unknown as ethers.Contract,
         'createEscrow',
@@ -149,7 +150,7 @@ export function useEscrowOperations() {
     }
   }, [handleRpcError]);
 
-  // View escrow details
+  // OPTIMIZED: View escrow details with request deduplication and timeout
   const viewEscrowDetails = useCallback(async (
     contract: EscrowContract,
     escrowId: string
@@ -158,29 +159,82 @@ export function useEscrowOperations() {
       if (!contract) {
         throw new Error('Contract not initialized');
       }
+
+      // OPTIMIZATION: Prevent multiple concurrent requests for the same escrow
+      const requestKey = `escrow-${escrowId}`;
+      if (activeRequestRef.current === requestKey) {
+        console.log(`Request for escrow ${escrowId} already in progress, skipping...`);
+        return state.selectedEscrow;
+      }
+
+      // Clear any existing timeout
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
       
-      setState(prev => ({ ...prev, loading: true, error: '' }));
+      activeRequestRef.current = requestKey;
+      setState(prev => ({ ...prev, loading: true, error: '', selectedEscrow: null }));
       
-      // Try to get from cache or fetch new data
-      const escrow = await getAndCacheEscrow(contract as unknown as ethers.Contract, escrowId, ethers);
+      // OPTIMIZATION: Set a timeout to prevent hanging requests
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        timeoutRef.current = setTimeout(() => {
+          reject(new Error(`Request timeout for escrow ${escrowId}`));
+        }, 8000); // 8 second timeout
+      });
       
-      setState(prev => ({ 
-        ...prev, 
-        selectedEscrow: escrow,
-        loading: false
-      }));
+      // Race between the actual request and timeout
+      const escrowPromise = getAndCacheEscrow(contract as unknown as ethers.Contract, escrowId, ethers);
       
-      return escrow;
-    } catch (error) {
+      try {
+        const escrow = await Promise.race([escrowPromise, timeoutPromise]);
+        
+        // Clear timeout if successful
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+          timeoutRef.current = null;
+        }
+        
+        setState(prev => ({ 
+          ...prev, 
+          selectedEscrow: escrow,
+          loading: false
+        }));
+        
+        activeRequestRef.current = null;
+        return escrow;
+        
+      } catch (raceError) {
+        // Handle timeout or other race errors
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+          timeoutRef.current = null;
+        }
+        throw raceError;
+      }
+      
+    } catch (error: any) {
       console.error("Error viewing escrow", error);
+      
+      // OPTIMIZATION: Clear the active request even on error
+      activeRequestRef.current = null;
+      
+      // Handle timeout errors specifically
+      let errorMessage = handleRpcError(error, 'view escrow');
+      if (error.message?.includes('timeout')) {
+        errorMessage = 'Request timed out. The network might be slow. Please try again.';
+      }
+      
       setState(prev => ({ 
         ...prev, 
-        error: handleRpcError(error, 'view escrow'),
-        loading: false
+        error: errorMessage,
+        loading: false,
+        selectedEscrow: null
       }));
+      
       return null;
     }
-  }, [handleRpcError]);
+  }, [handleRpcError, state.selectedEscrow]);
 
   // Handle action on escrow
   const handleEscrowAction = useCallback(async (
@@ -265,6 +319,31 @@ export function useEscrowOperations() {
     }
   }, [handleRpcError]);
 
+  // OPTIMIZATION: Clear function to reset all state and cancel active requests
+  const clearAll = useCallback(() => {
+    // Cancel active request
+    activeRequestRef.current = null;
+    
+    // Clear timeout
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    
+    setState({
+      loading: false,
+      error: '',
+      successMessage: '',
+      selectedEscrow: null,
+      rateLimited: false,
+      autoRetry: {
+        active: false,
+        countdown: 0,
+        progress: 0
+      }
+    });
+  }, []);
+
   return {
     ...state,
     createEscrow,
@@ -286,7 +365,8 @@ export function useEscrowOperations() {
     setRateLimited: (limited: boolean) => setState(prev => ({ 
       ...prev, 
       rateLimited: limited 
-    }))
+    })),
+    clearAll // New function to clear everything
   };
 }
 
