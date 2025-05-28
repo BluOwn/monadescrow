@@ -1,15 +1,15 @@
-// src/App.tsx - Optimized version to prevent lagging and excessive resource usage
+// src/App.tsx - Updated to use existing (now optimized) hooks
 import React, { Suspense, useState, useEffect, useContext, useCallback, useMemo } from 'react';
-import { Button, Container, Nav, Alert, Modal, Badge, Spinner, ProgressBar } from 'react-bootstrap';
+import { Button, Container, Nav, Alert, Modal, Badge, Spinner } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 
 // Import contexts
 import { ThemeContext } from './contexts/ThemeContext';
 
-// Import hooks
+// Import hooks - using existing hooks (now optimized)
 import useWallet from './hooks/useWallet';
-import { useOptimizedEscrowLoader } from './hooks/useOptimizedEscrowLoader';
+import { useSimpleEscrowLoader } from './hooks/useSimpleEscrowLoader';
 import useEscrowOperations from './hooks/useEscrowOperations';
 
 // Import components
@@ -47,7 +47,7 @@ const App: React.FC = () => {
   
   // Use custom hooks
   const wallet = useWallet();
-  const escrowLoader = useOptimizedEscrowLoader();
+  const escrowLoader = useSimpleEscrowLoader();
   const escrowOps = useEscrowOperations();
   
   // Local state
@@ -278,11 +278,6 @@ const App: React.FC = () => {
     }
   };
 
-  // Cancel loading operation
-  const cancelLoading = useCallback(() => {
-    escrowLoader.cancelLoading();
-  }, [escrowLoader]);
-
   // Memoize computed values to prevent unnecessary re-renders
   const tabCounts = useMemo(() => ({
     userEscrows: escrowLoader.userEscrows.length,
@@ -354,30 +349,15 @@ const App: React.FC = () => {
               {/* Network Warning */}
               <NetworkWarning currentNetwork={wallet.networkName} />
               
-              {/* Enhanced Loading State with Progress */}
+              {/* Enhanced Loading State */}
               {escrowLoader.loading && (
                 <Alert variant="info" className="mb-3">
-                  <div className="d-flex justify-content-between align-items-center mb-2">
+                  <div className="d-flex justify-content-between align-items-center">
                     <span>
                       <Spinner animation="border" size="sm" className="me-2" />
-                      Loading escrows... ({escrowLoader.totalChecked} checked)
+                      Loading escrows...
                     </span>
-                    <Button 
-                      variant="outline-danger" 
-                      size="sm"
-                      onClick={cancelLoading}
-                    >
-                      Cancel
-                    </Button>
                   </div>
-                  
-                  {escrowLoader.progress > 0 && (
-                    <ProgressBar 
-                      now={escrowLoader.progress} 
-                      variant="info"
-                      style={{ height: '8px' }}
-                    />
-                  )}
                 </Alert>
               )}
               
@@ -406,7 +386,6 @@ const App: React.FC = () => {
                     User Escrows: {tabCounts.userEscrows} | 
                     Arbitrated: {tabCounts.arbitratedEscrows} | 
                     Loading: {escrowLoader.loading ? 'Yes' : 'No'} | 
-                    Progress: {escrowLoader.progress.toFixed(1)}% |
                     Last Updated: {escrowLoader.lastUpdated ? new Date(escrowLoader.lastUpdated).toLocaleTimeString() : 'Never'}
                   </div>
                   <div className="mt-2">

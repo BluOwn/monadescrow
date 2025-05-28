@@ -1,12 +1,12 @@
-// src/hooks/useEscrowOperations.ts - Optimized to prevent lagging
+// src/hooks/useEscrowOperations.ts - Updated with correct imports
 import { useState, useCallback, useRef } from 'react';
 import { ethers } from 'ethers';
 import { EscrowContract, Escrow } from '../types';
 import { executeTransactionSecurely } from '../utils/security';
 import { 
-  getAndCacheEscrow, 
-  invalidateEscrowCache 
-} from '../utils/cacheUtils';
+  getEscrowFast, 
+  invalidateEscrow 
+} from '../utils/optimizedCacheUtils'; // Updated imports
 import { 
   validateAddress, 
   validateAmount, 
@@ -184,7 +184,7 @@ export function useEscrowOperations() {
       });
       
       // Race between the actual request and timeout
-      const escrowPromise = getAndCacheEscrow(contract as unknown as ethers.Contract, escrowId, ethers);
+      const escrowPromise = getEscrowFast(contract as unknown as ethers.Contract, escrowId);
       
       try {
         const escrow = await Promise.race([escrowPromise, timeoutPromise]);
@@ -302,7 +302,7 @@ export function useEscrowOperations() {
       }));
       
       // Invalidate cache for this escrow
-      invalidateEscrowCache(escrowId);
+      invalidateEscrow(escrowId);
       
       // Add delay between operations
       await delayBetweenCalls(500);

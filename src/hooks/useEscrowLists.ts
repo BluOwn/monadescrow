@@ -1,7 +1,7 @@
-// src/hooks/useEscrowLists.ts - Updated version with force refresh and better loading logic
+// src/hooks/useEscrowLists.ts - Updated with correct imports
 import { useState, useCallback } from 'react';
 import { Escrow, EscrowContract } from '../types';
-import { getAndCacheEscrow } from '../utils/cacheUtils';
+import { getEscrowFast } from '../utils/optimizedCacheUtils'; // Updated import
 import { delayBetweenCalls } from '../utils/networkUtils';
 import { ethers } from 'ethers';
 
@@ -62,8 +62,8 @@ export function useEscrowLists() {
           return;
         }
         
-        // OPTIMIZATION: Load all escrow details in parallel with larger batches
-        const BATCH_SIZE = 10;
+        // OPTIMIZATION: Load all escrow details in parallel with smaller batches
+        const BATCH_SIZE = 5; // Reduced batch size
         const batches: any[][] = [];
         
         for (let i = 0; i < escrowIds.length; i += BATCH_SIZE) {
@@ -72,16 +72,18 @@ export function useEscrowLists() {
         
         const allEscrows: Escrow[] = [];
         
-        // Process batches in parallel
-        const batchPromises = batches.map(async (batch, batchIndex) => {
+        // Process batches sequentially to reduce load
+        for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+          const batch = batches[batchIndex];
+          
           if (batchIndex > 0) {
-            await delayBetweenCalls(200);
+            await delayBetweenCalls(300);
           }
           
           const batchResults = await Promise.allSettled(
             batch.map(async (escrowId: any) => {
               try {
-                return await getAndCacheEscrow(escrowContract as unknown as ethers.Contract, escrowId, ethers);
+                return await getEscrowFast(escrowContract as unknown as ethers.Contract, escrowId);
               } catch (err: any) {
                 // Silent handling - don't log expected errors
                 if (err && typeof err === 'object' && err.message && !err.message.includes('does not exist')) {
@@ -92,18 +94,12 @@ export function useEscrowLists() {
             })
           );
           
-          return batchResults
+          const validEscrows = batchResults
             .filter(result => result.status === 'fulfilled' && result.value !== null)
             .map(result => (result as PromiseFulfilledResult<Escrow>).value);
-        });
-        
-        // Wait for all batches to complete
-        const batchResults = await Promise.all(batchPromises);
-        
-        // Flatten results and filter out nulls
-        batchResults.forEach(batchEscrows => {
-          allEscrows.push(...batchEscrows.filter(escrow => escrow !== null));
-        });
+          
+          allEscrows.push(...validEscrows);
+        }
         
         // Sort and set final results
         const sortedEscrows = sortEscrowsNewestFirst(allEscrows);
@@ -129,7 +125,7 @@ export function useEscrowLists() {
     }
   }, []);
 
-  // OPTIMIZED: Load arbitrated escrows function with silent error handling
+  // OPTIMIZED: Load arbitrated escrows function with smart sampling
   const loadArbitratedEscrows = useCallback(async (
     escrowContract: EscrowContract, 
     arbiterAddress: string, 
@@ -167,11 +163,36 @@ export function useEscrowLists() {
           return;
         }
         
-        // Create array of escrow IDs to check
-        const escrowsToCheck = Array.from({ length: totalEscrows }, (_, i) => i);
+        // OPTIMIZATION: Smart sampling instead of checking all escrows
+        const MAX_RECENT_CHECK = 50; // Reduced from 100
+        const MAX_SAMPLE_CHECK = 25;  // Reduced from 50
         
-        // OPTIMIZATION: Process in larger parallel batches
-        const BATCH_SIZE = 15;
+        const escrowsToCheck: number[] = [];
+        
+        // 1. Add recent escrows (more likely to be active)
+        const recentStart = Math.max(0, totalEscrows - MAX_RECENT_CHECK);
+        for (let i = recentStart; i < totalEscrows; i++) {
+          escrowsToCheck.push(i);
+        }
+        
+        // 2. Sample older escrows if there are any
+        if (recentStart > 0) {
+          const olderEscrowsCount = recentStart;
+          const sampleSize = Math.min(MAX_SAMPLE_CHECK, olderEscrowsCount);
+          const sampleStep = Math.floor(olderEscrowsCount / sampleSize);
+          
+          for (let i = 0; i < sampleSize; i++) {
+            const escrowId = i * sampleStep;
+            if (escrowId < recentStart) {
+              escrowsToCheck.push(escrowId);
+            }
+          }
+        }
+        
+        console.log(`Checking ${escrowsToCheck.length} escrows for arbitration`);
+        
+        // OPTIMIZATION: Process in smaller batches
+        const BATCH_SIZE = 5; // Reduced batch size
         const batches: number[][] = [];
         
         for (let i = 0; i < escrowsToCheck.length; i += BATCH_SIZE) {
@@ -180,16 +201,18 @@ export function useEscrowLists() {
         
         const arbitratedEscrows: Escrow[] = [];
         
-        // Process all batches in parallel
-        const batchPromises = batches.map(async (batch, batchIndex) => {
+        // Process batches sequentially to reduce server load
+        for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+          const batch = batches[batchIndex];
+          
           if (batchIndex > 0) {
-            await delayBetweenCalls(150);
+            await delayBetweenCalls(200);
           }
           
           const batchResults = await Promise.allSettled(
             batch.map(async (escrowId) => {
               try {
-                const escrow = await getAndCacheEscrow(escrowContract as unknown as ethers.Contract, escrowId, ethers);
+                const escrow = await getEscrowFast(escrowContract as unknown as ethers.Contract, escrowId);
                 
                 // Check if user is arbiter (case-insensitive)
                 if (escrow.arbiter.toLowerCase() === arbiterAddress.toLowerCase()) {
@@ -206,18 +229,12 @@ export function useEscrowLists() {
             })
           );
           
-          return batchResults
+          const validEscrows = batchResults
             .filter(result => result.status === 'fulfilled' && result.value !== null)
             .map(result => (result as PromiseFulfilledResult<Escrow>).value);
-        });
-        
-        // Wait for all batches and collect results
-        const batchResults = await Promise.all(batchPromises);
-        
-        // Flatten and filter results
-        batchResults.forEach(batchEscrows => {
-          arbitratedEscrows.push(...batchEscrows.filter(e => e !== null));
-        });
+          
+          arbitratedEscrows.push(...validEscrows);
+        }
         
         // Sort and set final results
         const sortedArbitratedEscrows = sortEscrowsNewestFirst(arbitratedEscrows);
