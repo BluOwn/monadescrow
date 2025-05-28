@@ -1,337 +1,191 @@
-/* Modern Escrow Application Styles
-   Enhanced with contemporary design patterns and subtle effects */
-
 :root {
-  /* Enhanced Color Palette */
-  --primary-color: #6366f1;
-  --primary-hover: #4f46e5;
-  --primary-light: #e0e7ff;
-  --secondary-color: #10b981;
-  --secondary-hover: #059669;
-  --secondary-light: #d1fae5;
-  --danger-color: #ef4444;
-  --danger-hover: #dc2626;
-  --warning-color: #f59e0b;
-  --warning-hover: #d97706;
-  --light-bg: #f8fafc;
-  --dark-text: #1e293b;
-  --text-secondary: #64748b;
-  --border-color: #e2e8f0;
+  --primary-color: #6c5ce7;
+  --primary-hover: #5649c8;
+  --secondary-color: #00b894;
+  --secondary-hover: #00a381;
+  --danger-color: #e74c3c;
+  --warning-color: #f39c12;
+  --light-bg: #f8f9fa;
+  --dark-text: #2d3436;
+  --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+  --transition: all 0.3s ease;
   
-  /* Modern Shadows */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  
-  /* Enhanced Transitions */
-  --transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-medium: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-slow: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  
-  /* Role colors with better contrast */
-  --buyer-color: #3b82f6;
-  --buyer-light: #dbeafe;
-  --seller-color: #10b981;
-  --seller-light: #d1fae5;
-  --arbiter-color: #8b5cf6;
-  --arbiter-light: #ede9fe;
-  
-  /* Modern spacing scale */
-  --space-1: 0.25rem;
-  --space-2: 0.5rem;
-  --space-3: 0.75rem;
-  --space-4: 1rem;
-  --space-6: 1.5rem;
-  --space-8: 2rem;
+  /* Role colors */
+  --buyer-color: #3498db;
+  --seller-color: #00b894;
+  --arbiter-color: #9b59b6;
 }
 
-/* Enhanced Body Styling */
 body {
-  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 50%, #f8fafc 100%);
+  background: linear-gradient(135deg, #dfe6e9 0%, #f8f9fa 100%);
   color: var(--dark-text);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  line-height: 1.6;
-  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
 
-/* Modern Container */
 .container {
   max-width: 800px;
-  background-color: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 16px;
-  box-shadow: var(--shadow-xl);
-  padding: var(--space-8);
-  margin-top: 3rem;
-  margin-bottom: 3rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  transition: var(--transition-medium);
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: var(--card-shadow);
+  padding: 30px;
+  margin-top: 50px;
+  margin-bottom: 50px;
 }
 
-.container:hover {
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
-}
-
-/* Enhanced Header */
 .app-header {
   text-align: center;
-  margin-bottom: var(--space-8);
-  position: relative;
-}
-
-.app-header::after {
-  content: '';
-  position: absolute;
-  bottom: -1rem;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 60px;
-  height: 3px;
-  background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-  border-radius: 2px;
+  margin-bottom: 30px;
 }
 
 .app-header h1 {
   font-weight: 700;
-  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  margin-bottom: var(--space-4);
-  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  color: var(--primary-color);
+  margin-bottom: 15px;
 }
 
 .app-header p {
-  color: var(--text-secondary);
-  font-size: 1.125rem;
-  font-weight: 400;
+  color: #636e72;
+  font-size: 1.1rem;
 }
 
-/* Modern Wallet Connection */
 .connect-wallet-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 3rem 0;
-  background: linear-gradient(135deg, var(--primary-light), var(--secondary-light));
-  border-radius: 12px;
-  margin: var(--space-6) 0;
+  padding: 40px 0;
 }
 
 .wallet-button {
-  background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+  background-color: var(--primary-color);
   color: white;
   border: none;
-  padding: 14px 28px;
-  border-radius: 12px;
+  padding: 12px 24px;
+  border-radius: 8px;
   font-weight: 600;
+  transition: var(--transition);
   font-size: 1rem;
-  transition: var(--transition-medium);
-  position: relative;
-  overflow: hidden;
-  box-shadow: var(--shadow-md);
-}
-
-.wallet-button::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.5s;
-}
-
-.wallet-button:hover::before {
-  left: 100%;
 }
 
 .wallet-button:hover {
+  background-color: var(--primary-hover);
   transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 7px 14px rgba(50, 50, 93, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08);
 }
 
-.wallet-button:active {
-  transform: translateY(0);
-}
-
-/* Enhanced Wallet Info */
 .wallet-info {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: linear-gradient(135deg, var(--light-bg), rgba(255, 255, 255, 0.8));
-  padding: var(--space-4) var(--space-6);
-  border-radius: 12px;
-  margin-bottom: var(--space-6);
-  border: 1px solid var(--border-color);
-  transition: var(--transition-medium);
-}
-
-.wallet-info:hover {
-  box-shadow: var(--shadow-md);
-  transform: translateY(-1px);
+  background-color: var(--light-bg);
+  padding: 10px 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
 }
 
 .network-badge {
-  background: linear-gradient(135deg, var(--secondary-color), var(--secondary-hover));
+  background-color: var(--secondary-color);
   color: white;
   font-size: 0.75rem;
-  font-weight: 600;
-  padding: var(--space-1) var(--space-3);
-  border-radius: 20px;
-  margin-left: var(--space-2);
-  box-shadow: var(--shadow-sm);
+  padding: 4px 8px;
+  border-radius: 4px;
+  margin-left: 8px;
 }
 
-/* Modern Cards */
 .card {
   border: none;
-  border-radius: 12px;
-  box-shadow: var(--shadow-md);
-  margin-bottom: var(--space-6);
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(10px);
-  transition: var(--transition-medium);
-  overflow: hidden;
-}
-
-.card:hover {
-  box-shadow: var(--shadow-lg);
-  transform: translateY(-2px);
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  margin-bottom: 25px;
 }
 
 .card-title {
   font-weight: 600;
   color: var(--primary-color);
-  margin-bottom: var(--space-6);
-  font-size: 1.25rem;
+  margin-bottom: 20px;
 }
 
-/* Enhanced Form Elements */
 .form-label {
   font-weight: 500;
-  margin-bottom: var(--space-2);
-  color: var(--dark-text);
+  margin-bottom: 8px;
 }
 
 .form-control {
-  border-radius: 10px;
-  padding: 12px 16px;
-  border: 2px solid var(--border-color);
-  transition: var(--transition-fast);
-  background: rgba(255, 255, 255, 0.8);
-  font-size: 0.95rem;
+  border-radius: 8px;
+  padding: 12px 15px;
+  border: 1px solid #dfe6e9;
+  transition: var(--transition);
 }
 
 .form-control:focus {
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-  background: white;
-  outline: none;
-}
-
-.form-control:hover {
-  border-color: var(--primary-hover);
+  box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.1);
 }
 
 .form-text {
   font-size: 0.8rem;
-  color: var(--text-secondary);
-  margin-top: var(--space-1);
-}
-
-/* Modern Buttons */
-.btn {
-  font-weight: 500;
-  padding: 10px 20px;
-  border-radius: 10px;
-  transition: var(--transition-medium);
-  border: none;
-  position: relative;
-  overflow: hidden;
+  color: #636e72;
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
-  color: white;
-  box-shadow: var(--shadow-sm);
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  font-weight: 500;
+  padding: 10px 20px;
+  border-radius: 8px;
+  transition: var(--transition);
 }
 
 .btn-primary:hover {
+  background-color: var(--primary-hover);
+  border-color: var(--primary-hover);
   transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
 }
 
 .btn-success {
-  background: linear-gradient(135deg, var(--secondary-color), var(--secondary-hover));
-  color: white;
-  box-shadow: var(--shadow-sm);
+  background-color: var(--secondary-color);
+  border-color: var(--secondary-color);
 }
 
 .btn-success:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  background-color: var(--secondary-hover);
+  border-color: var(--secondary-hover);
 }
 
 .btn-danger {
-  background: linear-gradient(135deg, var(--danger-color), var(--danger-hover));
-  color: white;
-  box-shadow: var(--shadow-sm);
+  background-color: var(--danger-color);
+  border-color: var(--danger-color);
 }
 
 .btn-warning {
-  background: linear-gradient(135deg, var(--warning-color), var(--warning-hover));
-  color: white;
-  box-shadow: var(--shadow-sm);
+  background-color: var(--warning-color);
+  border-color: var(--warning-color);
 }
 
 .btn-outline-info {
   color: var(--primary-color);
-  border: 2px solid var(--primary-color);
-  background: transparent;
+  border-color: var(--primary-color);
 }
 
 .btn-outline-info:hover {
-  background: var(--primary-color);
+  background-color: var(--primary-color);
   color: white;
-  transform: translateY(-1px);
 }
 
-/* Enhanced List Items */
 .list-group-item {
   border-left: none;
   border-right: none;
-  padding: var(--space-6);
-  transition: var(--transition-medium);
-  border-bottom: 1px solid var(--border-color);
+  padding: 15px;
+  transition: var(--transition);
 }
 
 .list-group-item:hover {
-  background: linear-gradient(135deg, var(--light-bg), rgba(255, 255, 255, 0.8));
-  transform: translateX(4px);
-  box-shadow: var(--shadow-sm);
+  background-color: var(--light-bg);
 }
 
-.list-group-item:first-child {
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.list-group-item:last-child {
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-  border-bottom: none;
-}
-
-/* Modern Escrow Items */
 .escrow-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: var(--space-4);
 }
 
 .escrow-info {
@@ -340,151 +194,110 @@ body {
 
 .escrow-status {
   display: inline-block;
-  padding: var(--space-1) var(--space-3);
-  border-radius: 20px;
+  padding: 4px 8px;
+  border-radius: 4px;
   font-size: 0.75rem;
   font-weight: 600;
-  margin-top: var(--space-1);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  margin-top: 5px;
 }
 
 .status-active {
-  background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+  background-color: #6c5ce7;
   color: white;
-  box-shadow: var(--shadow-sm);
 }
 
 .status-disputed {
-  background: linear-gradient(135deg, var(--danger-color), var(--danger-hover));
+  background-color: #e74c3c;
   color: white;
-  box-shadow: var(--shadow-sm);
 }
 
 .status-completed {
-  background: linear-gradient(135deg, var(--secondary-color), var(--secondary-hover));
+  background-color: #00b894;
   color: white;
-  box-shadow: var(--shadow-sm);
 }
 
-/* Enhanced Role Badges */
+/* Role badges */
 .role-badge {
   display: inline-block;
-  padding: var(--space-1) var(--space-3);
-  border-radius: 20px;
+  padding: 3px 8px;
+  border-radius: 4px;
   font-size: 0.7rem;
   font-weight: 600;
-  margin-right: var(--space-1);
-  margin-top: var(--space-1);
-  margin-bottom: var(--space-1);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  box-shadow: var(--shadow-sm);
+  margin-right: 5px;
+  margin-top: 5px;
+  margin-bottom: 5px;
 }
 
 .buyer-badge {
-  background: linear-gradient(135deg, var(--buyer-color), #2563eb);
+  background-color: var(--buyer-color);
   color: white;
 }
 
 .seller-badge {
-  background: linear-gradient(135deg, var(--seller-color), var(--secondary-hover));
+  background-color: var(--seller-color);
   color: white;
 }
 
 .arbiter-badge {
-  background: linear-gradient(135deg, var(--arbiter-color), #7c3aed);
+  background-color: var(--arbiter-color);
   color: white;
 }
 
 .escrow-roles {
-  margin-top: var(--space-1);
-  margin-bottom: var(--space-1);
+  margin-top: 5px;
+  margin-bottom: 5px;
 }
 
-/* Enhanced Arbiter Styles */
+/* Arbiter specific styles */
 .arbiter-item {
-  border-left: 4px solid var(--arbiter-color);
-  background: linear-gradient(135deg, var(--arbiter-light), rgba(255, 255, 255, 0.8));
-  position: relative;
-}
-
-.arbiter-item::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 4px;
-  height: 100%;
-  background: linear-gradient(180deg, var(--arbiter-color), #7c3aed);
+  border-left: 3px solid var(--arbiter-color);
+  background-color: rgba(155, 89, 182, 0.05);
 }
 
 .arbiter-notice {
-  background: linear-gradient(135deg, var(--arbiter-light), rgba(255, 255, 255, 0.9));
-  border-radius: 10px;
-  padding: var(--space-4);
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  background-color: rgba(155, 89, 182, 0.1);
+  border-radius: 8px;
+  padding: 10px;
 }
 
 .arbiter-actions {
-  border-top: 1px solid var(--border-color);
-  padding-top: var(--space-4);
-  margin-top: var(--space-4);
+  border-top: 1px solid #eee;
+  padding-top: 10px;
 }
 
 .user-role-section {
-  background: linear-gradient(135deg, var(--light-bg), rgba(255, 255, 255, 0.8));
-  padding: var(--space-4);
-  border-radius: 10px;
-  margin-bottom: var(--space-4);
-  border: 1px solid var(--border-color);
+  background-color: #f8f9fa;
+  padding: 10px;
+  border-radius: 6px;
+  margin-bottom: 15px;
 }
 
 .user-role-indicator {
-  margin-bottom: var(--space-1);
-}
-
-/* Modern Navigation Tabs */
-.nav-tabs {
-  border-bottom: 2px solid var(--border-color);
-  margin-bottom: var(--space-6);
+  margin-bottom: 5px;
 }
 
 .nav-tabs .nav-link {
   font-weight: 500;
-  color: var(--text-secondary);
-  padding: var(--space-3) var(--space-4);
+  color: #636e72;
+  padding: 10px 15px;
   border: none;
-  transition: var(--transition-medium);
-  border-radius: 8px 8px 0 0;
-  position: relative;
-}
-
-.nav-tabs .nav-link:hover {
-  color: var(--primary-color);
-  background: var(--primary-light);
+  transition: var(--transition);
 }
 
 .nav-tabs .nav-link.active {
   color: var(--primary-color);
-  background: transparent;
-  border-bottom: 3px solid var(--primary-color);
-  font-weight: 600;
+  background-color: transparent;
+  border-bottom: 2px solid var(--primary-color);
 }
 
-/* Enhanced Modals */
 .modal-content {
-  border-radius: 16px;
-  box-shadow: var(--shadow-xl);
-  border: none;
-  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  box-shadow: var(--card-shadow);
 }
 
 .modal-header {
-  border-bottom: 1px solid var(--border-color);
-  padding: var(--space-6);
-  background: linear-gradient(135deg, var(--light-bg), rgba(255, 255, 255, 0.9));
-  border-radius: 16px 16px 0 0;
+  border-bottom: 1px solid #f1f1f1;
+  padding: 15px 20px;
 }
 
 .modal-title {
@@ -493,70 +306,53 @@ body {
 }
 
 .modal-body {
-  padding: var(--space-6);
+  padding: 20px;
 }
 
 .modal-footer {
-  border-top: 1px solid var(--border-color);
-  padding: var(--space-6);
-  background: var(--light-bg);
-  border-radius: 0 0 16px 16px;
+  border-top: 1px solid #f1f1f1;
+  padding: 15px 20px;
 }
 
-/* Enhanced Address Display */
 .address-display {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 200px;
   display: inline-block;
-  font-family: 'JetBrains Mono', 'Fira Code', monospace;
-  background: rgba(0, 0, 0, 0.05);
-  padding: var(--space-1) var(--space-2);
-  border-radius: 6px;
-  font-size: 0.85rem;
 }
 
-/* Enhanced Statistics Cards */
-.stats-card {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.8));
-  border-radius: 12px;
-  margin-bottom: var(--space-6);
-  transition: var(--transition-medium);
-  border: 1px solid var(--border-color);
-  backdrop-filter: blur(10px);
+@media (max-width: 768px) {
+  .container {
+    padding: 20px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+  }
+  
+  .address-display {
+    max-width: 150px;
+  }
 }
 
-.stats-card:hover {
-  box-shadow: var(--shadow-lg);
-  transform: translateY(-2px);
-}
-
-.stat-item h3 {
-  font-size: 2rem;
-  font-weight: 700;
-  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  margin-bottom: var(--space-1);
-}
-
-.stat-label {
+.footer {
+  text-align: center;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+  color: #636e72;
   font-size: 0.9rem;
-  color: var(--text-secondary);
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
 }
 
-.stats-card .badge {
-  font-size: 0.7rem;
-  padding: 0.25em 0.5em;
-  border-radius: 12px;
+.footer a {
+  color: var(--primary-color);
+  text-decoration: none;
 }
 
-/* Enhanced Loading Animation */
+.footer a:hover {
+  text-decoration: underline;
+}
+
+/* Add loading animation for escrow items */
 .escrow-item.loading {
   position: relative;
   overflow: hidden;
@@ -569,11 +365,8 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, 
-    transparent, 
-    rgba(99, 102, 241, 0.1), 
-    transparent);
-  animation: loading-shimmer 2s infinite;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  animation: loading-shimmer 1.5s infinite;
 }
 
 @keyframes loading-shimmer {
@@ -581,78 +374,41 @@ body {
   100% { transform: translateX(100%); }
 }
 
-/* Enhanced Footer */
-.footer {
-  text-align: center;
-  margin-top: var(--space-8);
-  padding-top: var(--space-6);
-  border-top: 1px solid var(--border-color);
-  color: var(--text-secondary);
-  font-size: 0.9rem;
+.dark-mode .escrow-item.loading::after {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
 }
 
-.footer a {
+/* Escrow Statistics Styling */
+.stats-card {
+  background-color: var(--card-bg);
+  border-radius: 10px;
+  margin-bottom: 20px;
+  transition: box-shadow 0.3s ease;
+}
+
+.stats-card:hover {
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.dark-mode .stats-card:hover {
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.stat-item h3 {
+  font-size: 1.8rem;
+  font-weight: 600;
   color: var(--primary-color);
-  text-decoration: none;
+  margin-bottom: 5px;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
   font-weight: 500;
-  transition: var(--transition-fast);
 }
 
-.footer a:hover {
-  color: var(--primary-hover);
-  text-decoration: underline;
-}
-
-/* Responsive Enhancements */
-@media (max-width: 768px) {
-  .container {
-    padding: var(--space-6);
-    margin-top: var(--space-6);
-    margin-bottom: var(--space-6);
-    border-radius: 12px;
-  }
-  
-  .address-display {
-    max-width: 150px;
-  }
-  
-  .escrow-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--space-3);
-  }
-  
-  .wallet-info {
-    flex-direction: column;
-    gap: var(--space-3);
-    text-align: center;
-  }
-}
-
-/* Subtle Pulse Animation for Active Elements */
-@keyframes subtle-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.8; }
-}
-
-.status-active {
-  animation: subtle-pulse 3s infinite;
-}
-
-/* Micro-interactions */
-.btn, .card, .list-group-item {
-  will-change: transform;
-}
-
-/* Focus States for Accessibility */
-.btn:focus,
-.form-control:focus,
-.nav-link:focus {
-  outline: 2px solid var(--primary-color);
-  outline-offset: 2px;
-}
-
-/* Smooth Scrolling */
-html {
-  scroll-behavior: smooth;
+/* Custom badge sizes for statistics */
+.stats-card .badge {
+  font-size: 0.7rem;
+  padding: 0.25em 0.5em;
 }
