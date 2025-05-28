@@ -93,7 +93,7 @@ const EscrowList: React.FC<EscrowListProps> = ({
   if (escrows.length === 0) {
     return (
       <div className="text-center my-4">
-        <p>You don't have any escrows yet</p>
+        <p>You don't have any Active escrows yet</p>
         <Button variant="outline-primary" size="sm" onClick={retryLoadingEscrows}>
           Refresh
         </Button>
