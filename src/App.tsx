@@ -1,6 +1,6 @@
-// src/App.tsx - Updated version with simplified escrow loading
-import React, { Suspense, useState, useEffect, useContext, useCallback } from 'react';
-import { Button, Container, Nav, Alert, Modal, Badge, Spinner } from 'react-bootstrap';
+// src/App.tsx - Optimized version to prevent lagging and excessive resource usage
+import React, { Suspense, useState, useEffect, useContext, useCallback, useMemo } from 'react';
+import { Button, Container, Nav, Alert, Modal, Badge, Spinner, ProgressBar } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 
@@ -9,7 +9,7 @@ import { ThemeContext } from './contexts/ThemeContext';
 
 // Import hooks
 import useWallet from './hooks/useWallet';
-import { useSimpleEscrowLoader } from './hooks/useSimpleEscrowLoader';
+import { useOptimizedEscrowLoader } from './hooks/useOptimizedEscrowLoader';
 import useEscrowOperations from './hooks/useEscrowOperations';
 
 // Import components
@@ -47,7 +47,7 @@ const App: React.FC = () => {
   
   // Use custom hooks
   const wallet = useWallet();
-  const escrowLoader = useSimpleEscrowLoader();
+  const escrowLoader = useOptimizedEscrowLoader();
   const escrowOps = useEscrowOperations();
   
   // Local state
@@ -65,7 +65,6 @@ const App: React.FC = () => {
 
   // Initialize security settings on component mount
   useEffect(() => {
-    // Check if user has previously accepted security warning
     const hasAccepted = localStorage.getItem('monad-escrow-security-accepted');
     if (hasAccepted === 'true') {
       setHasAcceptedSecurity(true);
@@ -79,38 +78,59 @@ const App: React.FC = () => {
     return cleanup;
   }, [wallet]);
 
-  // SIMPLIFIED: Single effect for loading escrows
+  // OPTIMIZED: Single effect for loading escrows with better control
   useEffect(() => {
+    let isEffectActive = true;
+    
     const loadData = async () => {
-      if (wallet.connected && wallet.contract && wallet.account) {
-        console.log('👤 Wallet connected, loading escrows...');
+      if (wallet.connected && wallet.contract && wallet.account && isEffectActive) {
+        console.log('👤 Wallet connected, checking if refresh needed...');
         
-        // Use refreshIfStale to avoid unnecessary reloads
-        await escrowLoader.refreshIfStale(wallet.contract, wallet.account);
+        try {
+          // Use refreshIfStale to avoid unnecessary reloads
+          await escrowLoader.refreshIfStale(wallet.contract, wallet.account);
+        } catch (error) {
+          console.error('Error refreshing escrows:', error);
+        }
       }
     };
 
-    loadData();
-  }, [wallet.connected, wallet.contract, wallet.account, escrowLoader]);
+    // Add a small delay to prevent rapid consecutive calls
+    const timeoutId = setTimeout(loadData, 500);
+    
+    return () => {
+      isEffectActive = false;
+      clearTimeout(timeoutId);
+    };
+  }, [wallet.connected, wallet.contract, wallet.account]);
 
-  // Handle tab changes - refresh stale data when switching to relevant tabs
+  // OPTIMIZED: Tab change effect with debouncing
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    
     const handleTabChange = async () => {
       if (!wallet.connected || !wallet.contract || !wallet.account) return;
       
-      // Only refresh if switching to tabs that need data and data is stale
+      // Only refresh if switching to tabs that need data and data is very stale
       if ((activeTab === 'my' || activeTab === 'arbitrated') && escrowLoader.isStale) {
-        console.log(`🔄 Tab switched to ${activeTab}, refreshing stale data...`);
-        await escrowLoader.refreshIfStale(wallet.contract, wallet.account);
+        console.log(`🔄 Tab switched to ${activeTab}, data is stale, refreshing...`);
+        
+        try {
+          await escrowLoader.refreshIfStale(wallet.contract, wallet.account, 120000); // 2 minutes
+        } catch (error) {
+          console.error('Error refreshing on tab change:', error);
+        }
       }
     };
 
-    handleTabChange();
-  }, [activeTab, wallet.connected, wallet.contract, wallet.account, escrowLoader]);
+    // Debounce tab changes to prevent rapid API calls
+    timeoutId = setTimeout(handleTabChange, 1000);
+    
+    return () => clearTimeout(timeoutId);
+  }, [activeTab, wallet.connected, wallet.contract, wallet.account, escrowLoader.isStale]);
 
   // Connect to MetaMask
   const connectWallet = async (): Promise<void> => {
-    // Show security warning for first-time users
     if (firstTimeUser && !hasAcceptedSecurity) {
       setShowSecurityWarning(true);
       return;
@@ -120,7 +140,7 @@ const App: React.FC = () => {
       const success = await wallet.connectWallet();
       
       if (success && wallet.contract) {
-        console.log('Wallet connected successfully, loading escrows...');
+        console.log('Wallet connected successfully');
         // The useEffect above will handle loading the escrows
       }
     } catch (error) {
@@ -144,7 +164,7 @@ const App: React.FC = () => {
     // Don't connect wallet if user declines
   };
 
-  // SIMPLIFIED: Create escrow handler
+  // OPTIMIZED: Create escrow handler with better state management
   const handleCreateEscrow = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     
@@ -163,12 +183,14 @@ const App: React.FC = () => {
       setArbiterAddress('');
       setAmount('');
       
-      // Force refresh after creating escrow
-      await escrowLoader.forceRefresh(wallet.contract, wallet.account);
+      // Force refresh after creating escrow with delay
+      setTimeout(() => {
+        escrowLoader.forceRefresh(wallet.contract!, wallet.account);
+      }, 2000); // 2 second delay to allow blockchain to update
     }
   };
 
-  // View escrow details with better error handling
+  // OPTIMIZED: View escrow details with memoization
   const viewEscrowDetails = useCallback(async (escrowId: string): Promise<void> => {
     if (!wallet.contract) {
       escrowOps.setError('Wallet not connected');
@@ -176,7 +198,6 @@ const App: React.FC = () => {
     }
     
     try {
-      // Clear any previous state before loading new escrow
       escrowOps.clearMessages();
       
       const escrow = await escrowOps.viewEscrowDetails(wallet.contract, escrowId);
@@ -192,7 +213,7 @@ const App: React.FC = () => {
     }
   }, [wallet.contract, escrowOps]);
 
-  // SIMPLIFIED: Escrow action handler
+  // OPTIMIZED: Escrow action handler with better timing
   const handleEscrowAction = useCallback(async (
     action: string, 
     escrowId: string, 
@@ -203,21 +224,23 @@ const App: React.FC = () => {
     const success = await escrowOps.handleEscrowAction(wallet.contract, action, escrowId, recipient);
     
     if (success) {
-      // Force refresh after any action
+      // Force refresh after action with appropriate delay
       setTimeout(() => {
-        escrowLoader.forceRefresh(wallet.contract!, wallet.account);
-      }, 1000); // Small delay to ensure blockchain state is updated
+        if (wallet.contract && wallet.account) {
+          escrowLoader.forceRefresh(wallet.contract, wallet.account);
+        }
+      }, 3000); // 3 second delay for blockchain confirmation
       
       // Refresh modal if open
       if (showDetailsModal && escrowOps.selectedEscrow?.id === escrowId) {
         setTimeout(() => {
           viewEscrowDetails(escrowId);
-        }, 1500);
+        }, 4000); // 4 second delay for modal refresh
       }
     }
   }, [wallet.contract, wallet.account, showDetailsModal, escrowOps.selectedEscrow?.id, escrowLoader, viewEscrowDetails]);
 
-  // Handle find escrow with better state management
+  // OPTIMIZED: Handle find escrow with debouncing
   const handleFindEscrow = useCallback(async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     
@@ -227,10 +250,7 @@ const App: React.FC = () => {
     }
     
     try {
-      // Clear previous errors and state
       escrowOps.clearMessages();
-      
-      // Use the optimized viewEscrowDetails function
       await viewEscrowDetails(escrowIdToView);
       setEscrowIdToView(''); // Clear input only on success
     } catch (error) {
@@ -239,28 +259,35 @@ const App: React.FC = () => {
     }
   }, [escrowIdToView, wallet.contract, escrowOps, viewEscrowDetails]);
 
-  // Modal close handler with state cleanup
+  // Modal close handler with cleanup
   const handleModalClose = useCallback(() => {
     setShowDetailsModal(false);
     
-    // Small delay to ensure modal is closed before clearing state
     setTimeout(() => {
       escrowOps.setSelectedEscrow(null);
       escrowOps.clearMessages();
-    }, 150); // 150ms delay
+    }, 150);
   }, [escrowOps]);
 
   // Retry loading escrows button
   const retryLoadingEscrows = async (): Promise<void> => {
     if (wallet.contract && wallet.account) {
-      // Clear rate limited state
       escrowOps.setRateLimited(false);
-      
       console.log('Retrying to load escrows...');
-      // Force refresh all data
       await escrowLoader.forceRefresh(wallet.contract, wallet.account);
     }
   };
+
+  // Cancel loading operation
+  const cancelLoading = useCallback(() => {
+    escrowLoader.cancelLoading();
+  }, [escrowLoader]);
+
+  // Memoize computed values to prevent unnecessary re-renders
+  const tabCounts = useMemo(() => ({
+    userEscrows: escrowLoader.userEscrows.length,
+    arbitratedEscrows: escrowLoader.arbitratedEscrows.length
+  }), [escrowLoader.userEscrows.length, escrowLoader.arbitratedEscrows.length]);
 
   // Render the component
   return (
@@ -327,11 +354,30 @@ const App: React.FC = () => {
               {/* Network Warning */}
               <NetworkWarning currentNetwork={wallet.networkName} />
               
-              {/* Show loading state */}
+              {/* Enhanced Loading State with Progress */}
               {escrowLoader.loading && (
                 <Alert variant="info" className="mb-3">
-                  <Spinner animation="border" size="sm" className="me-2" />
-                  Loading escrows...
+                  <div className="d-flex justify-content-between align-items-center mb-2">
+                    <span>
+                      <Spinner animation="border" size="sm" className="me-2" />
+                      Loading escrows... ({escrowLoader.totalChecked} checked)
+                    </span>
+                    <Button 
+                      variant="outline-danger" 
+                      size="sm"
+                      onClick={cancelLoading}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                  
+                  {escrowLoader.progress > 0 && (
+                    <ProgressBar 
+                      now={escrowLoader.progress} 
+                      variant="info"
+                      style={{ height: '8px' }}
+                    />
+                  )}
                 </Alert>
               )}
               
@@ -344,6 +390,7 @@ const App: React.FC = () => {
                       variant="outline-danger" 
                       size="sm" 
                       onClick={() => escrowLoader.forceRefresh(wallet.contract!, wallet.account)}
+                      disabled={escrowLoader.loading}
                     >
                       Retry
                     </Button>
@@ -356,20 +403,30 @@ const App: React.FC = () => {
                 <Alert variant="info" className="mb-3">
                   <strong>Debug Info:</strong>
                   <div>
-                    User Escrows: {escrowLoader.userEscrows.length} | 
-                    Arbitrated: {escrowLoader.arbitratedEscrows.length} | 
+                    User Escrows: {tabCounts.userEscrows} | 
+                    Arbitrated: {tabCounts.arbitratedEscrows} | 
                     Loading: {escrowLoader.loading ? 'Yes' : 'No'} | 
-                    Last Updated: {escrowLoader.lastUpdated ? new Date(escrowLoader.lastUpdated).toLocaleTimeString() : 'Never'} | 
-                    Account: {wallet.account?.slice(0, 8)}...
+                    Progress: {escrowLoader.progress.toFixed(1)}% |
+                    Last Updated: {escrowLoader.lastUpdated ? new Date(escrowLoader.lastUpdated).toLocaleTimeString() : 'Never'}
                   </div>
-                  <Button 
-                    variant="outline-info" 
-                    size="sm" 
-                    className="mt-2"
-                    onClick={() => escrowLoader.forceRefresh(wallet.contract!, wallet.account)}
-                  >
-                    🔄 Force Refresh
-                  </Button>
+                  <div className="mt-2">
+                    <Button 
+                      variant="outline-info" 
+                      size="sm" 
+                      className="me-2"
+                      onClick={() => escrowLoader.forceRefresh(wallet.contract!, wallet.account)}
+                      disabled={escrowLoader.loading}
+                    >
+                      🔄 Force Refresh
+                    </Button>
+                    <Button 
+                      variant="outline-warning" 
+                      size="sm"
+                      onClick={escrowLoader.clearData}
+                    >
+                      🗑️ Clear Data
+                    </Button>
+                  </div>
                 </Alert>
               )}
               
@@ -419,18 +476,18 @@ const App: React.FC = () => {
                 <Nav.Item>
                   <Nav.Link eventKey="my">
                     My Escrows
-                    {escrowLoader.loading && <Spinner animation="border" size="sm" className="ms-2" />}
-                    {escrowLoader.userEscrows.length > 0 && (
-                      <Badge bg="primary" className="ms-2">{escrowLoader.userEscrows.length}</Badge>
+                    {escrowLoader.loading && activeTab === 'my' && <Spinner animation="border" size="sm" className="ms-2" />}
+                    {tabCounts.userEscrows > 0 && (
+                      <Badge bg="primary" className="ms-2">{tabCounts.userEscrows}</Badge>
                     )}
                   </Nav.Link>
                 </Nav.Item>
                 <Nav.Item>
                   <Nav.Link eventKey="arbitrated">
                     Arbitrated Escrows
-                    {escrowLoader.loading && <Spinner animation="border" size="sm" className="ms-2" />}
-                    {escrowLoader.arbitratedEscrows.length > 0 && (
-                      <Badge bg="warning" className="ms-2">{escrowLoader.arbitratedEscrows.length}</Badge>
+                    {escrowLoader.loading && activeTab === 'arbitrated' && <Spinner animation="border" size="sm" className="ms-2" />}
+                    {tabCounts.arbitratedEscrows > 0 && (
+                      <Badge bg="warning" className="ms-2">{tabCounts.arbitratedEscrows}</Badge>
                     )}
                   </Nav.Link>
                 </Nav.Item>
