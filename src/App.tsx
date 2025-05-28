@@ -1,15 +1,15 @@
-// src/App.tsx - Updated to use existing (now optimized) hooks
+// src/App.tsx - Simplified with only active escrows
 import React, { Suspense, useState, useEffect, useContext, useCallback, useMemo } from 'react';
-import { Button, Container, Nav, Alert, Modal, Badge, Spinner } from 'react-bootstrap';
+import { Button, Container, Nav, Alert, Modal, Badge, Spinner, Card, Row, Col } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 
 // Import contexts
 import { ThemeContext } from './contexts/ThemeContext';
 
-// Import hooks - using existing hooks (now optimized)
+// Import hooks
 import useWallet from './hooks/useWallet';
-import useSimpleEscrowLoader from './hooks/useSimpleEscrowLoader'; // Changed to default import
+import useActiveEscrowLoader from './hooks/useActiveEscrowLoader'; // New simplified hook
 import useEscrowOperations from './hooks/useEscrowOperations';
 
 // Import components
@@ -32,10 +32,9 @@ import {
 // Creator Information
 import { CREATOR_WALLET, CREATOR_TWITTER } from './constants/contractData';
 
-// Lazy load tab components
+// Lazy load components
 const CreateEscrowTab = React.lazy(() => import('./components/CreateEscrowTab'));
 const MyEscrowsTab = React.lazy(() => import('./components/MyEscrowsTab'));
-const ArbitratedEscrowsTab = React.lazy(() => import('./components/ArbitratedEscrowsTab'));
 const FindEscrowTab = React.lazy(() => import('./components/FindEscrowTab'));
 const ContactForm = React.lazy(() => import('./components/ContactForm'));
 const EscrowDetails = React.lazy(() => import('./components/EscrowDetails'));
@@ -47,10 +46,10 @@ const App: React.FC = () => {
   
   // Use custom hooks
   const wallet = useWallet();
-  const escrowLoader = useSimpleEscrowLoader(); // Changed to use default import
+  const escrowLoader = useActiveEscrowLoader(); // Simplified loader
   const escrowOps = useEscrowOperations();
   
-  // Local state
+  // Local state - Simplified (removed arbitrated tab)
   const [activeTab, setActiveTab] = useState<string>('create');
   const [showDetailsModal, setShowDetailsModal] = useState<boolean>(false);
   const [showSecurityWarning, setShowSecurityWarning] = useState<boolean>(false);
@@ -63,7 +62,7 @@ const App: React.FC = () => {
   const [amount, setAmount] = useState<string>('');
   const [escrowIdToView, setEscrowIdToView] = useState<string>('');
 
-  // Initialize security settings on component mount
+  // Initialize security settings
   useEffect(() => {
     const hasAccepted = localStorage.getItem('monad-escrow-security-accepted');
     if (hasAccepted === 'true') {
@@ -72,62 +71,35 @@ const App: React.FC = () => {
     }
   }, []);
   
-  // Effect for setting up wallet listeners
+  // Setup wallet listeners
   useEffect(() => {
     const cleanup = wallet.setupWalletListeners();
     return cleanup;
   }, [wallet]);
 
-  // OPTIMIZED: Single effect for loading escrows with better control
+  // OPTIMIZED: Load only active escrows when wallet connects
   useEffect(() => {
     let isEffectActive = true;
     
     const loadData = async () => {
       if (wallet.connected && wallet.contract && wallet.account && isEffectActive) {
-        console.log('👤 Wallet connected, checking if refresh needed...');
+        console.log('👤 Wallet connected, loading active escrows...');
         
         try {
-          // Use refreshIfStale to avoid unnecessary reloads
           await escrowLoader.refreshIfStale(wallet.contract, wallet.account);
         } catch (error) {
-          console.error('Error refreshing escrows:', error);
+          console.error('Error loading active escrows:', error);
         }
       }
     };
 
-    // Add a small delay to prevent rapid consecutive calls
-    const timeoutId = setTimeout(loadData, 500);
+    const timeoutId = setTimeout(loadData, 300); // Reduced delay
     
     return () => {
       isEffectActive = false;
       clearTimeout(timeoutId);
     };
   }, [wallet.connected, wallet.contract, wallet.account]);
-
-  // OPTIMIZED: Tab change effect with debouncing
-  useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
-    
-    const handleTabChange = async () => {
-      if (!wallet.connected || !wallet.contract || !wallet.account) return;
-      
-      // Only refresh if switching to tabs that need data and data is very stale
-      if ((activeTab === 'my' || activeTab === 'arbitrated') && escrowLoader.isStale) {
-        console.log(`🔄 Tab switched to ${activeTab}, data is stale, refreshing...`);
-        
-        try {
-          await escrowLoader.refreshIfStale(wallet.contract, wallet.account, 120000); // 2 minutes
-        } catch (error) {
-          console.error('Error refreshing on tab change:', error);
-        }
-      }
-    };
-
-    // Debounce tab changes to prevent rapid API calls
-    timeoutId = setTimeout(handleTabChange, 1000);
-    
-    return () => clearTimeout(timeoutId);
-  }, [activeTab, wallet.connected, wallet.contract, wallet.account, escrowLoader.isStale]);
 
   // Connect to MetaMask
   const connectWallet = async (): Promise<void> => {
@@ -138,33 +110,28 @@ const App: React.FC = () => {
 
     try {
       const success = await wallet.connectWallet();
-      
       if (success && wallet.contract) {
         console.log('Wallet connected successfully');
-        // The useEffect above will handle loading the escrows
       }
     } catch (error) {
       console.error("Error in connect flow:", error);
     }
   };
 
-  // Handle security warning acceptance
+  // Handle security warning
   const handleSecurityAccept = (): void => {
     setHasAcceptedSecurity(true);
     setFirstTimeUser(false);
     setShowSecurityWarning(false);
     localStorage.setItem('monad-escrow-security-accepted', 'true');
-    
-    // Continue with wallet connection
     connectWallet();
   };
 
   const handleSecurityDecline = (): void => {
     setShowSecurityWarning(false);
-    // Don't connect wallet if user declines
   };
 
-  // OPTIMIZED: Create escrow handler with better state management
+  // Create escrow handler
   const handleCreateEscrow = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     
@@ -183,14 +150,14 @@ const App: React.FC = () => {
       setArbiterAddress('');
       setAmount('');
       
-      // Force refresh after creating escrow with delay
+      // Refresh active escrows after creating
       setTimeout(() => {
         escrowLoader.forceRefresh(wallet.contract!, wallet.account);
-      }, 2000); // 2 second delay to allow blockchain to update
+      }, 2000);
     }
   };
 
-  // OPTIMIZED: View escrow details with memoization
+  // View escrow details
   const viewEscrowDetails = useCallback(async (escrowId: string): Promise<void> => {
     if (!wallet.contract) {
       escrowOps.setError('Wallet not connected');
@@ -199,21 +166,20 @@ const App: React.FC = () => {
     
     try {
       escrowOps.clearMessages();
-      
       const escrow = await escrowOps.viewEscrowDetails(wallet.contract, escrowId);
       
       if (escrow) {
         setShowDetailsModal(true);
       } else {
-        escrowOps.setError('Escrow not found or failed to load');
+        escrowOps.setError('Escrow not found');
       }
     } catch (error) {
-      console.error("Error in viewEscrowDetails:", error);
+      console.error("Error viewing escrow:", error);
       escrowOps.setError('Failed to load escrow details');
     }
   }, [wallet.contract, escrowOps]);
 
-  // OPTIMIZED: Escrow action handler with better timing
+  // Handle escrow actions
   const handleEscrowAction = useCallback(async (
     action: string, 
     escrowId: string, 
@@ -224,23 +190,23 @@ const App: React.FC = () => {
     const success = await escrowOps.handleEscrowAction(wallet.contract, action, escrowId, recipient);
     
     if (success) {
-      // Force refresh after action with appropriate delay
+      // Refresh after action
       setTimeout(() => {
         if (wallet.contract && wallet.account) {
           escrowLoader.forceRefresh(wallet.contract, wallet.account);
         }
-      }, 3000); // 3 second delay for blockchain confirmation
+      }, 2000);
       
       // Refresh modal if open
       if (showDetailsModal && escrowOps.selectedEscrow?.id === escrowId) {
         setTimeout(() => {
           viewEscrowDetails(escrowId);
-        }, 4000); // 4 second delay for modal refresh
+        }, 3000);
       }
     }
   }, [wallet.contract, wallet.account, showDetailsModal, escrowOps.selectedEscrow?.id, escrowLoader, viewEscrowDetails]);
 
-  // OPTIMIZED: Handle find escrow with debouncing
+  // Handle find escrow
   const handleFindEscrow = useCallback(async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     
@@ -252,39 +218,70 @@ const App: React.FC = () => {
     try {
       escrowOps.clearMessages();
       await viewEscrowDetails(escrowIdToView);
-      setEscrowIdToView(''); // Clear input only on success
+      setEscrowIdToView('');
     } catch (error) {
       console.error("Error finding escrow", error);
-      escrowOps.setError('Failed to find escrow. Please check the ID and try again.');
+      escrowOps.setError('Failed to find escrow');
     }
   }, [escrowIdToView, wallet.contract, escrowOps, viewEscrowDetails]);
 
-  // Modal close handler with cleanup
+  // Modal close handler
   const handleModalClose = useCallback(() => {
     setShowDetailsModal(false);
-    
     setTimeout(() => {
       escrowOps.setSelectedEscrow(null);
       escrowOps.clearMessages();
     }, 150);
   }, [escrowOps]);
 
-  // Retry loading escrows button
+  // Retry loading
   const retryLoadingEscrows = async (): Promise<void> => {
     if (wallet.contract && wallet.account) {
       escrowOps.setRateLimited(false);
-      console.log('Retrying to load escrows...');
       await escrowLoader.forceRefresh(wallet.contract, wallet.account);
     }
   };
 
-  // Memoize computed values to prevent unnecessary re-renders
-  const tabCounts = useMemo(() => ({
-    userEscrows: escrowLoader.userEscrows.length,
-    arbitratedEscrows: escrowLoader.arbitratedEscrows.length
-  }), [escrowLoader.userEscrows.length, escrowLoader.arbitratedEscrows.length]);
+  // Stats display component
+  const StatsCard = () => (
+    <Card className="mb-4">
+      <Card.Body>
+        <Card.Title>📊 Your Active Escrows</Card.Title>
+        <Row>
+          <Col xs={6} sm={3}>
+            <div className="text-center">
+              <h3 className="text-primary">{escrowLoader.stats.total}</h3>
+              <small>Total Active</small>
+            </div>
+          </Col>
+          <Col xs={6} sm={3}>
+            <div className="text-center">
+              <h3 className="text-info">{escrowLoader.stats.asBuyer}</h3>
+              <small>As Buyer</small>
+            </div>
+          </Col>
+          <Col xs={6} sm={3}>
+            <div className="text-center">
+              <h3 className="text-success">{escrowLoader.stats.asSeller}</h3>
+              <small>As Seller</small>
+            </div>
+          </Col>
+          <Col xs={6} sm={3}>
+            <div className="text-center">
+              <h3 className="text-warning">{escrowLoader.stats.asArbiter}</h3>
+              <small>As Arbiter</small>
+            </div>
+          </Col>
+        </Row>
+        {escrowLoader.stats.disputed > 0 && (
+          <Alert variant="warning" className="mt-3 mb-0">
+            ⚠️ {escrowLoader.stats.disputed} escrow{escrowLoader.stats.disputed > 1 ? 's' : ''} in dispute
+          </Alert>
+        )}
+      </Card.Body>
+    </Card>
+  );
 
-  // Render the component
   return (
     <DarkModeWrapper>
       <div className="app-wrapper">
@@ -345,32 +342,28 @@ const App: React.FC = () => {
               
               {/* Security Banner */}
               <SecurityBanner />
-              
-              {/* Network Warning */}
               <NetworkWarning currentNetwork={wallet.networkName} />
               
-              {/* Enhanced Loading State */}
+              {/* Stats Card - Show when we have data */}
+              {escrowLoader.hasData && !escrowLoader.loading && <StatsCard />}
+              
+              {/* Loading State */}
               {escrowLoader.loading && (
                 <Alert variant="info" className="mb-3">
-                  <div className="d-flex justify-content-between align-items-center">
-                    <span>
-                      <Spinner animation="border" size="sm" className="me-2" />
-                      Loading escrows...
-                    </span>
-                  </div>
+                  <Spinner animation="border" size="sm" className="me-2" />
+                  Loading active escrows...
                 </Alert>
               )}
               
-              {/* Show error state */}
+              {/* Error State */}
               {escrowLoader.error && (
                 <Alert variant="danger" className="mb-3">
-                  <strong>Loading Error:</strong> {escrowLoader.error}
+                  <strong>Error:</strong> {escrowLoader.error}
                   <div className="mt-2">
                     <Button 
                       variant="outline-danger" 
                       size="sm" 
                       onClick={() => escrowLoader.forceRefresh(wallet.contract!, wallet.account)}
-                      disabled={escrowLoader.loading}
                     >
                       Retry
                     </Button>
@@ -378,59 +371,13 @@ const App: React.FC = () => {
                 </Alert>
               )}
               
-              {/* Debug Controls - Only show in development */}
-              {process.env.NODE_ENV === 'development' && (
-                <Alert variant="info" className="mb-3">
-                  <strong>Debug Info:</strong>
-                  <div>
-                    User Escrows: {tabCounts.userEscrows} | 
-                    Arbitrated: {tabCounts.arbitratedEscrows} | 
-                    Loading: {escrowLoader.loading ? 'Yes' : 'No'} | 
-                    Last Updated: {escrowLoader.lastUpdated ? new Date(escrowLoader.lastUpdated).toLocaleTimeString() : 'Never'}
-                  </div>
-                  <div className="mt-2">
-                    <Button 
-                      variant="outline-info" 
-                      size="sm" 
-                      className="me-2"
-                      onClick={() => escrowLoader.forceRefresh(wallet.contract!, wallet.account)}
-                      disabled={escrowLoader.loading}
-                    >
-                      🔄 Force Refresh
-                    </Button>
-                    <Button 
-                      variant="outline-warning" 
-                      size="sm"
-                      onClick={escrowLoader.clearData}
-                    >
-                      🗑️ Clear Data
-                    </Button>
-                  </div>
-                </Alert>
-              )}
-              
-              {/* Error Alert */}
-              {wallet.error && (
-                <Alert variant="danger" onClose={() => { /* Can't directly modify the state */ }} dismissible>
-                  {wallet.error}
-                  {wallet.error.includes('refresh') && (
-                    <div className="mt-2">
-                      <Button variant="danger" size="sm" onClick={retryLoadingEscrows}>
-                        Retry Loading
-                      </Button>
-                    </div>
-                  )}
-                </Alert>
-              )}
-              
-              {/* Escrow Operations Error */}
+              {/* Escrow Operations Messages */}
               {escrowOps.error && (
                 <Alert variant="danger" onClose={() => escrowOps.setError('')} dismissible>
                   {escrowOps.error}
                 </Alert>
               )}
               
-              {/* Success Message */}
               {escrowOps.successMessage && (
                 <Alert variant="success" onClose={() => escrowOps.clearMessages()} dismissible>
                   {escrowOps.successMessage}
@@ -448,25 +395,17 @@ const App: React.FC = () => {
                 />
               )}
               
+              {/* Simplified Navigation - No more Arbitrated tab */}
               <Nav variant="tabs" className="mb-4" activeKey={activeTab} onSelect={(k) => k && setActiveTab(k)}>
                 <Nav.Item>
                   <Nav.Link eventKey="create">Create Escrow</Nav.Link>
                 </Nav.Item>
                 <Nav.Item>
                   <Nav.Link eventKey="my">
-                    My Escrows
-                    {escrowLoader.loading && activeTab === 'my' && <Spinner animation="border" size="sm" className="ms-2" />}
-                    {tabCounts.userEscrows > 0 && (
-                      <Badge bg="primary" className="ms-2">{tabCounts.userEscrows}</Badge>
-                    )}
-                  </Nav.Link>
-                </Nav.Item>
-                <Nav.Item>
-                  <Nav.Link eventKey="arbitrated">
-                    Arbitrated Escrows
-                    {escrowLoader.loading && activeTab === 'arbitrated' && <Spinner animation="border" size="sm" className="ms-2" />}
-                    {tabCounts.arbitratedEscrows > 0 && (
-                      <Badge bg="warning" className="ms-2">{tabCounts.arbitratedEscrows}</Badge>
+                    My Active Escrows
+                    {escrowLoader.loading && <Spinner animation="border" size="sm" className="ms-2" />}
+                    {escrowLoader.stats.total > 0 && (
+                      <Badge bg="primary" className="ms-2">{escrowLoader.stats.total}</Badge>
                     )}
                   </Nav.Link>
                 </Nav.Item>
@@ -478,7 +417,7 @@ const App: React.FC = () => {
                 </Nav.Item>
               </Nav>
               
-              <Suspense fallback={<LoadingIndicator message="Loading tab content..." />}>
+              <Suspense fallback={<LoadingIndicator message="Loading..." />}>
                 {activeTab === 'create' && (
                   <CreateEscrowTab 
                     handleCreateEscrow={handleCreateEscrow}
@@ -495,20 +434,9 @@ const App: React.FC = () => {
                 
                 {activeTab === 'my' && (
                   <MyEscrowsTab 
-                    escrows={escrowLoader.userEscrows} 
+                    escrows={escrowLoader.activeEscrows} 
                     onViewDetails={viewEscrowDetails} 
                     loadingEscrows={escrowLoader.loading}
-                    retryLoadingEscrows={() => escrowLoader.forceRefresh(wallet.contract!, wallet.account)}
-                    account={wallet.account}
-                    onAction={handleEscrowAction}
-                  />
-                )}
-
-                {activeTab === 'arbitrated' && (
-                  <ArbitratedEscrowsTab 
-                    arbitratedEscrows={escrowLoader.arbitratedEscrows} 
-                    onViewDetails={viewEscrowDetails} 
-                    loadingArbitratedEscrows={escrowLoader.loading}
                     retryLoadingEscrows={() => escrowLoader.forceRefresh(wallet.contract!, wallet.account)}
                     account={wallet.account}
                     onAction={handleEscrowAction}
@@ -529,7 +457,7 @@ const App: React.FC = () => {
                 )}
               </Suspense>
               
-              {/* Escrow Details Modal with better handling */}
+              {/* Escrow Details Modal */}
               <Modal 
                 show={showDetailsModal} 
                 onHide={handleModalClose}
@@ -561,15 +489,11 @@ const App: React.FC = () => {
                 </Modal.Footer>
               </Modal>
               
-              {/* Footer with creator info */}
+              {/* Footer */}
               <div className="footer">
                 <p>
                   Created by{" "}
-                  <a
-                    href={`https://twitter.com/${CREATOR_TWITTER.substring(1)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
+                  <a href={`https://twitter.com/${CREATOR_TWITTER.substring(1)}`} target="_blank" rel="noopener noreferrer">
                     {CREATOR_TWITTER}
                   </a>
                 </p>
@@ -589,11 +513,7 @@ const App: React.FC = () => {
                   </a>
                 </p>
                 <p>
-                  <a
-                    href="https://github.com/BluOwn/monadescrow"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
+                  <a href="https://github.com/BluOwn/monadescrow" target="_blank" rel="noopener noreferrer">
                     View on GitHub
                   </a>
                 </p>
