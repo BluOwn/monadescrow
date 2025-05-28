@@ -125,7 +125,7 @@ export const getAndCacheEscrow = async (
     escrowCache.set(cacheKey, escrow);
     return escrow;
     
-  } catch (error) {
+  } catch (error: any) {
     // OPTIMIZATION: Silent error handling - these errors are expected for non-existent escrows
     // Don't log errors for missing escrows (CALL_EXCEPTION with missing revert data)
     const isExpectedError = error && (
@@ -151,7 +151,7 @@ export const getAndCacheEscrow = async (
         fundsDisbursed: Boolean(details[4]),
         disputeRaised: Boolean(details[5])
       };
-    } catch (finalError) {
+    } catch (finalError: any) {
       // Silent failure - return null to indicate this escrow doesn't exist
       // This is expected behavior when escrow IDs don't exist
       throw new Error(`Escrow ${escrowId} does not exist`);
