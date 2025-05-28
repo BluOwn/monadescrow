@@ -1,4 +1,4 @@
-// src/hooks/useEscrowLists.ts - Final version with better error handling
+// src/hooks/useEscrowLists.ts - Updated version with force refresh and better loading logic
 import { useState, useCallback } from 'react';
 import { Escrow, EscrowContract } from '../types';
 import { getAndCacheEscrow } from '../utils/cacheUtils';
@@ -33,10 +33,16 @@ export function useEscrowLists() {
   const loadUserEscrows = useCallback(async (
     escrowContract: EscrowContract, 
     userAddress: string, 
-    maxRetries: number = 2
+    maxRetries: number = 2,
+    forceRefresh: boolean = false
   ): Promise<void> => {
     let retries = 0;
     setState(prev => ({ ...prev, loadingEscrows: true }));
+    
+    // Clear existing data if force refresh
+    if (forceRefresh) {
+      setState(prev => ({ ...prev, escrows: [] }));
+    }
     
     while (retries < maxRetries) {
       try {
@@ -127,10 +133,16 @@ export function useEscrowLists() {
   const loadArbitratedEscrows = useCallback(async (
     escrowContract: EscrowContract, 
     arbiterAddress: string, 
-    maxRetries: number = 2
+    maxRetries: number = 2,
+    forceRefresh: boolean = false
   ): Promise<void> => {
     let retries = 0;
     setState(prev => ({ ...prev, loadingArbitratedEscrows: true }));
+    
+    // Clear existing data if force refresh
+    if (forceRefresh) {
+      setState(prev => ({ ...prev, arbitratedEscrows: [] }));
+    }
     
     while (retries < maxRetries) {
       try {
@@ -230,10 +242,30 @@ export function useEscrowLists() {
     }
   }, []);
 
+  // FORCE REFRESH: Clear and reload user escrows
+  const forceRefreshUserEscrows = useCallback(async (
+    escrowContract: EscrowContract, 
+    userAddress: string
+  ): Promise<void> => {
+    console.log('Force refreshing user escrows...');
+    await loadUserEscrows(escrowContract, userAddress, 2, true);
+  }, [loadUserEscrows]);
+
+  // FORCE REFRESH: Clear and reload arbitrated escrows
+  const forceRefreshArbitratedEscrows = useCallback(async (
+    escrowContract: EscrowContract, 
+    arbiterAddress: string
+  ): Promise<void> => {
+    console.log('Force refreshing arbitrated escrows...');
+    await loadArbitratedEscrows(escrowContract, arbiterAddress, 2, true);
+  }, [loadArbitratedEscrows]);
+
   return {
     ...state,
     loadUserEscrows,
     loadArbitratedEscrows,
+    forceRefreshUserEscrows,
+    forceRefreshArbitratedEscrows,
     setEscrows: (escrows: Escrow[]) => {
       const sortedEscrows = sortEscrowsNewestFirst(escrows);
       setState(prev => ({ ...prev, escrows: sortedEscrows }));
@@ -241,6 +273,13 @@ export function useEscrowLists() {
     setArbitratedEscrows: (arbitratedEscrows: Escrow[]) => {
       const sortedEscrows = sortEscrowsNewestFirst(arbitratedEscrows);
       setState(prev => ({ ...prev, arbitratedEscrows: sortedEscrows }));
+    },
+    clearAllEscrows: () => {
+      setState(prev => ({ 
+        ...prev, 
+        escrows: [], 
+        arbitratedEscrows: [] 
+      }));
     }
   };
 }
