@@ -9,7 +9,7 @@ import { ThemeContext } from './contexts/ThemeContext';
 
 // Import hooks - using existing hooks (now optimized)
 import useWallet from './hooks/useWallet';
-import { useSimpleEscrowLoader } from './hooks/useSimpleEscrowLoader';
+import useSimpleEscrowLoader from './hooks/useSimpleEscrowLoader'; // Changed to default import
 import useEscrowOperations from './hooks/useEscrowOperations';
 
 // Import components
@@ -47,7 +47,7 @@ const App: React.FC = () => {
   
   // Use custom hooks
   const wallet = useWallet();
-  const escrowLoader = useSimpleEscrowLoader();
+  const escrowLoader = useSimpleEscrowLoader(); // Changed to use default import
   const escrowOps = useEscrowOperations();
   
   // Local state

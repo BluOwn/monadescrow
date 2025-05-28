@@ -1,171 +1,82 @@
-// src/hooks/useOptimizedEscrowLoader.ts
-import { useState, useCallback, useRef, useEffect } from 'react';
+// src/hooks/useSimpleEscrowLoader.ts - Fixed export and optimized
+import { useState, useCallback } from 'react';
 import { ethers } from 'ethers';
 import { Escrow, EscrowContract } from '../types';
 
-interface OptimizedEscrowState {
+interface SimpleEscrowState {
   userEscrows: Escrow[];
   arbitratedEscrows: Escrow[];
   loading: boolean;
   error: string | null;
   lastUpdated: number;
-  totalChecked: number;
-  progress: number;
 }
 
-export const useOptimizedEscrowLoader = () => {
-  const [state, setState] = useState<OptimizedEscrowState>({
+// OPTIMIZED: Use the new cache utility
+import { getEscrowFast } from '../utils/optimizedCacheUtils';
+
+const useSimpleEscrowLoader = () => {
+  const [state, setState] = useState<SimpleEscrowState>({
     userEscrows: [],
     arbitratedEscrows: [],
     loading: false,
     error: null,
-    lastUpdated: 0,
-    totalChecked: 0,
-    progress: 0
+    lastUpdated: 0
   });
 
-  // Use refs to prevent memory leaks and excessive re-renders
-  const abortControllerRef = useRef<AbortController | null>(null);
-  const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const isUnmountedRef = useRef(false);
+  // Helper to convert contract data to Escrow object
+  const formatEscrow = (id: number, data: any): Escrow => ({
+    id: id.toString(),
+    buyer: data[0],
+    seller: data[1],
+    arbiter: data[2],
+    amount: ethers.formatEther(data[3]),
+    fundsDisbursed: data[4],
+    disputeRaised: data[5]
+  });
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      isUnmountedRef.current = true;
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-      if (loadingTimeoutRef.current) {
-        clearTimeout(loadingTimeoutRef.current);
-      }
-    };
-  }, []);
-
-  // Safe state update that checks if component is still mounted
-  const safeSetState = useCallback((updater: (prev: OptimizedEscrowState) => OptimizedEscrowState) => {
-    if (!isUnmountedRef.current) {
-      setState(updater);
-    }
-  }, []);
-
-  // Helper to format escrow data
-  const formatEscrow = useCallback((id: number, data: any): Escrow | null => {
-    try {
-      return {
-        id: id.toString(),
-        buyer: data[0],
-        seller: data[1],
-        arbiter: data[2],
-        amount: ethers.formatEther(data[3]),
-        fundsDisbursed: data[4],
-        disputeRaised: data[5]
-      };
-    } catch (error) {
-      console.warn(`Failed to format escrow ${id}:`, error);
-      return null;
-    }
-  }, []);
-
-  // OPTIMIZED: Load user escrows efficiently
-  const loadUserEscrows = useCallback(async (
+  // OPTIMIZED: Main loading function - reduced API calls and better error handling
+  const loadAllEscrows = useCallback(async (
     contract: EscrowContract, 
     userAddress: string
-  ): Promise<Escrow[]> => {
+  ) => {
+    setState(prev => ({ ...prev, loading: true, error: null }));
+    
     try {
-      console.log('📝 Loading user escrows for:', userAddress);
+      console.log('🔄 Loading escrows for:', userAddress);
       
-      // Get user's escrow IDs first
+      // STEP 1: Load user's own escrows (fast and reliable)
       const userEscrowIds = await contract.getUserEscrows(userAddress);
-      console.log(`Found ${userEscrowIds.length} user escrows`);
+      console.log('📝 User escrow IDs:', userEscrowIds.length);
       
-      if (userEscrowIds.length === 0) {
-        return [];
-      }
-
-      // Limit to prevent excessive loading
+      // Limit user escrows to prevent excessive loading
       const MAX_USER_ESCROWS = 50;
-      const escrowIdsToLoad = userEscrowIds.slice(-MAX_USER_ESCROWS); // Get the most recent ones
+      const userEscrowIdsToLoad = userEscrowIds.slice(-MAX_USER_ESCROWS);
       
-      // Load escrows in small batches with timeout
-      const BATCH_SIZE = 5;
-      const userEscrows: Escrow[] = [];
-      
-      for (let i = 0; i < escrowIdsToLoad.length; i += BATCH_SIZE) {
-        if (isUnmountedRef.current || abortControllerRef.current?.signal.aborted) {
-          break;
+      const userEscrowPromises = userEscrowIdsToLoad.map(async (id: any) => {
+        try {
+          const data = await contract.getEscrow(id);
+          return formatEscrow(Number(id), data);
+        } catch (error) {
+          console.warn(`Failed to load user escrow ${id}:`, error);
+          return null;
         }
-        
-        const batch = escrowIdsToLoad.slice(i, i + BATCH_SIZE);
-        
-        const batchPromises = batch.map(async (id: any) => {
-          try {
-            // Add timeout to prevent hanging
-            const timeoutPromise = new Promise((_, reject) => {
-              setTimeout(() => reject(new Error('Timeout')), 3000);
-            });
-            
-            const dataPromise = contract.getEscrow(id);
-            const data = await Promise.race([dataPromise, timeoutPromise]);
-            
-            return formatEscrow(Number(id), data);
-          } catch (error) {
-            // Silent fail for individual escrows
-            return null;
-          }
-        });
-        
-        const batchResults = await Promise.allSettled(batchPromises);
-        
-        batchResults.forEach(result => {
-          if (result.status === 'fulfilled' && result.value) {
-            userEscrows.push(result.value);
-          }
-        });
-        
-        // Small delay between batches
-        if (i + BATCH_SIZE < escrowIdsToLoad.length) {
-          await new Promise(resolve => setTimeout(resolve, 200));
-        }
-      }
+      });
       
-      // Sort by ID descending (newest first)
-      userEscrows.sort((a, b) => parseInt(b.id) - parseInt(a.id));
+      const userEscrows = (await Promise.all(userEscrowPromises))
+        .filter(escrow => escrow !== null) as Escrow[];
       
-      console.log(`✅ Loaded ${userEscrows.length} user escrows`);
-      return userEscrows;
-      
-    } catch (error) {
-      console.error('Error loading user escrows:', error);
-      throw error;
-    }
-  }, [formatEscrow]);
-
-  // OPTIMIZED: Load arbitrated escrows with smart sampling
-  const loadArbitratedEscrows = useCallback(async (
-    contract: EscrowContract, 
-    userAddress: string
-  ): Promise<Escrow[]> => {
-    try {
-      console.log('⚖️ Loading arbitrated escrows for:', userAddress);
-      
+      // STEP 2: Load arbitrated escrows (OPTIMIZED approach)
       const totalEscrowCount = await contract.getEscrowCount();
       const totalCount = Number(totalEscrowCount);
+      console.log('📊 Total escrows in contract:', totalCount);
       
-      console.log(`Total escrows in contract: ${totalCount}`);
-      
-      if (totalCount === 0) {
-        return [];
-      }
-      
-      // OPTIMIZATION: Smart sampling instead of checking all escrows
-      // Check recent escrows first, then sample older ones
-      const MAX_RECENT_CHECK = 100; // Check last 100 escrows fully
-      const MAX_SAMPLE_CHECK = 50;  // Sample 50 from older escrows
+      // OPTIMIZATION: Smart sampling instead of checking ALL escrows
+      const MAX_RECENT_CHECK = 50;  // Reduced from 200
+      const MAX_SAMPLE_CHECK = 25;  // Reduced from 50
       
       const escrowsToCheck: number[] = [];
       
-      // 1. Add recent escrows (more likely to be active)
+      // 1. Check recent escrows (more likely to be active)
       const recentStart = Math.max(0, totalCount - MAX_RECENT_CHECK);
       for (let i = recentStart; i < totalCount; i++) {
         escrowsToCheck.push(i);
@@ -185,167 +96,71 @@ export const useOptimizedEscrowLoader = () => {
         }
       }
       
-      console.log(`Checking ${escrowsToCheck.length} escrows for arbitration`);
+      console.log(`🔍 Checking ${escrowsToCheck.length} escrows for arbitration (reduced from ${totalCount})`);
       
       const arbitratedEscrows: Escrow[] = [];
-      const BATCH_SIZE = 8;
-      let processed = 0;
       
-      // Process in batches with progress reporting
+      // OPTIMIZATION: Process in smaller batches to reduce server load
+      const BATCH_SIZE = 5; // Reduced from 20
       for (let i = 0; i < escrowsToCheck.length; i += BATCH_SIZE) {
-        if (isUnmountedRef.current || abortControllerRef.current?.signal.aborted) {
-          break;
-        }
+        const batchEnd = Math.min(i + BATCH_SIZE, escrowsToCheck.length);
+        const batchIds = escrowsToCheck.slice(i, batchEnd);
         
-        const batch = escrowsToCheck.slice(i, i + BATCH_SIZE);
-        
-        const batchPromises = batch.map(async (escrowId) => {
+        const batchPromises = batchIds.map(async (id) => {
           try {
-            // Add timeout
-            const timeoutPromise = new Promise((_, reject) => {
-              setTimeout(() => reject(new Error('Timeout')), 2000);
-            });
+            const data = await contract.getEscrow(id);
+            const escrow = formatEscrow(id, data);
             
-            const dataPromise = contract.getEscrow(escrowId);
-            const data = await Promise.race([dataPromise, timeoutPromise]);
-            
-            const escrow = formatEscrow(escrowId, data);
-            
-            // Check if user is arbiter
-            if (escrow && escrow.arbiter.toLowerCase() === userAddress.toLowerCase()) {
+            // Check if user is the arbiter
+            if (escrow.arbiter.toLowerCase() === userAddress.toLowerCase()) {
               return escrow;
             }
             return null;
           } catch (error) {
-            // Silent fail for individual checks
+            // Silently skip failed escrows (probably don't exist)
             return null;
           }
         });
         
-        const batchResults = await Promise.allSettled(batchPromises);
+        const batchResults = await Promise.all(batchPromises);
+        const validEscrows = batchResults.filter(escrow => escrow !== null) as Escrow[];
+        arbitratedEscrows.push(...validEscrows);
         
-        batchResults.forEach(result => {
-          if (result.status === 'fulfilled' && result.value) {
-            arbitratedEscrows.push(result.value);
-          }
-        });
-        
-        processed += batch.length;
-        
-        // Update progress
-        safeSetState(prev => ({
-          ...prev,
-          totalChecked: processed,
-          progress: (processed / escrowsToCheck.length) * 100
-        }));
-        
-        // Small delay between batches
+        // Small delay between batches to be nice to the network
         if (i + BATCH_SIZE < escrowsToCheck.length) {
-          await new Promise(resolve => setTimeout(resolve, 150));
+          await new Promise(resolve => setTimeout(resolve, 200)); // Increased delay
         }
       }
       
-      // Sort by ID descending
-      arbitratedEscrows.sort((a, b) => parseInt(b.id) - parseInt(a.id));
+      // Sort escrows by ID (newest first)
+      const sortByIdDesc = (a: Escrow, b: Escrow) => parseInt(b.id) - parseInt(a.id);
+      userEscrows.sort(sortByIdDesc);
+      arbitratedEscrows.sort(sortByIdDesc);
       
-      console.log(`✅ Found ${arbitratedEscrows.length} arbitrated escrows`);
-      return arbitratedEscrows;
+      console.log('✅ Loading complete:', {
+        userEscrows: userEscrows.length,
+        arbitratedEscrows: arbitratedEscrows.length,
+        totalChecked: escrowsToCheck.length,
+        totalAvailable: totalCount
+      });
       
-    } catch (error) {
-      console.error('Error loading arbitrated escrows:', error);
-      throw error;
-    }
-  }, [formatEscrow, safeSetState]);
-
-  // MAIN LOADING FUNCTION - Optimized and cancellable
-  const loadAllEscrows = useCallback(async (
-    contract: EscrowContract, 
-    userAddress: string
-  ) => {
-    // Cancel any existing operation
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-    
-    // Clear existing timeout
-    if (loadingTimeoutRef.current) {
-      clearTimeout(loadingTimeoutRef.current);
-    }
-    
-    // Create new abort controller
-    abortControllerRef.current = new AbortController();
-    
-    safeSetState(prev => ({ 
-      ...prev, 
-      loading: true, 
-      error: null, 
-      progress: 0,
-      totalChecked: 0
-    }));
-    
-    // Set overall timeout
-    loadingTimeoutRef.current = setTimeout(() => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-      safeSetState(prev => ({
-        ...prev,
-        loading: false,
-        error: 'Loading timed out. Please try again.'
-      }));
-    }, 30000); // 30 second timeout
-    
-    try {
-      console.log('🔄 Starting optimized escrow loading...');
-      
-      // Load user escrows and arbitrated escrows in sequence (not parallel to reduce load)
-      safeSetState(prev => ({ ...prev, progress: 10 }));
-      
-      const userEscrows = await loadUserEscrows(contract, userAddress);
-      
-      if (abortControllerRef.current?.signal.aborted) {
-        return;
-      }
-      
-      safeSetState(prev => ({ 
-        ...prev, 
+      setState({
         userEscrows,
-        progress: 50 
-      }));
-      
-      const arbitratedEscrows = await loadArbitratedEscrows(contract, userAddress);
-      
-      if (abortControllerRef.current?.signal.aborted) {
-        return;
-      }
-      
-      safeSetState(prev => ({
-        ...prev,
         arbitratedEscrows,
         loading: false,
         error: null,
-        lastUpdated: Date.now(),
-        progress: 100
-      }));
-      
-      console.log('✅ Escrow loading completed successfully');
+        lastUpdated: Date.now()
+      });
       
     } catch (error) {
-      if (!abortControllerRef.current?.signal.aborted) {
-        console.error('❌ Error loading escrows:', error);
-        safeSetState(prev => ({
-          ...prev,
-          loading: false,
-          error: error instanceof Error ? error.message : 'Failed to load escrows'
-        }));
-      }
-    } finally {
-      if (loadingTimeoutRef.current) {
-        clearTimeout(loadingTimeoutRef.current);
-        loadingTimeoutRef.current = null;
-      }
+      console.error('❌ Error loading escrows:', error);
+      setState(prev => ({
+        ...prev,
+        loading: false,
+        error: error instanceof Error ? error.message : 'Failed to load escrows'
+      }));
     }
-  }, [loadUserEscrows, loadArbitratedEscrows, safeSetState]);
+  }, []);
 
   // Quick refresh function - only reloads if data is stale
   const refreshIfStale = useCallback(async (
@@ -373,35 +188,16 @@ export const useOptimizedEscrowLoader = () => {
     await loadAllEscrows(contract, userAddress);
   }, [loadAllEscrows]);
 
-  // Cancel current loading operation
-  const cancelLoading = useCallback(() => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-    if (loadingTimeoutRef.current) {
-      clearTimeout(loadingTimeoutRef.current);
-      loadingTimeoutRef.current = null;
-    }
-    safeSetState(prev => ({
-      ...prev,
-      loading: false,
-      error: null
-    }));
-  }, [safeSetState]);
-
   // Clear all data
   const clearData = useCallback(() => {
-    cancelLoading();
-    safeSetState(prev => ({
-      ...prev,
+    setState({
       userEscrows: [],
       arbitratedEscrows: [],
+      loading: false,
       error: null,
-      lastUpdated: 0,
-      totalChecked: 0,
-      progress: 0
-    }));
-  }, [cancelLoading, safeSetState]);
+      lastUpdated: 0
+    });
+  }, []);
 
   return {
     // Data
@@ -410,18 +206,19 @@ export const useOptimizedEscrowLoader = () => {
     loading: state.loading,
     error: state.error,
     lastUpdated: state.lastUpdated,
-    progress: state.progress,
-    totalChecked: state.totalChecked,
     
     // Actions
     loadAllEscrows,
     refreshIfStale,
     forceRefresh,
     clearData,
-    cancelLoading,
     
     // Computed values
     hasData: state.userEscrows.length > 0 || state.arbitratedEscrows.length > 0,
-    isStale: Date.now() - state.lastUpdated > 60000
+    isStale: Date.now() - state.lastUpdated > 60000 // 1 minute
   };
 };
+
+// Export as both named and default export
+export { useSimpleEscrowLoader };
+export default useSimpleEscrowLoader;
