@@ -257,6 +257,11 @@ const App: React.FC = () => {
     }
   };
 
+  // Handle giveaway link click
+  const handleGiveawayClick = (): void => {
+    window.open('https://x.com/Oprimedev/status/1928143907830776161', '_blank', 'noopener,noreferrer');
+  };
+
   // Loading Progress Component
   const LoadingProgress = () => {
     if (!escrowLoader.loading && !escrowLoader.progress.total) return null;
@@ -496,6 +501,16 @@ const App: React.FC = () => {
             </Nav.Item>
             <Nav.Item>
               <Nav.Link eventKey="contact">Contact</Nav.Link>
+            </Nav.Item>
+            <Nav.Item>
+              <Nav.Link 
+                onClick={handleGiveawayClick}
+                style={{ cursor: 'pointer' }}
+                className="text-decoration-none"
+              >
+                🎁 200 MON Giveaway
+                <Badge bg="success" className="ms-2">Live!</Badge>
+              </Nav.Link>
             </Nav.Item>
           </Nav>
           
