@@ -1,37 +1,38 @@
-/* Enhanced Dark Mode - Replace your FullDarkMode.css with this */
+/* Enhanced Dark Mode - Optimized Glass Morphism */
 
-/* Dark mode variables - enhanced glass morphism */
+/* Enhanced dark mode variables */
 :root.dark-mode,
 html.dark-mode,
 body.dark-mode,
 .dark-mode {
   /* Enhanced Dark Mode Color Palette */
   --body-bg: #0f172a;
-  --container-bg: rgba(30, 41, 59, 0.6);
-  --card-bg: rgba(30, 41, 59, 0.4);
-  --card-header-bg: rgba(15, 23, 42, 0.6);
-  --input-bg: rgba(30, 41, 59, 0.5);
+  --container-bg: rgba(30, 41, 59, 0.4);
+  --card-bg: rgba(30, 41, 59, 0.6);
+  --card-header-bg: rgba(15, 23, 42, 0.8);
+  --input-bg: rgba(30, 41, 59, 0.8);
   --border-color: rgba(255, 255, 255, 0.1);
   --text-primary: #f1f5f9;
   --text-secondary: #94a3b8;
   --text-muted: #64748b;
   
   /* Enhanced Glass Effects */
-  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-bg: rgba(30, 41, 59, 0.6);
   --glass-border: rgba(255, 255, 255, 0.1);
-  --glass-hover: rgba(255, 255, 255, 0.08);
+  --glass-hover: rgba(30, 41, 59, 0.8);
   
-  /* Modern Gradients */
+  /* Enhanced Gradients */
   --primary-gradient: linear-gradient(135deg, #6366f1 0%, #ec4899 100%);
   --secondary-gradient: linear-gradient(135deg, #10b981 0%, #3b82f6 100%);
   --accent-gradient: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+  --surface-gradient: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(236, 72, 153, 0.1) 100%);
   
   /* Enhanced Shadows with Glow */
   --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.4);
   --shadow-hover: 0 20px 40px rgba(0, 0, 0, 0.5);
   --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.3);
   
-  /* Backdrop Effects */
+  /* Enhanced Backdrop Effects */
   --backdrop-blur: blur(20px);
   --backdrop-saturate: saturate(180%);
 }
@@ -47,9 +48,14 @@ body.dark-mode {
 /* Enhanced animated background for dark mode */
 body.dark-mode::before {
   background: 
-    radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 60%),
-    radial-gradient(circle at 80% 80%, rgba(236, 72, 153, 0.15) 0%, transparent 60%),
-    radial-gradient(circle at 40% 60%, rgba(16, 185, 129, 0.1) 0%, transparent 60%);
+    radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(236, 72, 153, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(16, 185, 129, 0.2) 0%, transparent 50%);
+}
+
+body.dark-mode::after {
+  background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.05) 1px, transparent 0);
+  background-size: 20px 20px;
 }
 
 /* Enhanced App Wrapper */
@@ -59,20 +65,9 @@ body.dark-mode::before {
   position: relative;
 }
 
-/* Enhanced floating blobs for dark mode */
-.dark-mode .app-wrapper::before {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.8), rgba(236, 72, 153, 0.8));
-  filter: blur(100px);
-}
-
-.dark-mode .app-wrapper::after {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.6), rgba(59, 130, 246, 0.6));
-  filter: blur(100px);
-}
-
 /* Enhanced Container */
 .dark-mode .container {
-  background: var(--glass-bg) !important;
+  background: var(--container-bg) !important;
   backdrop-filter: var(--backdrop-blur) var(--backdrop-saturate) !important;
   border: 1px solid var(--glass-border) !important;
   box-shadow: var(--shadow-glass) !important;
@@ -80,7 +75,7 @@ body.dark-mode::before {
 }
 
 .dark-mode .container:hover {
-  box-shadow: var(--shadow-hover) !important;
+  box-shadow: var(--shadow-hover), var(--shadow-glow) !important;
   border-color: rgba(99, 102, 241, 0.3) !important;
 }
 
@@ -105,7 +100,7 @@ body.dark-mode::before {
 
 /* Enhanced Connect Wallet */
 .dark-mode .connect-wallet-container {
-  background: var(--glass-bg) !important;
+  background: var(--surface-gradient) !important;
   backdrop-filter: var(--backdrop-blur) !important;
   border: 1px solid var(--glass-border) !important;
   color: var(--text-primary) !important;
@@ -133,7 +128,7 @@ body.dark-mode::before {
   background: var(--secondary-gradient) !important;
   color: white !important;
   font-weight: 600 !important;
-  box-shadow: var(--shadow-glow) !important;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4) !important;
 }
 
 /* Enhanced Cards */
@@ -145,14 +140,14 @@ body.dark-mode::before {
 }
 
 .dark-mode .card:hover {
-  box-shadow: var(--shadow-hover) !important;
-  border-color: rgba(99, 102, 241, 0.5) !important;
-  transform: translateY(-5px);
+  box-shadow: var(--shadow-hover), var(--shadow-glow) !important;
+  border-color: rgba(99, 102, 241, 0.3) !important;
+  transform: translateY(-8px) scale(1.02);
 }
 
 .dark-mode .card-header,
 .dark-mode .card-footer {
-  background: var(--glass-bg) !important;
+  background: var(--card-header-bg) !important;
   border-color: var(--glass-border) !important;
   backdrop-filter: var(--backdrop-blur) !important;
 }
@@ -167,18 +162,18 @@ body.dark-mode::before {
 /* Enhanced Form Elements */
 .dark-mode .form-control,
 .dark-mode .form-select {
-  background: var(--glass-bg) !important;
+  background: var(--input-bg) !important;
   backdrop-filter: var(--backdrop-blur) !important;
-  border: 1px solid var(--glass-border) !important;
+  border: 2px solid var(--glass-border) !important;
   color: var(--text-primary) !important;
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2) !important;
 }
 
 .dark-mode .form-control:focus,
 .dark-mode .form-select:focus {
-  background: var(--glass-hover) !important;
+  background: rgba(30, 41, 59, 0.9) !important;
   border-color: #6366f1 !important;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2) !important;
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2) !important;
   color: var(--text-primary) !important;
 }
 
@@ -198,13 +193,13 @@ body.dark-mode::before {
 }
 
 .dark-mode .form-control::placeholder {
-  color: var(--text-muted) !important;
+  color: var(--text-secondary) !important;
   opacity: 0.7 !important;
 }
 
 /* Enhanced Navigation Tabs */
 .dark-mode .nav-tabs {
-  background: var(--glass-bg) !important;
+  background: rgba(15, 23, 42, 0.8) !important;
   backdrop-filter: var(--backdrop-blur) !important;
   border: 1px solid var(--glass-border) !important;
   border-radius: 16px !important;
@@ -219,14 +214,14 @@ body.dark-mode::before {
 
 .dark-mode .nav-tabs .nav-link:hover {
   color: var(--text-primary) !important;
-  background: var(--glass-hover) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
 }
 
 .dark-mode .nav-tabs .nav-link.active {
   color: white !important;
   background: var(--primary-gradient) !important;
   border: none !important;
-  box-shadow: var(--shadow-glow) !important;
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4) !important;
 }
 
 /* Enhanced Alerts */
@@ -240,35 +235,40 @@ body.dark-mode::before {
 
 .dark-mode .alert-info {
   border-left-color: #3b82f6 !important;
-  color: #60a5fa !important;
+  color: #93c5fd !important;
+  background: rgba(59, 130, 246, 0.2) !important;
 }
 
 .dark-mode .alert-success {
   border-left-color: #10b981 !important;
-  color: #34d399 !important;
+  color: #a7f3d0 !important;
+  background: rgba(16, 185, 129, 0.2) !important;
 }
 
 .dark-mode .alert-danger {
   border-left-color: #ef4444 !important;
-  color: #f87171 !important;
+  color: #fca5a5 !important;
+  background: rgba(239, 68, 68, 0.2) !important;
 }
 
 .dark-mode .alert-warning {
   border-left-color: #f59e0b !important;
-  color: #fbbf24 !important;
+  color: #fcd34d !important;
+  background: rgba(245, 158, 11, 0.2) !important;
 }
 
 /* Enhanced Buttons */
 .dark-mode .btn-primary {
   background: var(--primary-gradient) !important;
   border: none !important;
-  box-shadow: var(--shadow-glow) !important;
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4) !important;
   color: white !important;
 }
 
 .dark-mode .btn-primary:hover {
   box-shadow: 0 8px 25px rgba(99, 102, 241, 0.6) !important;
-  transform: translateY(-2px) !important;
+  transform: translateY(-3px) !important;
+  color: white !important;
 }
 
 .dark-mode .btn-success {
@@ -279,7 +279,8 @@ body.dark-mode::before {
 
 .dark-mode .btn-success:hover {
   box-shadow: 0 8px 25px rgba(16, 185, 129, 0.6) !important;
-  transform: translateY(-2px) !important;
+  transform: translateY(-3px) !important;
+  color: white !important;
 }
 
 .dark-mode .btn-danger {
@@ -290,6 +291,8 @@ body.dark-mode::before {
 
 .dark-mode .btn-danger:hover {
   box-shadow: 0 8px 25px rgba(239, 68, 68, 0.6) !important;
+  transform: translateY(-3px) !important;
+  color: white !important;
 }
 
 .dark-mode .btn-warning {
@@ -300,6 +303,8 @@ body.dark-mode::before {
 
 .dark-mode .btn-warning:hover {
   box-shadow: 0 8px 25px rgba(245, 158, 11, 0.6) !important;
+  transform: translateY(-3px) !important;
+  color: white !important;
 }
 
 .dark-mode .btn-outline-secondary,
@@ -317,6 +322,18 @@ body.dark-mode::before {
   background: var(--glass-hover) !important;
   border-color: rgba(99, 102, 241, 0.5) !important;
   color: var(--text-primary) !important;
+  transform: translateY(-2px) !important;
+}
+
+.dark-mode .wallet-button {
+  background: var(--primary-gradient) !important;
+  color: white !important;
+  box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4) !important;
+}
+
+.dark-mode .wallet-button:hover {
+  box-shadow: 0 12px 35px rgba(99, 102, 241, 0.6) !important;
+  transform: translateY(-4px) scale(1.05) !important;
 }
 
 /* Enhanced List Groups */
@@ -330,13 +347,14 @@ body.dark-mode::before {
 
 .dark-mode .list-group-item:hover {
   background: var(--glass-hover) !important;
-  border-color: rgba(99, 102, 241, 0.5) !important;
-  transform: translateX(4px);
+  border-color: rgba(99, 102, 241, 0.3) !important;
+  transform: translateX(8px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2) !important;
 }
 
 /* Enhanced Modal */
 .dark-mode .modal-content {
-  background: var(--container-bg) !important;
+  background: rgba(30, 41, 59, 0.95) !important;
   backdrop-filter: var(--backdrop-blur) !important;
   border: 1px solid var(--glass-border) !important;
   box-shadow: var(--shadow-hover) !important;
@@ -344,7 +362,7 @@ body.dark-mode::before {
 
 .dark-mode .modal-header,
 .dark-mode .modal-footer {
-  background: var(--glass-bg) !important;
+  background: var(--card-header-bg) !important;
   border-color: var(--glass-border) !important;
 }
 
@@ -369,7 +387,7 @@ body.dark-mode::before {
 /* Enhanced Badges */
 .dark-mode .badge.bg-primary {
   background: var(--primary-gradient) !important;
-  box-shadow: var(--shadow-glow) !important;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4) !important;
 }
 
 .dark-mode .badge.bg-success {
@@ -419,8 +437,8 @@ body.dark-mode::before {
 
 /* Enhanced Status Badges */
 .dark-mode .status-active {
-  background: var(--secondary-gradient) !important;
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4) !important;
+  background: var(--primary-gradient) !important;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4) !important;
 }
 
 .dark-mode .status-disputed {
@@ -429,8 +447,12 @@ body.dark-mode::before {
 }
 
 .dark-mode .status-completed {
-  background: var(--primary-gradient) !important;
-  box-shadow: var(--shadow-glow) !important;
+  background: var(--secondary-gradient) !important;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4) !important;
+}
+
+.dark-mode .escrow-status {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
 }
 
 /* Enhanced Footer */
@@ -468,18 +490,17 @@ body.dark-mode::before {
 }
 
 .dark-mode ::-webkit-scrollbar-track {
-  background: var(--glass-bg);
-  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.5);
+  border-radius: 4px;
 }
 
 .dark-mode ::-webkit-scrollbar-thumb {
-  background: var(--glass-border);
-  border-radius: 8px;
-  backdrop-filter: var(--backdrop-blur);
+  background: var(--primary-gradient);
+  border-radius: 4px;
 }
 
 .dark-mode ::-webkit-scrollbar-thumb:hover {
-  background: rgba(99, 102, 241, 0.3);
+  background: var(--secondary-gradient);
 }
 
 /* Enhanced Table Elements */
@@ -566,7 +587,14 @@ body.dark-mode::before {
 }
 
 .dark-mode .placeholder-glow .placeholder {
-  background: var(--glass-border) !important;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.1) 25%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0.1) 75%
+  ) !important;
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
 }
 
 /* Enhanced Bootstrap Component Overrides */
@@ -621,5 +649,123 @@ body.dark-mode::before {
 html.dark-mode,
 body.dark-mode {
   background-color: var(--body-bg) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Enhanced keyframes for dark mode */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Enhanced loading states for dark mode */
+.dark-mode .loading-spinner {
+  border-color: rgba(99, 102, 241, 0.3) !important;
+  border-top-color: var(--primary) !important;
+}
+
+.dark-mode .skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.1) 25%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0.1) 75%
+  ) !important;
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Enhanced selection for dark mode */
+.dark-mode ::selection {
+  background: rgba(99, 102, 241, 0.3) !important;
+  color: white !important;
+}
+
+/* Enhanced focus states for dark mode */
+.dark-mode .focus-ring:focus {
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.3) !important;
+}
+
+/* Enhanced disabled states for dark mode */
+.dark-mode .btn:disabled,
+.dark-mode .btn.disabled {
+  background: rgba(30, 41, 59, 0.5) !important;
+  color: var(--text-muted) !important;
+  border-color: var(--glass-border) !important;
+  opacity: 0.6 !important;
+}
+
+.dark-mode .form-control:disabled,
+.dark-mode .form-select:disabled {
+  background: rgba(30, 41, 59, 0.3) !important;
+  color: var(--text-muted) !important;
+  border-color: var(--glass-border) !important;
+  opacity: 0.6 !important;
+}
+
+/* Enhanced utility classes for dark mode */
+.dark-mode .text-gradient {
+  background: var(--primary-gradient) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+}
+
+.dark-mode .glow {
+  box-shadow: var(--shadow-glow) !important;
+}
+
+.dark-mode .blur-bg {
+  backdrop-filter: var(--backdrop-blur) !important;
+}
+
+/* Enhanced dropdown menus for dark mode */
+.dark-mode .dropdown-menu {
+  background: var(--glass-bg) !important;
+  backdrop-filter: var(--backdrop-blur) !important;
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: var(--shadow-hover) !important;
+}
+
+.dark-mode .dropdown-item {
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .dropdown-item:hover,
+.dark-mode .dropdown-item:focus {
+  background: var(--glass-hover) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Enhanced tooltip styles for dark mode */
+.dark-mode .tooltip {
+  backdrop-filter: var(--backdrop-blur) !important;
+}
+
+.dark-mode .tooltip .tooltip-inner {
+  background: var(--glass-bg) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--glass-border) !important;
+}
+
+/* Enhanced popover styles for dark mode */
+.dark-mode .popover {
+  background: var(--glass-bg) !important;
+  backdrop-filter: var(--backdrop-blur) !important;
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: var(--shadow-hover) !important;
+}
+
+.dark-mode .popover-body {
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .popover-header {
+  background: var(--card-header-bg) !important;
+  border-bottom: 1px solid var(--glass-border) !important;
   color: var(--text-primary) !important;
 }
