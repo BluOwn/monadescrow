@@ -259,7 +259,7 @@ const App: React.FC = () => {
 
   // Handle giveaway link click
   const handleGiveawayClick = (): void => {
-    window.open('https://x.com/Oprimedev/status/1928143907830776161', '_blank', 'noopener,noreferrer');
+    window.open('https://farcaster.xyz/miniapps/qpRLuEcePmk5/monad-slot-game', '_blank', 'noopener,noreferrer');
   };
 
   // Loading Progress Component
@@ -508,7 +508,7 @@ const App: React.FC = () => {
                 style={{ cursor: 'pointer' }}
                 className="text-decoration-none"
               >
-                🎁 200 MON Giveaway
+                🎰 Play Slot and Earn MON
                 <Badge bg="success" className="ms-2">Live!</Badge>
               </Nav.Link>
             </Nav.Item>
