@@ -508,7 +508,7 @@ const App: React.FC = () => {
                 style={{ cursor: 'pointer' }}
                 className="text-decoration-none"
               >
-                🎰 Play Slot and Earn MON
+                🎰 Play and Earn MON
                 <Badge bg="success" className="ms-2">Live!</Badge>
               </Nav.Link>
             </Nav.Item>
