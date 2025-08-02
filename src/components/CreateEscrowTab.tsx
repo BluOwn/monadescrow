@@ -114,7 +114,7 @@ const CreateEscrowTab: React.FC<CreateEscrowTabProps> = ({
               </Button>
             </div>
             
-            <Collapse in={showArbiterHelper} id="arbiter-helper-collapse">
+            <Collapse in={showArbiterHelper}>
               <div>
                 <Alert variant="light" className="mb-3">
                   <div className="d-flex justify-content-between align-items-start">
