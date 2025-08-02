@@ -1,4 +1,4 @@
-// src/App.tsx - Vercel build fixes
+// src/App.tsx - Final Vercel fixes
 import React, { Suspense, useState, useEffect, useContext, useCallback } from 'react';
 import { Button, Container, Alert, Modal, Badge, Card } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -215,7 +215,6 @@ const App: React.FC = () => {
             amount=""
             setAmount={() => {}}
             loading={escrowOps.loading}
-            error={escrowOps.error}
           />
         )}
         {activeTab === 'my-escrows' && (
@@ -225,6 +224,7 @@ const App: React.FC = () => {
             loadingEscrows={false}
             retryLoadingEscrows={() => {}}
             account={wallet.account || ''}
+            onAction={() => {}}
           />
         )}
         {activeTab === 'find' && (
