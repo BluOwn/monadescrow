@@ -1,6 +1,6 @@
 // src/App.tsx - Final TypeScript fixes
 import React, { Suspense, useState, useEffect, useContext, useCallback } from 'react';
-import { Button, Container, Alert, Modal, Badge, Card, Row, Col } from 'react-bootstrap';
+import { Button, Container, Alert, Modal, Badge, Card } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 
@@ -32,7 +32,7 @@ import {
 } from './components/SecurityComponents';
 
 // Creator Information
-import { CREATOR_WALLET, CREATOR_TWITTER } from './constants/contractData';
+import { CREATOR_TWITTER } from './constants/contractData';
 
 // Lazy load components
 const CreateEscrowTab = React.lazy(() => import('./components/CreateEscrowTab'));
@@ -70,6 +70,20 @@ const App: React.FC = () => {
   const [toastVariant, setToastVariant] = useState<'success' | 'danger' | 'warning' | 'info'>('info');
   const [showToast, setShowToast] = useState<boolean>(false);
   const [isConnecting, setIsConnecting] = useState<boolean>(false);
+
+  // New: track chainId separately (because wallet object lacks it)
+  const [chainId, setChainId] = useState<number | null>(null);
+
+  // Update chainId when provider changes
+  useEffect(() => {
+    if (wallet.provider) {
+      wallet.provider.getNetwork().then(network => {
+        setChainId(network.chainId);
+      }).catch(() => setChainId(null));
+    } else {
+      setChainId(null);
+    }
+  }, [wallet.provider]);
 
   // Show security warning on first visit
   useEffect(() => {
@@ -132,12 +146,12 @@ const App: React.FC = () => {
 
   // Check network (simplified)
   useEffect(() => {
-    if (wallet.account && wallet.chainId && wallet.chainId !== 10143) {
+    if (wallet.account && chainId && chainId !== 10143) {
       setShowNetworkWarning(true);
     } else {
       setShowNetworkWarning(false);
     }
-  }, [wallet.account, wallet.chainId]);
+  }, [wallet.account, chainId]);
 
   // Render tab content
   const renderTabContent = () => {
@@ -157,8 +171,8 @@ const App: React.FC = () => {
             >
               {isConnecting ? (
                 <>
-                  <LoadingIndicator className="me-2" />
-                  Connecting...
+                  <LoadingIndicator />
+                  {' '}Connecting...
                 </>
               ) : (
                 'Connect Wallet'
@@ -190,21 +204,19 @@ const App: React.FC = () => {
       <Suspense fallback={suspenseFallback}>
         {activeTab === 'guide' && <HowToUseTab />}
         {activeTab === 'create' && (
-          <CreateEscrowTab 
-            onEscrowCreated={() => {
-              showToastNotification('Escrow created successfully!', 'success');
-            }}
-          />
+          <CreateEscrowTab />
         )}
         {activeTab === 'my-escrows' && (
-          <MyEscrowsTab 
-            onEscrowAction={() => {
-              // Refresh logic here
-            }}
-          />
+          <MyEscrowsTab />
         )}
         {activeTab === 'find' && (
-          <FindEscrowTab />
+          // Provide required props for FindEscrowTab if any
+          <FindEscrowTab 
+            escrowIdToView={escrowOps.escrowIdToView}
+            setEscrowIdToView={escrowOps.setEscrowIdToView}
+            handleFindEscrow={escrowOps.handleFindEscrow}
+            loading={escrowOps.loading}
+          />
         )}
         {activeTab === 'contact' && <ContactForm />}
       </Suspense>
@@ -270,6 +282,8 @@ const App: React.FC = () => {
           {/* Rate Limit Alert */}
           {escrowOps.rateLimited && (
             <RateLimitAlert 
+              isVisible={true}
+              onDismiss={() => escrowOps.setRateLimited(false)}
               onRetry={() => escrowOps.setRateLimited(false)}
             />
           )}
@@ -337,6 +351,8 @@ const App: React.FC = () => {
                     onAction={() => {
                       setShowDetailsModal(false);
                     }}
+                    account={wallet.account}
+                    loading={escrowOps.loading}
                   />
                   <EscrowTimeline 
                     escrowStatus={escrowOps.selectedEscrow.fundsDisbursed ? 'completed' : 'funded'}
