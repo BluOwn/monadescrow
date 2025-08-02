@@ -58,9 +58,9 @@ const AnimatedAlert: React.FC<AnimatedAlertProps> = ({
     }, 300);
   };
 
-  const getIcon = () => {
-    if (icon) return icon;
-    
+  const getIcon = (): string => {
+    if (icon !== undefined) return icon;
+
     switch (variant) {
       case 'success': return '✅';
       case 'danger': return '❌';
