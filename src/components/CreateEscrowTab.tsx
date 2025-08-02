@@ -1,4 +1,4 @@
-// src/components/CreateEscrowTab.tsx - Fixed with accessibility
+// src/components/CreateEscrowTab.tsx
 import React, { useState } from 'react';
 import { Card, Form, Button, Spinner, Alert, Badge, Collapse } from 'react-bootstrap';
 import { ContractInfo } from './SecurityComponents';
@@ -80,9 +80,8 @@ const CreateEscrowTab: React.FC<CreateEscrowTabProps> = ({
         
         <Form onSubmit={handleCreateEscrow}>
           <Form.Group className="mb-3">
-            <Form.Label htmlFor="sellerAddress">Seller Address</Form.Label>
+            <Form.Label>Seller Address</Form.Label>
             <Form.Control
-              id="sellerAddress"
               type="text"
               placeholder="0x..."
               value={sellerAddress}
@@ -102,13 +101,11 @@ const CreateEscrowTab: React.FC<CreateEscrowTabProps> = ({
           
           <Form.Group className="mb-3">
             <div className="d-flex justify-content-between align-items-center mb-2">
-              <Form.Label htmlFor="arbiterAddress" className="mb-0">Arbiter Address</Form.Label>
+              <Form.Label className="mb-0">Arbiter Address</Form.Label>
               <Button 
                 variant="outline-info" 
                 size="sm"
                 onClick={() => setShowArbiterHelper(!showArbiterHelper)}
-                aria-expanded={showArbiterHelper}
-                aria-controls="arbiter-helper-collapse"
               >
                 Need an Arbiter? {showArbiterHelper ? '▲' : '▼'}
               </Button>
@@ -137,13 +134,6 @@ const CreateEscrowTab: React.FC<CreateEscrowTabProps> = ({
                           }}
                           onClick={() => navigator.clipboard.writeText(WEBSITE_ARBITER)}
                           title="Click to copy"
-                          role="button"
-                          tabIndex={0}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                              navigator.clipboard.writeText(WEBSITE_ARBITER);
-                            }
-                          }}
                         >
                           {WEBSITE_ARBITER}
                         </code>
@@ -173,7 +163,6 @@ const CreateEscrowTab: React.FC<CreateEscrowTabProps> = ({
             </Collapse>
             
             <Form.Control
-              id="arbiterAddress"
               type="text"
               placeholder="0x... or use website arbiter above"
               value={arbiterAddress}
@@ -197,9 +186,8 @@ const CreateEscrowTab: React.FC<CreateEscrowTabProps> = ({
           </Form.Group>
           
           <Form.Group className="mb-3">
-            <Form.Label htmlFor="amount">Amount (MON)</Form.Label>
+            <Form.Label>Amount (MON)</Form.Label>
             <Form.Control
-              id="amount"
               type="text"
               placeholder="0.01"
               value={amount}
