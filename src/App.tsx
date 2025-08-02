@@ -149,14 +149,18 @@ const App: React.FC = () => {
     }
   }, [wallet, showToastNotification]);
 
-  // Check network
-  useEffect(() => {
-    if (wallet.account && chainId && chainId !== 10143) {
-      setShowNetworkWarning(true);
-    } else {
-      setShowNetworkWarning(false);
-    }
-  }, [wallet.account, chainId]);
+  // Handle form submissions
+  const handleCreateEscrowSubmit = useCallback(async (e: React.FormEvent) => {
+    e.preventDefault();
+    // Add actual create escrow logic here
+    showToastNotification('Create escrow functionality coming soon!', 'info');
+  }, [showToastNotification]);
+
+  const handleFindEscrowSubmit = useCallback(async (e: React.FormEvent) => {
+    e.preventDefault();
+    // Add actual find escrow logic here
+    showToastNotification(`Searching for escrow ID: ${escrowIdToView}`, 'info');
+  }, [escrowIdToView, showToastNotification]);
 
   // Render tab content
   const renderTabContent = () => {
@@ -214,12 +218,12 @@ const App: React.FC = () => {
               e.preventDefault();
               // Handle form submission here
             }}
-            sellerAddress=""
-            setSellerAddress={() => {}}
-            arbiterAddress=""
-            setArbiterAddress={() => {}}
-            amount=""
-            setAmount={() => {}}
+            sellerAddress={sellerAddress}
+            setSellerAddress={setSellerAddress}
+            arbiterAddress={arbiterAddress}
+            setArbiterAddress={setArbiterAddress}
+            amount={amount}
+            setAmount={setAmount}
             loading={escrowOps.loading}
             currentAccount={wallet.account || ''}
           />
@@ -236,9 +240,12 @@ const App: React.FC = () => {
         )}
         {activeTab === 'find' && (
           <FindEscrowTab 
-            escrowIdToView=""
-            setEscrowIdToView={() => {}}
-            handleFindEscrow={() => {}}
+            escrowIdToView={escrowIdToView}
+            setEscrowIdToView={setEscrowIdToView}
+            handleFindEscrow={() => {
+              // Handle find escrow logic
+              console.log('Finding escrow:', escrowIdToView);
+            }}
             loading={escrowOps.loading}
           />
         )}
