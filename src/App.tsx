@@ -69,6 +69,12 @@ const App: React.FC = () => {
   const [toastVariant, setToastVariant] = useState<'success' | 'danger' | 'warning' | 'info'>('info');
   const [showToast, setShowToast] = useState<boolean>(false);
   const [isConnecting, setIsConnecting] = useState<boolean>(false);
+  
+  // Find escrow state
+  const [escrowIdToView, setEscrowIdToView] = useState<string>('');
+  const [sellerAddress, setSellerAddress] = useState<string>('');
+  const [arbiterAddress, setArbiterAddress] = useState<string>('');
+  const [amount, setAmount] = useState<string>('');
 
   // Track chainId separately
   const [chainId, setChainId] = useState<number | null>(null);
