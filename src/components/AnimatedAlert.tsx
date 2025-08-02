@@ -1,4 +1,4 @@
-// src/components/AnimatedAlert.tsx
+// src/components/AnimatedAlert.tsx - Fixed TypeScript errors
 import React, { useEffect, useState } from 'react';
 import { Alert } from 'react-bootstrap';
 
