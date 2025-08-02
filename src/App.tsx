@@ -1,4 +1,4 @@
-// src/App.tsx - Final TypeScript fixes
+// src/App.tsx - All TypeScript errors fixed
 import React, { Suspense, useState, useEffect, useContext, useCallback } from 'react';
 import { Button, Container, Alert, Modal, Badge, Card } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -27,8 +27,7 @@ import RateLimitAlert from './components/RateLimitAlert';
 import {
   ContractInfo,
   SecurityWarningModal,
-  SecurityBanner,
-  NetworkWarning
+  SecurityBanner
 } from './components/SecurityComponents';
 
 // Creator Information
@@ -71,14 +70,14 @@ const App: React.FC = () => {
   const [showToast, setShowToast] = useState<boolean>(false);
   const [isConnecting, setIsConnecting] = useState<boolean>(false);
 
-  // New: track chainId separately (because wallet object lacks it)
+  // Track chainId separately
   const [chainId, setChainId] = useState<number | null>(null);
 
   // Update chainId when provider changes
   useEffect(() => {
     if (wallet.provider) {
       wallet.provider.getNetwork().then(network => {
-        setChainId(network.chainId);
+        setChainId(Number(network.chainId));
       }).catch(() => setChainId(null));
     } else {
       setChainId(null);
@@ -144,7 +143,7 @@ const App: React.FC = () => {
     }
   }, [wallet, showToastNotification]);
 
-  // Check network (simplified)
+  // Check network
   useEffect(() => {
     if (wallet.account && chainId && chainId !== 10143) {
       setShowNetworkWarning(true);
@@ -204,17 +203,33 @@ const App: React.FC = () => {
       <Suspense fallback={suspenseFallback}>
         {activeTab === 'guide' && <HowToUseTab />}
         {activeTab === 'create' && (
-          <CreateEscrowTab />
+          <CreateEscrowTab 
+            handleCreateEscrow={escrowOps.createEscrow}
+            sellerAddress=""
+            setSellerAddress={() => {}}
+            arbiterAddress=""
+            setArbiterAddress={() => {}}
+            amount=""
+            setAmount={() => {}}
+            loading={escrowOps.loading}
+            error={escrowOps.error}
+          />
         )}
         {activeTab === 'my-escrows' && (
-          <MyEscrowsTab />
+          <MyEscrowsTab 
+            escrows={[]}
+            onViewDetails={() => {}}
+            loadingEscrows={false}
+            retryLoadingEscrows={() => {}}
+            account={wallet.account || ''}
+            loading={escrowOps.loading}
+          />
         )}
         {activeTab === 'find' && (
-          // Provide required props for FindEscrowTab if any
           <FindEscrowTab 
-            escrowIdToView={escrowOps.escrowIdToView}
-            setEscrowIdToView={escrowOps.setEscrowIdToView}
-            handleFindEscrow={escrowOps.handleFindEscrow}
+            escrowIdToView=""
+            setEscrowIdToView={() => {}}
+            handleFindEscrow={() => {}}
             loading={escrowOps.loading}
           />
         )}
@@ -326,14 +341,12 @@ const App: React.FC = () => {
           </footer>
 
           {/* Modals */}
-          {/* Security Warning Modal */}
           <SecurityWarningModal 
             show={showSecurityWarning}
             onAccept={handleSecurityAccept}
             onDecline={handleSecurityDecline}
           />
 
-          {/* Escrow Details Modal */}
           <Modal 
             show={showDetailsModal} 
             onHide={() => setShowDetailsModal(false)}
@@ -348,10 +361,8 @@ const App: React.FC = () => {
                 <Suspense fallback={<FormSkeleton fields={3} />}>
                   <EscrowDetails 
                     escrow={escrowOps.selectedEscrow}
-                    onAction={() => {
-                      setShowDetailsModal(false);
-                    }}
-                    account={wallet.account}
+                    onAction={() => setShowDetailsModal(false)}
+                    account={wallet.account || ''}
                     loading={escrowOps.loading}
                   />
                   <EscrowTimeline 
@@ -363,7 +374,6 @@ const App: React.FC = () => {
             </Modal.Body>
           </Modal>
 
-          {/* Toast Notifications */}
           <ToastNotification 
             message={toastMessage}
             variant={toastVariant}

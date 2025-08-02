@@ -1,4 +1,4 @@
-// src/components/AnimatedAlert.tsx - Fixed TypeScript errors
+// src/components/AnimatedAlert.tsx - TypeScript errors fixed
 import React, { useEffect, useState } from 'react';
 import { Alert } from 'react-bootstrap';
 
@@ -48,6 +48,8 @@ const AnimatedAlert: React.FC<AnimatedAlertProps> = ({
       }, autoCloseDelay);
       return () => clearTimeout(timer);
     }
+    // Added explicit return for all code paths
+    return undefined;
   }, [autoClose, autoCloseDelay, show]);
 
   const handleClose = () => {
@@ -59,8 +61,8 @@ const AnimatedAlert: React.FC<AnimatedAlertProps> = ({
   };
 
   const getIcon = (): string => {
-    if (icon !== undefined) return icon;
-
+    if (icon) return icon;
+    
     switch (variant) {
       case 'success': return '✅';
       case 'danger': return '❌';
@@ -109,7 +111,6 @@ const AnimatedAlert: React.FC<AnimatedAlertProps> = ({
   );
 };
 
-// Toast-style notification component
 export const ToastNotification: React.FC<{
   message: string;
   variant: 'success' | 'danger' | 'warning' | 'info';
