@@ -152,15 +152,44 @@ const App: React.FC = () => {
   // Handle form submissions
   const handleCreateEscrowSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    // Add actual create escrow logic here
-    showToastNotification('Create escrow functionality coming soon!', 'info');
-  }, [showToastNotification]);
+    if (!wallet.contract || !wallet.account) {
+      showToastNotification('Please connect your wallet first', 'warning');
+      return;
+    }
+    
+    try {
+      const success = await escrowOps.createEscrow(
+        wallet.contract,
+        sellerAddress,
+        arbiterAddress,
+        amount,
+        wallet.account
+      );
+      if (success) {
+        setSellerAddress('');
+        setArbiterAddress('');
+        setAmount('');
+        showToastNotification('Escrow created successfully!', 'success');
+      }
+    } catch (error) {
+      showToastNotification('Failed to create escrow', 'danger');
+    }
+  }, [wallet.contract, wallet.account, sellerAddress, arbiterAddress, amount, escrowOps, showToastNotification]);
 
   const handleFindEscrowSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    // Add actual find escrow logic here
-    showToastNotification(`Searching for escrow ID: ${escrowIdToView}`, 'info');
-  }, [escrowIdToView, showToastNotification]);
+    if (!wallet.contract) {
+      showToastNotification('Please connect your wallet first', 'warning');
+      return;
+    }
+    
+    try {
+      await escrowOps.viewEscrowDetails(wallet.contract, escrowIdToView);
+      setShowDetailsModal(true);
+    } catch (error) {
+      showToastNotification('Escrow not found', 'danger');
+    }
+  }, [wallet.contract, escrowIdToView, escrowOps, showToastNotification]);
 
   // Render tab content
   const renderTabContent = () => {
@@ -214,10 +243,7 @@ const App: React.FC = () => {
         {activeTab === 'guide' && <HowToUseTab />}
         {activeTab === 'create' && (
           <CreateEscrowTab 
-            handleCreateEscrow={async (e) => {
-              e.preventDefault();
-              // Handle form submission here
-            }}
+            handleCreateEscrow={handleCreateEscrowSubmit}
             sellerAddress={sellerAddress}
             setSellerAddress={setSellerAddress}
             arbiterAddress={arbiterAddress}
@@ -242,10 +268,7 @@ const App: React.FC = () => {
           <FindEscrowTab 
             escrowIdToView={escrowIdToView}
             setEscrowIdToView={setEscrowIdToView}
-            handleFindEscrow={() => {
-              // Handle find escrow logic
-              console.log('Finding escrow:', escrowIdToView);
-            }}
+            handleFindEscrow={handleFindEscrowSubmit}
             loading={escrowOps.loading}
           />
         )}
