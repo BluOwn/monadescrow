@@ -1,6 +1,6 @@
-// src/App.tsx - Fixed TypeScript errors
+// src/App.tsx - Final TypeScript fixes
 import React, { Suspense, useState, useEffect, useContext, useCallback } from 'react';
-import { Button, Container, Modal, Badge, Card } from 'react-bootstrap';
+import { Button, Container, Alert, Modal, Badge, Card, Row, Col } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 
@@ -32,7 +32,7 @@ import {
 } from './components/SecurityComponents';
 
 // Creator Information
-import { CREATOR_TWITTER } from './constants/contractData';
+import { CREATOR_WALLET, CREATOR_TWITTER } from './constants/contractData';
 
 // Lazy load components
 const CreateEscrowTab = React.lazy(() => import('./components/CreateEscrowTab'));
@@ -55,11 +55,11 @@ const navigationTabs = [
 const App: React.FC = () => {
   // Access theme context
   const { darkMode } = useContext(ThemeContext);
-
+  
   // Use custom hooks
   const wallet = useWallet();
   const escrowOps = useEscrowOperations();
-
+  
   // Local state
   const [activeTab, setActiveTab] = useState<string>('guide');
   const [showDetailsModal, setShowDetailsModal] = useState<boolean>(false);
@@ -69,6 +69,7 @@ const App: React.FC = () => {
   const [toastMessage, setToastMessage] = useState<string>('');
   const [toastVariant, setToastVariant] = useState<'success' | 'danger' | 'warning' | 'info'>('info');
   const [showToast, setShowToast] = useState<boolean>(false);
+  const [isConnecting, setIsConnecting] = useState<boolean>(false);
 
   // Show security warning on first visit
   useEffect(() => {
@@ -90,14 +91,11 @@ const App: React.FC = () => {
   }, []);
 
   // Show toast notification
-  const showToastNotification = useCallback(
-    (message: string, variant: 'success' | 'danger' | 'warning' | 'info') => {
-      setToastMessage(message);
-      setToastVariant(variant);
-      setShowToast(true);
-    },
-    []
-  );
+  const showToastNotification = useCallback((message: string, variant: 'success' | 'danger' | 'warning' | 'info') => {
+    setToastMessage(message);
+    setToastVariant(variant);
+    setShowToast(true);
+  }, []);
 
   // Handle toast close
   const handleToastClose = useCallback(() => {
@@ -122,21 +120,24 @@ const App: React.FC = () => {
   // Handle wallet connection
   const handleConnectWallet = useCallback(async () => {
     try {
+      setIsConnecting(true);
       await wallet.connectWallet();
       showToastNotification('Wallet connected successfully!', 'success');
     } catch (error) {
       showToastNotification('Failed to connect wallet', 'danger');
+    } finally {
+      setIsConnecting(false);
     }
   }, [wallet, showToastNotification]);
 
-  // Show network warning for wrong network
+  // Check network (simplified)
   useEffect(() => {
-    if (wallet.account && !wallet.isCorrectNetwork) {
+    if (wallet.account && wallet.chainId && wallet.chainId !== 10143) {
       setShowNetworkWarning(true);
     } else {
       setShowNetworkWarning(false);
     }
-  }, [wallet.account, wallet.isCorrectNetwork]);
+  }, [wallet.account, wallet.chainId]);
 
   // Render tab content
   const renderTabContent = () => {
@@ -148,10 +149,15 @@ const App: React.FC = () => {
             <p className="text-muted mb-4">
               Connect your MetaMask wallet to start using the Monad Escrow Service
             </p>
-            <Button variant="primary" size="lg" onClick={handleConnectWallet} disabled={wallet.connecting}>
-              {wallet.connecting ? (
+            <Button 
+              variant="primary" 
+              size="lg" 
+              onClick={handleConnectWallet}
+              disabled={isConnecting}
+            >
+              {isConnecting ? (
                 <>
-                  <LoadingIndicator size="sm" className="me-2" />
+                  <LoadingIndicator className="me-2" />
                   Connecting...
                 </>
               ) : (
@@ -184,24 +190,22 @@ const App: React.FC = () => {
       <Suspense fallback={suspenseFallback}>
         {activeTab === 'guide' && <HowToUseTab />}
         {activeTab === 'create' && (
-          <CreateEscrowTab
-            contract={wallet.contract}
-            account={wallet.account}
+          <CreateEscrowTab 
             onEscrowCreated={() => {
               showToastNotification('Escrow created successfully!', 'success');
             }}
           />
         )}
         {activeTab === 'my-escrows' && (
-          <MyEscrowsTab
-            account={wallet.account}
-            contract={wallet.contract}
+          <MyEscrowsTab 
             onEscrowAction={() => {
               // Refresh logic here
             }}
           />
         )}
-        {activeTab === 'find' && <FindEscrowTab account={wallet.account} />}
+        {activeTab === 'find' && (
+          <FindEscrowTab />
+        )}
         {activeTab === 'contact' && <ContactForm />}
       </Suspense>
     );
@@ -221,7 +225,12 @@ const App: React.FC = () => {
           </header>
 
           {/* Network Warning */}
-          {showNetworkWarning && <NetworkWarning currentNetwork={wallet.networkName || 'Unknown'} />}
+          {showNetworkWarning && (
+            <Alert variant="warning" className="mb-4">
+              <Alert.Heading>⚠️ Wrong Network</Alert.Heading>
+              Please switch to Monad Testnet (Chain ID: 10143) in your wallet.
+            </Alert>
+          )}
 
           {/* Security Banner */}
           <SecurityBanner />
@@ -231,16 +240,16 @@ const App: React.FC = () => {
             <Card className="wallet-info-card mb-4">
               <Card.Body className="d-flex align-items-center justify-content-between">
                 <div className="d-flex align-items-center">
-                  <div className="wallet-avatar me-3">👤</div>
+                  <div className="wallet-avatar me-3">
+                    👤
+                  </div>
                   <div>
                     <h6 className="mb-1">Connected Wallet</h6>
                     <AddressDisplay address={wallet.account} />
                   </div>
                 </div>
                 <div className="text-end">
-                  <Badge bg="success" className="mb-1">
-                    Connected
-                  </Badge>
+                  <Badge bg="success" className="mb-1">Connected</Badge>
                   <div className="small text-muted">Monad Testnet</div>
                 </div>
               </Card.Body>
@@ -251,23 +260,31 @@ const App: React.FC = () => {
 
           {/* Loading Progress */}
           {escrowOps.loading && (
-            <AnimatedProgress value={loadingProgress} label="Loading escrows..." variant="primary" />
+            <AnimatedProgress 
+              value={loadingProgress} 
+              label="Loading escrows..." 
+              variant="primary"
+            />
           )}
 
           {/* Rate Limit Alert */}
           {escrowOps.rateLimited && (
-            <RateLimitAlert
-              isVisible={escrowOps.rateLimited}
+            <RateLimitAlert 
               onRetry={() => escrowOps.setRateLimited(false)}
-              onDismiss={() => escrowOps.setRateLimited(false)}
             />
           )}
 
           {/* Navigation */}
-          <CustomNavPills activeTab={activeTab} onTabChange={setActiveTab} tabs={navigationTabs} />
+          <CustomNavPills 
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            tabs={navigationTabs}
+          />
 
           {/* Tab Content */}
-          <main className="tab-content">{renderTabContent()}</main>
+          <main className="tab-content">
+            {renderTabContent()}
+          </main>
 
           {/* Contract Info */}
           <ContractInfo />
@@ -276,11 +293,19 @@ const App: React.FC = () => {
           <footer className="footer">
             <p>
               Built by{' '}
-              <a href={CREATOR_TWITTER} target="_blank" rel="noopener noreferrer">
+              <a 
+                href={CREATOR_TWITTER} 
+                target="_blank" 
+                rel="noopener noreferrer"
+              >
                 @Oprimedev
-              </a>{' '}
-              | Open source on{' '}
-              <a href="https://github.com/BluOwn/monadescrow" target="_blank" rel="noopener noreferrer">
+              </a>
+              {' '}| Open source on{' '}
+              <a 
+                href="https://github.com/BluOwn/monadescrow" 
+                target="_blank" 
+                rel="noopener noreferrer"
+              >
                 GitHub
               </a>
             </p>
@@ -288,25 +313,32 @@ const App: React.FC = () => {
 
           {/* Modals */}
           {/* Security Warning Modal */}
-          <SecurityWarningModal show={showSecurityWarning} onAccept={handleSecurityAccept} onDecline={handleSecurityDecline} />
+          <SecurityWarningModal 
+            show={showSecurityWarning}
+            onAccept={handleSecurityAccept}
+            onDecline={handleSecurityDecline}
+          />
 
           {/* Escrow Details Modal */}
-          <Modal show={showDetailsModal} onHide={() => setShowDetailsModal(false)} size="lg" centered>
+          <Modal 
+            show={showDetailsModal} 
+            onHide={() => setShowDetailsModal(false)}
+            size="lg"
+            centered
+          >
             <Modal.Header closeButton>
               <Modal.Title>Escrow Details</Modal.Title>
             </Modal.Header>
             <Modal.Body>
               {escrowOps.selectedEscrow && (
                 <Suspense fallback={<FormSkeleton fields={3} />}>
-                  <EscrowDetails
+                  <EscrowDetails 
                     escrow={escrowOps.selectedEscrow}
-                    account={wallet.account}
                     onAction={() => {
                       setShowDetailsModal(false);
                     }}
-                    loading={escrowOps.loading}
                   />
-                  <EscrowTimeline
+                  <EscrowTimeline 
                     escrowStatus={escrowOps.selectedEscrow.fundsDisbursed ? 'completed' : 'funded'}
                     disputeRaised={escrowOps.selectedEscrow.disputeRaised}
                   />
@@ -316,7 +348,7 @@ const App: React.FC = () => {
           </Modal>
 
           {/* Toast Notifications */}
-          <ToastNotification
+          <ToastNotification 
             message={toastMessage}
             variant={toastVariant}
             show={showToast}
