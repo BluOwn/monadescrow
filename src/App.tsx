@@ -1,6 +1,6 @@
-// src/App.tsx - Final Vercel fixes
+// src/App.tsx - Complete with modern design and proper escrow loading
 import React, { Suspense, useState, useEffect, useContext, useCallback } from 'react';
-import { Button, Container, Alert, Modal, Badge, Card } from 'react-bootstrap';
+import { Button, Container, Alert, Modal, Badge, Card, Row, Col, ProgressBar } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 
@@ -9,6 +9,7 @@ import { ThemeContext } from './contexts/ThemeContext';
 
 // Import hooks
 import useWallet from './hooks/useWallet';
+import useRobustEscrowLoader from './hooks/useRobustEscrowLoader';
 import useEscrowOperations from './hooks/useEscrowOperations';
 
 // Import new components
@@ -23,15 +24,20 @@ import ThemeToggle from './components/ThemeToggle';
 import DarkModeWrapper from './components/DarkModeWrapper';
 import LoadingIndicator from './components/LoadingIndicator';
 import AddressDisplay from './components/AddressDisplay';
+import { 
+  WalletInfoSkeleton as OriginalWalletSkeleton,
+  EscrowDetailsSkeleton 
+} from './components/SkeletonLoaders';
 import RateLimitAlert from './components/RateLimitAlert';
 import {
   ContractInfo,
   SecurityWarningModal,
-  SecurityBanner
+  SecurityBanner,
+  NetworkWarning
 } from './components/SecurityComponents';
 
 // Creator Information
-import { CREATOR_TWITTER } from './constants/contractData';
+import { CREATOR_WALLET, CREATOR_TWITTER } from './constants/contractData';
 
 // Lazy load components
 const CreateEscrowTab = React.lazy(() => import('./components/CreateEscrowTab'));
@@ -57,27 +63,25 @@ const App: React.FC = () => {
   
   // Use custom hooks
   const wallet = useWallet();
+  const escrowLoader = useRobustEscrowLoader();
   const escrowOps = useEscrowOperations();
   
-  // Local state
+  // Local state - Start with guide tab for new users
   const [activeTab, setActiveTab] = useState<string>('guide');
   const [showDetailsModal, setShowDetailsModal] = useState<boolean>(false);
   const [showSecurityWarning, setShowSecurityWarning] = useState<boolean>(false);
-  const [showNetworkWarning, setShowNetworkWarning] = useState<boolean>(false);
-  const [loadingProgress, setLoadingProgress] = useState<number>(0);
+  const [hasAcceptedSecurity, setHasAcceptedSecurity] = useState<boolean>(false);
+  const [firstTimeUser, setFirstTimeUser] = useState<boolean>(true);
   const [toastMessage, setToastMessage] = useState<string>('');
   const [toastVariant, setToastVariant] = useState<'success' | 'danger' | 'warning' | 'info'>('info');
   const [showToast, setShowToast] = useState<boolean>(false);
-  const [isConnecting, setIsConnecting] = useState<boolean>(false);
-  
-  // Find escrow state
-  const [escrowIdToView, setEscrowIdToView] = useState<string>('');
+  const [chainId, setChainId] = useState<number | null>(null);
+
+  // Form states
   const [sellerAddress, setSellerAddress] = useState<string>('');
   const [arbiterAddress, setArbiterAddress] = useState<string>('');
   const [amount, setAmount] = useState<string>('');
-
-  // Track chainId separately
-  const [chainId, setChainId] = useState<number | null>(null);
+  const [escrowIdToView, setEscrowIdToView] = useState<string>('');
 
   // Update chainId when provider changes
   useEffect(() => {
@@ -90,24 +94,51 @@ const App: React.FC = () => {
     }
   }, [wallet.provider]);
 
-  // Show security warning on first visit
+  // Initialize security settings
   useEffect(() => {
-    const hasSeenWarning = localStorage.getItem('monad-escrow-security-warning');
-    if (!hasSeenWarning) {
-      setShowSecurityWarning(true);
+    const hasAccepted = localStorage.getItem('monad-escrow-security-accepted');
+    const hasVisited = localStorage.getItem('monad-escrow-visited');
+    
+    if (hasAccepted === 'true') {
+      setHasAcceptedSecurity(true);
+      setFirstTimeUser(false);
+    }
+    
+    // If returning user, start with create tab instead of guide
+    if (hasVisited === 'true' && hasAccepted === 'true') {
+      setActiveTab('create');
     }
   }, []);
+  
+  // Setup wallet listeners
+  useEffect(() => {
+    const cleanup = wallet.setupWalletListeners();
+    return cleanup;
+  }, [wallet]);
 
-  // Handle security warning acceptance
-  const handleSecurityAccept = useCallback(() => {
-    localStorage.setItem('monad-escrow-security-warning', 'true');
-    setShowSecurityWarning(false);
-  }, []);
+  // Load escrows when wallet connects
+  useEffect(() => {
+    let isEffectActive = true;
+    
+    const loadData = async () => {
+      if (wallet.connected && wallet.contract && wallet.account && isEffectActive) {
+        console.log('👤 Wallet connected, loading escrows...');
+        
+        try {
+          await escrowLoader.refreshIfStale(wallet.contract, wallet.account);
+        } catch (error) {
+          console.error('Error loading escrows:', error);
+        }
+      }
+    };
 
-  // Handle security warning decline
-  const handleSecurityDecline = useCallback(() => {
-    window.location.href = 'https://google.com';
-  }, []);
+    const timeoutId = setTimeout(loadData, 300);
+    
+    return () => {
+      isEffectActive = false;
+      clearTimeout(timeoutId);
+    };
+  }, [wallet.connected, wallet.contract, wallet.account]);
 
   // Show toast notification
   const showToastNotification = useCallback((message: string, variant: 'success' | 'danger' | 'warning' | 'info') => {
@@ -121,159 +152,248 @@ const App: React.FC = () => {
     setShowToast(false);
   }, []);
 
-  // Show success/error notifications
-  useEffect(() => {
-    if (escrowOps.successMessage) {
-      showToastNotification(escrowOps.successMessage, 'success');
-      escrowOps.clearMessages();
-    }
-  }, [escrowOps.successMessage, showToastNotification, escrowOps]);
-
-  useEffect(() => {
-    if (escrowOps.error) {
-      showToastNotification(escrowOps.error, 'danger');
-      escrowOps.clearMessages();
-    }
-  }, [escrowOps.error, showToastNotification, escrowOps]);
-
-  // Handle wallet connection
-  const handleConnectWallet = useCallback(async () => {
-    try {
-      setIsConnecting(true);
-      await wallet.connectWallet();
-      showToastNotification('Wallet connected successfully!', 'success');
-    } catch (error) {
-      showToastNotification('Failed to connect wallet', 'danger');
-    } finally {
-      setIsConnecting(false);
-    }
-  }, [wallet, showToastNotification]);
-
-  // Handle form submissions
-  const handleCreateEscrowSubmit = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!wallet.contract || !wallet.account) {
-      showToastNotification('Please connect your wallet first', 'warning');
+  // Connect to MetaMask
+  const connectWallet = async (): Promise<void> => {
+    if (firstTimeUser && !hasAcceptedSecurity) {
+      setShowSecurityWarning(true);
       return;
     }
-    
+
     try {
-      const success = await escrowOps.createEscrow(
-        wallet.contract,
-        sellerAddress,
-        arbiterAddress,
-        amount,
-        wallet.account
-      );
-      if (success) {
-        setSellerAddress('');
-        setArbiterAddress('');
-        setAmount('');
-        showToastNotification('Escrow created successfully!', 'success');
+      const success = await wallet.connectWallet();
+      if (success && wallet.contract) {
+        console.log('Wallet connected successfully');
+        showToastNotification('Wallet connected successfully!', 'success');
+        // Mark as visited and switch to create tab
+        localStorage.setItem('monad-escrow-visited', 'true');
+        if (activeTab === 'guide') {
+          setActiveTab('create');
+        }
       }
     } catch (error) {
-      showToastNotification('Failed to create escrow', 'danger');
+      console.error("Error in connect flow:", error);
+      showToastNotification('Failed to connect wallet', 'danger');
     }
-  }, [wallet.contract, wallet.account, sellerAddress, arbiterAddress, amount, escrowOps, showToastNotification]);
+  };
 
-  const handleFindEscrowSubmit = useCallback(async (e: React.FormEvent) => {
+  // Handle security warning
+  const handleSecurityAccept = (): void => {
+    setHasAcceptedSecurity(true);
+    setFirstTimeUser(false);
+    setShowSecurityWarning(false);
+    localStorage.setItem('monad-escrow-security-accepted', 'true');
+    localStorage.setItem('monad-escrow-visited', 'true');
+    connectWallet();
+  };
+
+  const handleSecurityDecline = (): void => {
+    setShowSecurityWarning(false);
+  };
+
+  // Create escrow handler
+  const handleCreateEscrow = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
+    
+    if (!wallet.contract) return;
+    
+    const success = await escrowOps.createEscrow(
+      wallet.contract,
+      sellerAddress,
+      arbiterAddress,
+      amount,
+      wallet.account
+    );
+    
+    if (success) {
+      setSellerAddress('');
+      setArbiterAddress('');
+      setAmount('');
+      showToastNotification('Escrow created successfully!', 'success');
+      
+      // Switch to My Escrows tab and refresh
+      setActiveTab('my-escrows');
+      setTimeout(() => {
+        escrowLoader.forceRefresh(wallet.contract!, wallet.account);
+      }, 2000);
+    }
+  };
+
+  // View escrow details
+  const viewEscrowDetails = useCallback(async (escrowId: string): Promise<void> => {
     if (!wallet.contract) {
-      showToastNotification('Please connect your wallet first', 'warning');
+      escrowOps.setError('Wallet not connected');
       return;
     }
     
     try {
-      await escrowOps.viewEscrowDetails(wallet.contract, escrowIdToView);
-      setShowDetailsModal(true);
+      escrowOps.clearMessages();
+      const escrow = await escrowOps.viewEscrowDetails(wallet.contract, escrowId);
+      
+      if (escrow) {
+        setShowDetailsModal(true);
+      } else {
+        escrowOps.setError('Escrow not found');
+      }
     } catch (error) {
-      showToastNotification('Escrow not found', 'danger');
+      console.error("Error viewing escrow:", error);
+      escrowOps.setError('Failed to load escrow details');
     }
-  }, [wallet.contract, escrowIdToView, escrowOps, showToastNotification]);
+  }, [wallet.contract, escrowOps]);
 
-  // Render tab content
-  const renderTabContent = () => {
-    if (!wallet.account) {
-      return (
-        <Card className="text-center py-5">
-          <Card.Body>
-            <h4 className="mb-4">Connect Your Wallet</h4>
-            <p className="text-muted mb-4">
-              Connect your MetaMask wallet to start using the Monad Escrow Service
-            </p>
-            <Button 
-              variant="primary" 
-              size="lg" 
-              onClick={handleConnectWallet}
-              disabled={isConnecting}
-            >
-              {isConnecting ? (
-                <>
-                  <LoadingIndicator />
-                  {' '}Connecting...
-                </>
-              ) : (
-                'Connect Wallet'
-              )}
-            </Button>
-          </Card.Body>
-        </Card>
-      );
+  // Handle escrow actions
+  const handleEscrowAction = useCallback(async (
+    action: string, 
+    escrowId: string, 
+    recipient: string | null = null
+  ): Promise<void> => {
+    if (!wallet.contract) return;
+    
+    const success = await escrowOps.handleEscrowAction(wallet.contract, action, escrowId, recipient);
+    
+    if (success) {
+      showToastNotification(`${action} completed successfully!`, 'success');
+      // Refresh after action
+      setTimeout(() => {
+        if (wallet.contract && wallet.account) {
+          escrowLoader.forceRefresh(wallet.contract, wallet.account);
+        }
+      }, 2000);
+      
+      // Refresh modal if open
+      if (showDetailsModal && escrowOps.selectedEscrow?.id === escrowId) {
+        setTimeout(() => {
+          viewEscrowDetails(escrowId);
+        }, 3000);
+      }
     }
+  }, [wallet.contract, wallet.account, showDetailsModal, escrowOps.selectedEscrow?.id, escrowLoader, viewEscrowDetails, showToastNotification]);
 
-    const suspenseFallback = (
-      <div className="p-4">
-        {activeTab === 'create' && <FormSkeleton fields={4} />}
-        {(activeTab === 'my-escrows' || activeTab === 'find') && (
-          <div className="row g-3">
-            {Array.from({ length: 3 }, (_, i) => (
-              <div key={i} className="col-12">
-                <EscrowCardSkeleton />
-              </div>
-            ))}
-          </div>
-        )}
-        {activeTab === 'guide' && <FormSkeleton fields={2} />}
-        {activeTab === 'contact' && <FormSkeleton fields={3} />}
-      </div>
-    );
+  // Handle find escrow
+  const handleFindEscrow = useCallback(async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
+    e.preventDefault();
+    
+    if (!escrowIdToView || !wallet.contract) {
+      escrowOps.setError('Please enter an escrow ID');
+      return;
+    }
+    
+    try {
+      escrowOps.clearMessages();
+      await viewEscrowDetails(escrowIdToView);
+      setEscrowIdToView('');
+    } catch (error) {
+      console.error("Error finding escrow", error);
+      escrowOps.setError('Failed to find escrow');
+    }
+  }, [escrowIdToView, wallet.contract, escrowOps, viewEscrowDetails]);
+
+  // Modal close handler
+  const handleModalClose = useCallback(() => {
+    setShowDetailsModal(false);
+    setTimeout(() => {
+      escrowOps.setSelectedEscrow(null);
+      escrowOps.clearMessages();
+    }, 150);
+  }, [escrowOps]);
+
+  // Retry loading
+  const retryLoadingEscrows = async (): Promise<void> => {
+    if (wallet.contract && wallet.account) {
+      escrowOps.setRateLimited(false);
+      await escrowLoader.forceRefresh(wallet.contract, wallet.account);
+    }
+  };
+
+  // Handle giveaway link click
+  const handleGiveawayClick = (): void => {
+    window.open('https://farcaster.xyz/miniapps/qpRLuEcePmk5/monad-slot-game', '_blank', 'noopener,noreferrer');
+  };
+
+  // Loading Progress Component
+  const LoadingProgress = () => {
+    if (!escrowLoader.loading && !escrowLoader.progress.total) return null;
 
     return (
-      <Suspense fallback={suspenseFallback}>
-        {activeTab === 'guide' && <HowToUseTab />}
-        {activeTab === 'create' && (
-          <CreateEscrowTab 
-            handleCreateEscrow={handleCreateEscrowSubmit}
-            sellerAddress={sellerAddress}
-            setSellerAddress={setSellerAddress}
-            arbiterAddress={arbiterAddress}
-            setArbiterAddress={setArbiterAddress}
-            amount={amount}
-            setAmount={setAmount}
-            loading={escrowOps.loading}
-            currentAccount={wallet.account || ''}
-          />
-        )}
-        {activeTab === 'my-escrows' && (
-          <MyEscrowsTab 
-            escrows={[]}
-            onViewDetails={() => {}}
-            loadingEscrows={false}
-            retryLoadingEscrows={() => {}}
-            account={wallet.account || ''}
-            onAction={() => {}}
-          />
-        )}
-        {activeTab === 'find' && (
-          <FindEscrowTab 
-            escrowIdToView={escrowIdToView}
-            setEscrowIdToView={setEscrowIdToView}
-            handleFindEscrow={handleFindEscrowSubmit}
-            loading={escrowOps.loading}
-          />
-        )}
-        {activeTab === 'contact' && <ContactForm />}
-      </Suspense>
+      <Card className="mb-4">
+        <Card.Body>
+          <div className="d-flex justify-content-between align-items-center mb-3">
+            <h6 className="mb-0">
+              {escrowLoader.loading ? '🔄 Loading Your Escrows...' : '📊 Loading Complete'}
+            </h6>
+            {escrowLoader.loading && (
+              <Button 
+                variant="outline-danger" 
+                size="sm"
+                onClick={escrowLoader.cancelLoading}
+              >
+                Cancel
+              </Button>
+            )}
+          </div>
+          
+          {escrowLoader.progress.total > 0 && (
+            <>
+              <AnimatedProgress 
+                value={escrowLoader.progress.percentage} 
+                variant={escrowLoader.progress.failed > 0 ? "warning" : "primary"}
+                label={`Progress: ${escrowLoader.progress.loaded}/${escrowLoader.progress.total} loaded`}
+              />
+              {escrowLoader.progress.failed > 0 && (
+                <small className="text-warning">({escrowLoader.progress.failed} failed)</small>
+              )}
+            </>
+          )}
+        </Card.Body>
+      </Card>
+    );
+  };
+
+  // Stats display component
+  const StatsCard = () => {
+    if (!escrowLoader.hasData) return null;
+
+    return (
+      <Card className="mb-4">
+        <Card.Body>
+          <Card.Title>📊 Your Active Escrows</Card.Title>
+          <Row>
+            <Col xs={6} sm={3}>
+              <div className="text-center">
+                <h3 className="text-primary">{escrowLoader.stats.total}</h3>
+                <small>Total Active</small>
+              </div>
+            </Col>
+            <Col xs={6} sm={3}>
+              <div className="text-center">
+                <h3 className="text-info">{escrowLoader.stats.asBuyer}</h3>
+                <small>As Buyer</small>
+              </div>
+            </Col>
+            <Col xs={6} sm={3}>
+              <div className="text-center">
+                <h3 className="text-success">{escrowLoader.stats.asSeller}</h3>
+                <small>As Seller</small>
+              </div>
+            </Col>
+            <Col xs={6} sm={3}>
+              <div className="text-center">
+                <h3 className="text-warning">{escrowLoader.stats.asArbiter}</h3>
+                <small>As Arbiter</small>
+              </div>
+            </Col>
+          </Row>
+          {escrowLoader.stats.disputed > 0 && (
+            <Alert variant="warning" className="mt-3 mb-0">
+              ⚠️ {escrowLoader.stats.disputed} escrow{escrowLoader.stats.disputed > 1 ? 's' : ''} in dispute
+            </Alert>
+          )}
+          {escrowLoader.isPartiallyLoaded && (
+            <Alert variant="info" className="mt-3 mb-0">
+              ℹ️ Some escrows failed to load. Try refreshing for complete data.
+            </Alert>
+          )}
+        </Card.Body>
+      </Card>
     );
   };
 
@@ -289,71 +409,181 @@ const App: React.FC = () => {
             </div>
             <p>Secure, decentralized escrow on Monad Testnet</p>
           </header>
-
-          {/* Network Warning */}
-          {showNetworkWarning && (
-            <Alert variant="warning" className="mb-4">
-              <Alert.Heading>⚠️ Wrong Network</Alert.Heading>
-              Please switch to Monad Testnet (Chain ID: 10143) in your wallet.
-            </Alert>
-          )}
-
-          {/* Security Banner */}
-          <SecurityBanner />
-
-          {/* Wallet Info */}
-          {wallet.account ? (
-            <Card className="wallet-info-card mb-4">
-              <Card.Body className="d-flex align-items-center justify-content-between">
-                <div className="d-flex align-items-center">
-                  <div className="wallet-avatar me-3">
-                    👤
-                  </div>
-                  <div>
-                    <h6 className="mb-1">Connected Wallet</h6>
-                    <AddressDisplay address={wallet.account} />
-                  </div>
-                </div>
-                <div className="text-end">
-                  <Badge bg="success" className="mb-1">Connected</Badge>
-                  <div className="small text-muted">Monad Testnet</div>
-                </div>
+          
+          {/* Security Warning Modal */}
+          <SecurityWarningModal 
+            show={showSecurityWarning}
+            onAccept={handleSecurityAccept}
+            onDecline={handleSecurityDecline}
+          />
+          
+          {!wallet.connected ? (
+            <Card className="text-center py-5">
+              <Card.Body>
+                <SecurityBanner />
+                <ContractInfo />
+                <h4 className="mb-4">Connect Your Wallet</h4>
+                <p className="text-muted mb-4">
+                  Connect your MetaMask wallet to start using the Monad Escrow Service
+                </p>
+                <Button 
+                  variant="primary" 
+                  size="lg" 
+                  onClick={connectWallet}
+                  disabled={wallet.loading}
+                >
+                  {wallet.loading ? <LoadingIndicator /> : 'Connect Wallet'}
+                </Button>
               </Card.Body>
             </Card>
           ) : (
-            <WalletInfoSkeleton />
-          )}
+            <>
+              {/* Network Warning */}
+              {wallet.account && chainId && chainId !== 10143 && (
+                <Alert variant="warning" className="mb-4">
+                  <Alert.Heading>⚠️ Wrong Network</Alert.Heading>
+                  Please switch to Monad Testnet (Chain ID: 10143) in your wallet.
+                </Alert>
+              )}
 
-          {/* Loading Progress */}
-          {escrowOps.loading && (
-            <AnimatedProgress 
-              value={loadingProgress} 
-              label="Loading escrows..." 
-              variant="primary"
+              {/* Security Banner */}
+              <SecurityBanner />
+              
+              {/* Wallet Info */}
+              {wallet.loading ? (
+                <WalletInfoSkeleton />
+              ) : (
+                <Card className="wallet-info-card mb-4">
+                  <Card.Body className="d-flex align-items-center justify-content-between">
+                    <div className="d-flex align-items-center">
+                      <div className="wallet-avatar me-3">👤</div>
+                      <div>
+                        <h6 className="mb-1">Connected Wallet</h6>
+                        <AddressDisplay address={wallet.account} />
+                      </div>
+                    </div>
+                    <div className="text-end">
+                      <Badge bg="success" className="mb-1">Connected</Badge>
+                      <div className="small text-muted">Monad Testnet</div>
+                    </div>
+                  </Card.Body>
+                </Card>
+              )}
+              
+              {/* Loading Progress */}
+              <LoadingProgress />
+              
+              {/* Stats Card */}
+              <StatsCard />
+              
+              {/* Error State */}
+              {escrowLoader.error && (
+                <Alert variant={escrowLoader.isPartiallyLoaded ? "warning" : "danger"} className="mb-3">
+                  <strong>{escrowLoader.isPartiallyLoaded ? "Partial Load:" : "Error:"}</strong> {escrowLoader.error}
+                  <div className="mt-2">
+                    <Button 
+                      variant={escrowLoader.isPartiallyLoaded ? "outline-warning" : "outline-danger"}
+                      size="sm" 
+                      onClick={() => escrowLoader.forceRefresh(wallet.contract!, wallet.account)}
+                    >
+                      {escrowLoader.isPartiallyLoaded ? "Retry Failed" : "Retry All"}
+                    </Button>
+                  </div>
+                </Alert>
+              )}
+              
+              {/* Rate Limit Alert */}
+              {escrowOps.rateLimited && (
+                <RateLimitAlert 
+                  isVisible={escrowOps.rateLimited}
+                  onDismiss={() => escrowOps.setRateLimited(false)}
+                  onRetry={retryLoadingEscrows}
+                  progress={escrowOps.autoRetry.progress}
+                  autoRetryIn={escrowOps.autoRetry.countdown}
+                />
+              )}
+            </>
+          )}
+          
+          {/* Enhanced Navigation with badges */}
+          <div className="d-flex align-items-center mb-4">
+            <CustomNavPills 
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+              tabs={navigationTabs.map(tab => ({
+                ...tab,
+                label: tab.id === 'my-escrows' && wallet.connected && escrowLoader.stats.total > 0 
+                  ? `${tab.label} (${escrowLoader.stats.total})`
+                  : tab.label
+              }))}
             />
+            <Button 
+              variant="outline-success"
+              size="sm"
+              className="ms-3"
+              onClick={handleGiveawayClick}
+            >
+              🎰 Play & Earn MON
+            </Button>
+          </div>
+          
+          <Suspense fallback={<LoadingIndicator />}>
+            {activeTab === 'guide' && <HowToUseTab />}
+            
+            {activeTab === 'create' && wallet.connected && (
+              <CreateEscrowTab 
+                handleCreateEscrow={handleCreateEscrow}
+                sellerAddress={sellerAddress}
+                setSellerAddress={setSellerAddress}
+                arbiterAddress={arbiterAddress}
+                setArbiterAddress={setArbiterAddress}
+                amount={amount}
+                setAmount={setAmount}
+                loading={escrowOps.loading}
+                currentAccount={wallet.account}
+              />
+            )}
+            
+            {activeTab === 'my-escrows' && wallet.connected && (
+              <MyEscrowsTab 
+                escrows={escrowLoader.activeEscrows} 
+                onViewDetails={viewEscrowDetails} 
+                loadingEscrows={escrowLoader.loading}
+                retryLoadingEscrows={() => escrowLoader.forceRefresh(wallet.contract!, wallet.account)}
+                account={wallet.account}
+                onAction={handleEscrowAction}
+              />
+            )}
+            
+            {activeTab === 'find' && wallet.connected && (
+              <FindEscrowTab 
+                escrowIdToView={escrowIdToView}
+                setEscrowIdToView={setEscrowIdToView}
+                handleFindEscrow={handleFindEscrow}
+                loading={escrowOps.loading}
+              />
+            )}
+            
+            {activeTab === 'contact' && <ContactForm />}
+          </Suspense>
+          
+          {/* Show wallet connection prompt for disabled tabs */}
+          {!wallet.connected && (activeTab === 'create' || activeTab === 'my-escrows' || activeTab === 'find') && (
+            <Card>
+              <Card.Body className="text-center">
+                <h4>🔗 Connect Your Wallet</h4>
+                <p>Please connect your MetaMask wallet to access this feature</p>
+                <Button 
+                  variant="primary"
+                  onClick={connectWallet}
+                  disabled={wallet.loading}
+                >
+                  {wallet.loading ? <LoadingIndicator /> : 'Connect Wallet'}
+                </Button>
+              </Card.Body>
+            </Card>
           )}
-
-          {/* Rate Limit Alert */}
-          {escrowOps.rateLimited && (
-            <RateLimitAlert 
-              isVisible={true}
-              onDismiss={() => escrowOps.setRateLimited(false)}
-              onRetry={() => escrowOps.setRateLimited(false)}
-            />
-          )}
-
-          {/* Navigation */}
-          <CustomNavPills 
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            tabs={navigationTabs}
-          />
-
-          {/* Tab Content */}
-          <main className="tab-content">
-            {renderTabContent()}
-          </main>
-
+          
           {/* Contract Info */}
           <ContractInfo />
 
@@ -378,41 +608,47 @@ const App: React.FC = () => {
               </a>
             </p>
           </footer>
-
-          {/* Modals */}
-          <SecurityWarningModal 
-            show={showSecurityWarning}
-            onAccept={handleSecurityAccept}
-            onDecline={handleSecurityDecline}
-          />
-
-          <Modal 
-            show={showDetailsModal} 
-            onHide={() => setShowDetailsModal(false)}
-            size="lg"
-            centered
-          >
-            <Modal.Header closeButton>
-              <Modal.Title>Escrow Details</Modal.Title>
-            </Modal.Header>
-            <Modal.Body>
-              {escrowOps.selectedEscrow && (
-                <Suspense fallback={<FormSkeleton fields={3} />}>
-                  <EscrowDetails 
-                    escrow={escrowOps.selectedEscrow}
-                    onAction={() => setShowDetailsModal(false)}
-                    account={wallet.account || ''}
-                    loading={escrowOps.loading}
-                  />
-                  <EscrowTimeline 
-                    escrowStatus={escrowOps.selectedEscrow.fundsDisbursed ? 'completed' : 'funded'}
-                    disputeRaised={escrowOps.selectedEscrow.disputeRaised}
-                  />
+          
+          {/* Escrow Details Modal */}
+          {wallet.connected && (
+            <Modal 
+              show={showDetailsModal} 
+              onHide={handleModalClose}
+              size="lg"
+              centered
+            >
+              <Modal.Header closeButton>
+                <Modal.Title>Escrow Details</Modal.Title>
+              </Modal.Header>
+              <Modal.Body>
+                <Suspense fallback={<EscrowDetailsSkeleton />}>
+                  {escrowOps.selectedEscrow ? (
+                    <>
+                      <EscrowDetails
+                        escrow={escrowOps.selectedEscrow}
+                        account={wallet.account}
+                        onAction={handleEscrowAction}
+                        loading={escrowOps.loading}
+                      />
+                      <EscrowTimeline 
+                        escrowStatus={escrowOps.selectedEscrow.fundsDisbursed ? 'completed' : 'funded'}
+                        disputeRaised={escrowOps.selectedEscrow.disputeRaised}
+                      />
+                    </>
+                  ) : (
+                    <EscrowDetailsSkeleton />
+                  )}
                 </Suspense>
-              )}
-            </Modal.Body>
-          </Modal>
-
+              </Modal.Body>
+              <Modal.Footer>
+                <Button variant="secondary" onClick={handleModalClose}>
+                  Close
+                </Button>
+              </Modal.Footer>
+            </Modal>
+          )}
+          
+          {/* Toast Notifications */}
           <ToastNotification 
             message={toastMessage}
             variant={toastVariant}
