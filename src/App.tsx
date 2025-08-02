@@ -215,6 +215,7 @@ const App: React.FC = () => {
             amount=""
             setAmount={() => {}}
             loading={escrowOps.loading}
+            currentAccount={wallet.account || ''}
           />
         )}
         {activeTab === 'my-escrows' && (
