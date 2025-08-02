@@ -1,4 +1,4 @@
-// src/components/AnimatedAlert.tsx - TypeScript errors fixed
+// src/components/AnimatedAlert.tsx - All return paths fixed
 import React, { useEffect, useState } from 'react';
 import { Alert } from 'react-bootstrap';
 
@@ -39,6 +39,7 @@ const AnimatedAlert: React.FC<AnimatedAlertProps> = ({
       }, 300);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [show]);
 
   useEffect(() => {
@@ -48,7 +49,6 @@ const AnimatedAlert: React.FC<AnimatedAlertProps> = ({
       }, autoCloseDelay);
       return () => clearTimeout(timer);
     }
-    // Added explicit return for all code paths
     return undefined;
   }, [autoClose, autoCloseDelay, show]);
 
