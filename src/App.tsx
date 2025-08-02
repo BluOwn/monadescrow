@@ -517,14 +517,7 @@ const App: React.FC = () => {
                   : tab.label
               }))}
             />
-            <Button 
-              variant="outline-success"
-              size="sm"
-              className="ms-3"
-              onClick={handleGiveawayClick}
-            >
-              🎰 Play & Earn MON
-            </Button>
+
           </div>
           
           <Suspense fallback={<LoadingIndicator />}>
