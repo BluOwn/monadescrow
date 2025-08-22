@@ -1,24 +1,33 @@
-/* Styles for progress bars and new components */
+/* Minimalist Components - Simple & Clean */
 
-/* Escrow card styling */
+/* Escrow card simple hover */
 .escrow-card {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s ease;
 }
 
 .escrow-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* Progress bar labels */
+/* Simple progress labels */
 .progress-labels {
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   color: var(--text-secondary);
 }
 
-/* Address display component */
+.dark-mode .progress-labels {
+  color: var(--dark-text-secondary);
+}
+
+/* Address display container */
+.address-display-container {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
 .address-display-container button {
-  opacity: 0.6;
+  opacity: 0.7;
   transition: opacity 0.2s ease;
 }
 
@@ -26,68 +35,60 @@
   opacity: 1;
 }
 
-/* Skeleton loaders */
-.placeholder-glow .placeholder {
-  background-color: var(--border-color);
-}
-
-/* Dark mode adjustments for skeleton loaders */
-body.dark-mode .placeholder-glow .placeholder {
-  background-color: rgba(255, 255, 255, 0.15);
-}
-
-/* Theme toggle button animation */
+/* Simple theme toggle animation */
 .theme-toggle-btn {
-  transition: transform 0.3s ease;
+  transition: transform 0.2s ease;
 }
 
 .theme-toggle-btn:hover {
-  transform: rotate(15deg);
+  transform: scale(1.05);
 }
 
-/* Escrow status badges */
+/* Simple escrow status badges */
 .escrow-status {
   display: inline-block;
   padding: 4px 8px;
-  border-radius: 4px;
+  border-radius: var(--radius);
   font-size: 0.75rem;
   font-weight: 600;
-  margin-top: 5px;
+  margin-top: var(--space-2);
 }
 
-/* Progress bar transitions */
-.progress-bar {
-  transition: width 0.5s ease;
+.escrow-status.pending {
+  background: var(--warning);
+  color: white;
 }
 
-/* Enhanced role badges */
+.escrow-status.completed {
+  background: var(--success);
+  color: white;
+}
+
+.escrow-status.cancelled {
+  background: var(--danger);
+  color: white;
+}
+
+/* Simple role badges */
 .role-badge {
   display: inline-block;
   padding: 3px 8px;
-  border-radius: 4px;
+  border-radius: var(--radius);
   font-size: 0.7rem;
   font-weight: 600;
-  margin-right: 5px;
-  margin-top: 5px;
-  margin-bottom: 5px;
-  position: relative;
-  overflow: hidden;
+  margin-right: var(--space-2);
+  background: var(--primary);
+  color: white;
 }
 
-.role-badge::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(45deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0) 100%);
-  animation: shimmer 2s infinite;
-  transform: translateX(-100%);
+.role-badge.buyer {
+  background: var(--info);
 }
 
-@keyframes shimmer {
-  100% {
-    transform: translateX(100%);
-  }
+.role-badge.seller {
+  background: var(--success);
+}
+
+.role-badge.arbiter {
+  background: var(--warning);
 }
