@@ -2,8 +2,6 @@
 
 // src/App.tsx - Complete with modern design and proper escrow loading
 import React, { Suspense, useState, useEffect, useContext, useCallback } from "react"
-import { Button, Container, Alert, Modal, Badge, Card, Row, Col } from "react-bootstrap"
-import "bootstrap/dist/css/bootstrap.min.css"
 import "./App.css"
 
 // Import contexts
@@ -318,14 +316,14 @@ const App: React.FC = () => {
     if (!escrowLoader.loading && !escrowLoader.progress.total) return null
 
     return (
-      <Card className="mb-4">
-        <Card.Body>
+      <div className="card mb-4">
+        <div className="card-body">
           <div className="d-flex justify-content-between align-items-center mb-3">
             <h6 className="mb-0">{escrowLoader.loading ? "🔄 Loading Your Escrows..." : "📊 Loading Complete"}</h6>
             {escrowLoader.loading && (
-              <Button variant="outline-danger" size="sm" onClick={escrowLoader.cancelLoading}>
+              <button className="btn btn-outline-danger btn-sm" onClick={escrowLoader.cancelLoading}>
                 Cancel
-              </Button>
+              </button>
             )}
           </div>
 
@@ -341,8 +339,8 @@ const App: React.FC = () => {
               )}
             </>
           )}
-        </Card.Body>
-      </Card>
+        </div>
+      </div>
     )
   }
 
@@ -351,61 +349,65 @@ const App: React.FC = () => {
     if (!escrowLoader.hasData) return null
 
     return (
-      <Card className="mb-4">
-        <Card.Body>
-          <Card.Title>📊 Your Active Escrows</Card.Title>
-          <Row>
-            <Col xs={6} sm={3}>
+      <div className="card mb-4">
+        <div className="card-body">
+          <h2 className="card-title">📊 Your Active Escrows</h2>
+          <div className="row">
+            <div className="col-xs-6 col-sm-3">
               <div className="text-center">
                 <h3 className="text-primary">{escrowLoader.stats.total}</h3>
                 <small>Total Active</small>
               </div>
-            </Col>
-            <Col xs={6} sm={3}>
+            </div>
+            <div className="col-xs-6 col-sm-3">
               <div className="text-center">
                 <h3 className="text-info">{escrowLoader.stats.asBuyer}</h3>
                 <small>As Buyer</small>
               </div>
-            </Col>
-            <Col xs={6} sm={3}>
+            </div>
+            <div className="col-xs-6 col-sm-3">
               <div className="text-center">
                 <h3 className="text-success">{escrowLoader.stats.asSeller}</h3>
                 <small>As Seller</small>
               </div>
-            </Col>
-            <Col xs={6} sm={3}>
+            </div>
+            <div className="col-xs-6 col-sm-3">
               <div className="text-center">
                 <h3 className="text-warning">{escrowLoader.stats.asArbiter}</h3>
                 <small>As Arbiter</small>
               </div>
-            </Col>
-          </Row>
+            </div>
+          </div>
           {escrowLoader.stats.disputed > 0 && (
-            <Alert variant="warning" className="mt-3 mb-0">
-              ⚠️ {escrowLoader.stats.disputed} escrow{escrowLoader.stats.disputed > 1 ? "s" : ""} in dispute
-            </Alert>
+            <div className="alert alert-warning mt-3 mb-0">
+              <h4>⚠️ Wrong Network</h4>
+              <p>
+                {escrowLoader.stats.disputed} escrow{escrowLoader.stats.disputed > 1 ? "s" : ""} in dispute
+              </p>
+            </div>
           )}
           {escrowLoader.isPartiallyLoaded && (
-            <Alert variant="info" className="mt-3 mb-0">
-              ℹ️ Some escrows failed to load. Try refreshing for complete data.
-            </Alert>
+            <div className="alert alert-info mt-3 mb-0">
+              <h4>ℹ️ Some Escrows Failed to Load</h4>
+              <p>Try refreshing for complete data.</p>
+            </div>
           )}
-        </Card.Body>
-      </Card>
+        </div>
+      </div>
     )
   }
 
   return (
     <DarkModeWrapper>
-      <div className="app-wrapper">
-        <Container fluid className="container">
+      <div className="app-container">
+        <div className="app-content">
           {/* Header */}
           <header className="app-header">
-            <div className="d-flex justify-content-between align-items-center mb-4">
-              <h1>Monad Escrow</h1>
+            <div className="header-content">
+              <h1 className="app-title">Monad Escrow</h1>
               <ThemeToggle />
             </div>
-            <p>Secure, decentralized escrow on Monad Testnet</p>
+            <p className="app-subtitle">Secure, decentralized escrow on Monad Testnet</p>
           </header>
 
           {/* Security Warning Modal */}
@@ -416,25 +418,29 @@ const App: React.FC = () => {
           />
 
           {!wallet.connected ? (
-            <Card className="text-center py-5">
-              <Card.Body>
-                <SecurityBanner />
-                <ContractInfo />
-                <h4 className="mb-4">Connect Your Wallet</h4>
-                <p className="text-muted mb-4">Connect your MetaMask wallet to start using the Monad Escrow Service</p>
-                <Button variant="primary" size="lg" onClick={connectWallet} disabled={wallet.loading}>
+            <div className="connect-card">
+              <SecurityBanner />
+              <ContractInfo />
+              <div className="connect-content">
+                <h2>Connect Your Wallet</h2>
+                <p>Connect your MetaMask wallet to start using the Monad Escrow Service</p>
+                <button
+                  className={`btn btn-primary ${wallet.loading ? "loading" : ""}`}
+                  onClick={connectWallet}
+                  disabled={wallet.loading}
+                >
                   {wallet.loading ? <LoadingIndicator /> : "Connect Wallet"}
-                </Button>
-              </Card.Body>
-            </Card>
+                </button>
+              </div>
+            </div>
           ) : (
             <>
               {/* Network Warning */}
               {wallet.account && chainId && chainId !== 10143 && (
-                <Alert variant="warning" className="mb-4">
-                  <Alert.Heading>⚠️ Wrong Network</Alert.Heading>
-                  Please switch to Monad Testnet (Chain ID: 10143) in your wallet.
-                </Alert>
+                <div className="alert alert-warning">
+                  <h4>⚠️ Wrong Network</h4>
+                  <p>Please switch to Monad Testnet (Chain ID: 10143) in your wallet.</p>
+                </div>
               )}
 
               {/* Security Banner */}
@@ -444,23 +450,19 @@ const App: React.FC = () => {
               {wallet.loading ? (
                 <WalletInfoSkeleton />
               ) : (
-                <Card className="wallet-info-card mb-4">
-                  <Card.Body className="d-flex align-items-center justify-content-between">
-                    <div className="d-flex align-items-center">
-                      <div className="wallet-avatar me-3">👤</div>
-                      <div>
-                        <h6 className="mb-1">Connected Wallet</h6>
-                        <AddressDisplay address={wallet.account} />
-                      </div>
+                <div className="wallet-card">
+                  <div className="wallet-info">
+                    <div className="wallet-avatar">👤</div>
+                    <div className="wallet-details">
+                      <h6>Connected Wallet</h6>
+                      <AddressDisplay address={wallet.account} />
                     </div>
-                    <div className="text-end">
-                      <Badge bg="success" className="mb-1">
-                        Connected
-                      </Badge>
-                      <div className="small text-muted">Monad Testnet</div>
-                    </div>
-                  </Card.Body>
-                </Card>
+                  </div>
+                  <div className="wallet-status">
+                    <span className="status-badge">Connected</span>
+                    <div className="network-info">Monad Testnet</div>
+                  </div>
+                </div>
               )}
 
               {/* Loading Progress */}
@@ -471,18 +473,15 @@ const App: React.FC = () => {
 
               {/* Error State */}
               {escrowLoader.error && (
-                <Alert variant={escrowLoader.isPartiallyLoaded ? "warning" : "danger"} className="mb-3">
+                <div className={`alert ${escrowLoader.isPartiallyLoaded ? "alert-warning" : "alert-error"}`}>
                   <strong>{escrowLoader.isPartiallyLoaded ? "Partial Load:" : "Error:"}</strong> {escrowLoader.error}
-                  <div className="mt-2">
-                    <Button
-                      variant={escrowLoader.isPartiallyLoaded ? "outline-warning" : "outline-danger"}
-                      size="sm"
-                      onClick={() => escrowLoader.forceRefresh(wallet.contract!, wallet.account)}
-                    >
-                      {escrowLoader.isPartiallyLoaded ? "Retry Failed" : "Retry All"}
-                    </Button>
-                  </div>
-                </Alert>
+                  <button
+                    className={`btn btn-sm ${escrowLoader.isPartiallyLoaded ? "btn-warning" : "btn-error"}`}
+                    onClick={() => escrowLoader.forceRefresh(wallet.contract!, wallet.account)}
+                  >
+                    {escrowLoader.isPartiallyLoaded ? "Retry Failed" : "Retry All"}
+                  </button>
+                </div>
               )}
 
               {/* Rate Limit Alert */}
@@ -498,8 +497,8 @@ const App: React.FC = () => {
             </>
           )}
 
-          {/* Enhanced Navigation with badges */}
-          <div className="d-flex align-items-center mb-4">
+          {/* Navigation */}
+          <div className="navigation-container">
             <CustomNavPills
               activeTab={activeTab}
               onTabChange={setActiveTab}
@@ -513,64 +512,69 @@ const App: React.FC = () => {
             />
           </div>
 
-          <Suspense fallback={<LoadingIndicator />}>
-            {activeTab === "guide" && <HowToUseTab />}
+          {/* Main Content */}
+          <main className="main-content">
+            <Suspense fallback={<LoadingIndicator />}>
+              {activeTab === "guide" && <HowToUseTab />}
 
-            {activeTab === "create" && wallet.connected && (
-              <CreateEscrowTab
-                handleCreateEscrow={handleCreateEscrow}
-                sellerAddress={sellerAddress}
-                setSellerAddress={setSellerAddress}
-                arbiterAddress={arbiterAddress}
-                setArbiterAddress={setArbiterAddress}
-                amount={amount}
-                setAmount={setAmount}
-                loading={escrowOps.loading}
-                currentAccount={wallet.account}
-              />
-            )}
+              {activeTab === "create" && wallet.connected && (
+                <CreateEscrowTab
+                  handleCreateEscrow={handleCreateEscrow}
+                  sellerAddress={sellerAddress}
+                  setSellerAddress={setSellerAddress}
+                  arbiterAddress={arbiterAddress}
+                  setArbiterAddress={setArbiterAddress}
+                  amount={amount}
+                  setAmount={setAmount}
+                  loading={escrowOps.loading}
+                  currentAccount={wallet.account}
+                />
+              )}
 
-            {activeTab === "my-escrows" && wallet.connected && (
-              <MyEscrowsTab
-                escrows={escrowLoader.activeEscrows}
-                onViewDetails={viewEscrowDetails}
-                loadingEscrows={escrowLoader.loading}
-                retryLoadingEscrows={() => escrowLoader.forceRefresh(wallet.contract!, wallet.account)}
-                account={wallet.account}
-                onAction={handleEscrowAction}
-              />
-            )}
+              {activeTab === "my-escrows" && wallet.connected && (
+                <MyEscrowsTab
+                  escrows={escrowLoader.activeEscrows}
+                  onViewDetails={viewEscrowDetails}
+                  loadingEscrows={escrowLoader.loading}
+                  retryLoadingEscrows={() => escrowLoader.forceRefresh(wallet.contract!, wallet.account)}
+                  account={wallet.account}
+                  onAction={handleEscrowAction}
+                />
+              )}
 
-            {activeTab === "find" && wallet.connected && (
-              <FindEscrowTab
-                escrowIdToView={escrowIdToView}
-                setEscrowIdToView={setEscrowIdToView}
-                handleFindEscrow={handleFindEscrow}
-                loading={escrowOps.loading}
-              />
-            )}
+              {activeTab === "find" && wallet.connected && (
+                <FindEscrowTab
+                  escrowIdToView={escrowIdToView}
+                  setEscrowIdToView={setEscrowIdToView}
+                  handleFindEscrow={handleFindEscrow}
+                  loading={escrowOps.loading}
+                />
+              )}
 
-            {activeTab === "contact" && <ContactForm />}
-          </Suspense>
+              {activeTab === "contact" && <ContactForm />}
+            </Suspense>
 
-          {/* Show wallet connection prompt for disabled tabs */}
-          {!wallet.connected && (activeTab === "create" || activeTab === "my-escrows" || activeTab === "find") && (
-            <Card>
-              <Card.Body className="text-center">
+            {/* Show wallet connection prompt for disabled tabs */}
+            {!wallet.connected && (activeTab === "create" || activeTab === "my-escrows" || activeTab === "find") && (
+              <div className="connect-prompt">
                 <h4>🔗 Connect Your Wallet</h4>
                 <p>Please connect your MetaMask wallet to access this feature</p>
-                <Button variant="primary" onClick={connectWallet} disabled={wallet.loading}>
+                <button
+                  className={`btn btn-primary ${wallet.loading ? "loading" : ""}`}
+                  onClick={connectWallet}
+                  disabled={wallet.loading}
+                >
                   {wallet.loading ? <LoadingIndicator /> : "Connect Wallet"}
-                </Button>
-              </Card.Body>
-            </Card>
-          )}
+                </button>
+              </div>
+            )}
+          </main>
 
           {/* Contract Info */}
           <ContractInfo />
 
           {/* Footer */}
-          <footer className="footer">
+          <footer className="app-footer">
             <p>
               Built by{" "}
               <a href={CREATOR_TWITTER} target="_blank" rel="noopener noreferrer">
@@ -585,36 +589,41 @@ const App: React.FC = () => {
 
           {/* Escrow Details Modal */}
           {wallet.connected && (
-            <Modal show={showDetailsModal} onHide={handleModalClose} size="lg" centered>
-              <Modal.Header closeButton>
-                <Modal.Title>Escrow Details</Modal.Title>
-              </Modal.Header>
-              <Modal.Body>
-                <Suspense fallback={<EscrowDetailsSkeleton />}>
-                  {escrowOps.selectedEscrow ? (
-                    <>
-                      <EscrowDetails
-                        escrow={escrowOps.selectedEscrow}
-                        account={wallet.account}
-                        onAction={handleEscrowAction}
-                        loading={escrowOps.loading}
-                      />
-                      <EscrowTimeline
-                        escrowStatus={escrowOps.selectedEscrow.fundsDisbursed ? "completed" : "funded"}
-                        disputeRaised={escrowOps.selectedEscrow.disputeRaised}
-                      />
-                    </>
-                  ) : (
-                    <EscrowDetailsSkeleton />
-                  )}
-                </Suspense>
-              </Modal.Body>
-              <Modal.Footer>
-                <Button variant="secondary" onClick={handleModalClose}>
-                  Close
-                </Button>
-              </Modal.Footer>
-            </Modal>
+            <div className={`modal ${showDetailsModal ? "modal-open" : ""}`} onClick={handleModalClose}>
+              <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-header">
+                  <h3>Escrow Details</h3>
+                  <button className="modal-close" onClick={handleModalClose}>
+                    ×
+                  </button>
+                </div>
+                <div className="modal-body">
+                  <Suspense fallback={<EscrowDetailsSkeleton />}>
+                    {escrowOps.selectedEscrow ? (
+                      <>
+                        <EscrowDetails
+                          escrow={escrowOps.selectedEscrow}
+                          account={wallet.account}
+                          onAction={handleEscrowAction}
+                          loading={escrowOps.loading}
+                        />
+                        <EscrowTimeline
+                          escrowStatus={escrowOps.selectedEscrow.fundsDisbursed ? "completed" : "funded"}
+                          disputeRaised={escrowOps.selectedEscrow.disputeRaised}
+                        />
+                      </>
+                    ) : (
+                      <EscrowDetailsSkeleton />
+                    )}
+                  </Suspense>
+                </div>
+                <div className="modal-footer">
+                  <button className="btn btn-secondary" onClick={handleModalClose}>
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
           )}
 
           {/* Toast Notifications */}
@@ -625,7 +634,7 @@ const App: React.FC = () => {
             onClose={handleToastClose}
             position="top-right"
           />
-        </Container>
+        </div>
       </div>
     </DarkModeWrapper>
   )
