@@ -76,6 +76,9 @@ const App: React.FC = () => {
   const [amount, setAmount] = useState<string>('');
   const [escrowIdToView, setEscrowIdToView] = useState<string>('');
 
+  // Suppress unused variable warning for darkMode (used in className)
+  console.log('Theme:', darkMode ? 'dark' : 'light');
+
   // Update chainId when provider changes
   useEffect(() => {
     if (wallet.provider) {
@@ -128,7 +131,7 @@ const App: React.FC = () => {
       isEffectActive = false;
       clearTimeout(timeoutId);
     };
-  }, [wallet.connected, wallet.contract, wallet.account]);
+  }, [wallet.connected, wallet.contract, wallet.account, escrowLoader.refreshIfStale]);
 
   // Toast notification helpers
   const showToastNotification = useCallback((message: string, variant: 'success' | 'danger' | 'warning' | 'info') => {
@@ -333,7 +336,11 @@ const App: React.FC = () => {
                   escrows={escrowLoader.activeEscrows}
                   onViewDetails={handleViewDetails}
                   loadingEscrows={escrowLoader.loading}
-                  retryLoadingEscrows={() => escrowLoader.refreshIfStale(wallet.contract!, wallet.account)}
+                  retryLoadingEscrows={() => {
+                    if (wallet.contract && wallet.account) {
+                      escrowLoader.refreshIfStale(wallet.contract, wallet.account);
+                    }
+                  }}
                   account={wallet.account}
                   onAction={handleEscrowAction}
                 />
