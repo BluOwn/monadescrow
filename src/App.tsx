@@ -399,198 +399,198 @@ const App: React.FC = () => {
 
   return (
     <DarkModeWrapper>
-      <div className="app-container">
-        <div className="app-content">
-          {/* Header */}
-          <header className="app-header">
-            <div className="header-content">
-              <h1 className="app-title">Monad Escrow</h1>
-              <ThemeToggle />
-            </div>
-            <p className="app-subtitle">Secure, decentralized escrow on Monad Testnet</p>
-          </header>
-
-          {/* Security Warning Modal */}
-          <SecurityWarningModal
-            show={showSecurityWarning}
-            onAccept={handleSecurityAccept}
-            onDecline={handleSecurityDecline}
-          />
-
-          {!wallet.connected ? (
-            <div className="connect-card">
-              <SecurityBanner />
-              <ContractInfo />
-              <div className="connect-content">
-                <h2>Connect Your Wallet</h2>
-                <p>Connect your MetaMask wallet to start using the Monad Escrow Service</p>
-                <button
-                  className={`btn btn-primary ${wallet.loading ? "loading" : ""}`}
-                  onClick={connectWallet}
-                  disabled={wallet.loading}
-                >
-                  {wallet.loading ? <LoadingIndicator /> : "Connect Wallet"}
-                </button>
-              </div>
-            </div>
-          ) : (
-            <>
-              {/* Network Warning */}
-              {wallet.account && chainId && chainId !== 10143 && (
-                <div className="alert alert-warning">
-                  <h4>⚠️ Wrong Network</h4>
-                  <p>Please switch to Monad Testnet (Chain ID: 10143) in your wallet.</p>
-                </div>
-              )}
-
-              {/* Security Banner */}
-              <SecurityBanner />
-
-              {/* Wallet Info */}
-              {wallet.loading ? (
-                <WalletInfoSkeleton />
-              ) : (
-                <div className="wallet-card">
-                  <div className="wallet-info">
-                    <div className="wallet-avatar">👤</div>
-                    <div className="wallet-details">
-                      <h6>Connected Wallet</h6>
-                      <AddressDisplay address={wallet.account} />
-                    </div>
-                  </div>
-                  <div className="wallet-status">
-                    <span className="status-badge">Connected</span>
-                    <div className="network-info">Monad Testnet</div>
-                  </div>
-                </div>
-              )}
-
-              {/* Loading Progress */}
-              <LoadingProgress />
-
-              {/* Stats Card */}
-              <StatsCard />
-
-              {/* Error State */}
-              {escrowLoader.error && (
-                <div className={`alert ${escrowLoader.isPartiallyLoaded ? "alert-warning" : "alert-error"}`}>
-                  <strong>{escrowLoader.isPartiallyLoaded ? "Partial Load:" : "Error:"}</strong> {escrowLoader.error}
-                  <button
-                    className={`btn btn-sm ${escrowLoader.isPartiallyLoaded ? "btn-warning" : "btn-error"}`}
-                    onClick={() => escrowLoader.forceRefresh(wallet.contract!, wallet.account)}
-                  >
-                    {escrowLoader.isPartiallyLoaded ? "Retry Failed" : "Retry All"}
-                  </button>
-                </div>
-              )}
-
-              {/* Rate Limit Alert */}
-              {escrowOps.rateLimited && (
-                <RateLimitAlert
-                  isVisible={escrowOps.rateLimited}
-                  onDismiss={() => escrowOps.setRateLimited(false)}
-                  onRetry={retryLoadingEscrows}
-                  progress={escrowOps.autoRetry.progress}
-                  autoRetryIn={escrowOps.autoRetry.countdown}
-                />
-              )}
-            </>
-          )}
-
-          {/* Navigation */}
-          <div className="navigation-container">
-            <CustomNavPills
-              activeTab={activeTab}
-              onTabChange={setActiveTab}
-              tabs={navigationTabs.map((tab) => ({
-                ...tab,
-                label:
-                  tab.id === "my-escrows" && wallet.connected && escrowLoader.stats.total > 0
-                    ? `${tab.label} (${escrowLoader.stats.total})`
-                    : tab.label,
-              }))}
-            />
+      <div className="app">
+        {/* Header */}
+        <header className="header">
+          <div className="header-content">
+            <h1 className="title">Monad Escrow</h1>
+            <ThemeToggle />
           </div>
+          <p className="subtitle">Secure, decentralized escrow on Monad Testnet</p>
+        </header>
 
-          {/* Main Content */}
-          <main className="main-content">
-            <Suspense fallback={<LoadingIndicator />}>
-              {activeTab === "guide" && <HowToUseTab />}
+        {/* Security Warning Modal */}
+        <SecurityWarningModal
+          show={showSecurityWarning}
+          onAccept={handleSecurityAccept}
+          onDecline={handleSecurityDecline}
+        />
 
-              {activeTab === "create" && wallet.connected && (
-                <CreateEscrowTab
-                  handleCreateEscrow={handleCreateEscrow}
-                  sellerAddress={sellerAddress}
-                  setSellerAddress={setSellerAddress}
-                  arbiterAddress={arbiterAddress}
-                  setArbiterAddress={setArbiterAddress}
-                  amount={amount}
-                  setAmount={setAmount}
-                  loading={escrowOps.loading}
-                  currentAccount={wallet.account}
-                />
-              )}
+        {!wallet.connected ? (
+          <div className="connect-section">
+            <SecurityBanner />
+            <ContractInfo />
+            <div className="connect-card">
+              <h2>Connect Your Wallet</h2>
+              <p>Connect your MetaMask wallet to start using the Monad Escrow Service</p>
+              <button
+                className={`btn btn-primary ${wallet.loading ? "loading" : ""}`}
+                onClick={connectWallet}
+                disabled={wallet.loading}
+              >
+                {wallet.loading ? <LoadingIndicator /> : "Connect Wallet"}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Network Warning */}
+            {wallet.account && chainId && chainId !== 10143 && (
+              <div className="alert alert-warning">
+                <h4>⚠️ Wrong Network</h4>
+                <p>Please switch to Monad Testnet (Chain ID: 10143) in your wallet.</p>
+              </div>
+            )}
 
-              {activeTab === "my-escrows" && wallet.connected && (
-                <MyEscrowsTab
-                  escrows={escrowLoader.activeEscrows}
-                  onViewDetails={viewEscrowDetails}
-                  loadingEscrows={escrowLoader.loading}
-                  retryLoadingEscrows={() => escrowLoader.forceRefresh(wallet.contract!, wallet.account)}
-                  account={wallet.account}
-                  onAction={handleEscrowAction}
-                />
-              )}
+            {/* Security Banner */}
+            <SecurityBanner />
 
-              {activeTab === "find" && wallet.connected && (
-                <FindEscrowTab
-                  escrowIdToView={escrowIdToView}
-                  setEscrowIdToView={setEscrowIdToView}
-                  handleFindEscrow={handleFindEscrow}
-                  loading={escrowOps.loading}
-                />
-              )}
+            {/* Wallet Info */}
+            {wallet.loading ? (
+              <WalletInfoSkeleton />
+            ) : (
+              <div className="wallet-card">
+                <div className="wallet-info">
+                  <div className="wallet-avatar">👤</div>
+                  <div className="wallet-details">
+                    <h6>Connected Wallet</h6>
+                    <AddressDisplay address={wallet.account} />
+                  </div>
+                </div>
+                <div className="wallet-status">
+                  <span className="status-connected">Connected</span>
+                  <div className="network-info">Monad Testnet</div>
+                </div>
+              </div>
+            )}
 
-              {activeTab === "contact" && <ContactForm />}
-            </Suspense>
+            {/* Loading Progress */}
+            <LoadingProgress />
 
-            {/* Show wallet connection prompt for disabled tabs */}
-            {!wallet.connected && (activeTab === "create" || activeTab === "my-escrows" || activeTab === "find") && (
-              <div className="connect-prompt">
-                <h4>🔗 Connect Your Wallet</h4>
-                <p>Please connect your MetaMask wallet to access this feature</p>
+            {/* Stats Card */}
+            <StatsCard />
+
+            {/* Error State */}
+            {escrowLoader.error && (
+              <div className={`alert ${escrowLoader.isPartiallyLoaded ? "alert-warning" : "alert-error"}`}>
+                <strong>{escrowLoader.isPartiallyLoaded ? "Partial Load:" : "Error:"}</strong> {escrowLoader.error}
                 <button
-                  className={`btn btn-primary ${wallet.loading ? "loading" : ""}`}
-                  onClick={connectWallet}
-                  disabled={wallet.loading}
+                  className="btn btn-sm btn-outline"
+                  onClick={() => escrowLoader.forceRefresh(wallet.contract!, wallet.account)}
                 >
-                  {wallet.loading ? <LoadingIndicator /> : "Connect Wallet"}
+                  {escrowLoader.isPartiallyLoaded ? "Retry Failed" : "Retry All"}
                 </button>
               </div>
             )}
-          </main>
 
-          {/* Contract Info */}
-          <ContractInfo />
+            {/* Rate Limit Alert */}
+            {escrowOps.rateLimited && (
+              <RateLimitAlert
+                isVisible={escrowOps.rateLimited}
+                onDismiss={() => escrowOps.setRateLimited(false)}
+                onRetry={retryLoadingEscrows}
+                progress={escrowOps.autoRetry.progress}
+                autoRetryIn={escrowOps.autoRetry.countdown}
+              />
+            )}
+          </>
+        )}
 
-          {/* Footer */}
-          <footer className="app-footer">
-            <p>
-              Built by{" "}
-              <a href={CREATOR_TWITTER} target="_blank" rel="noopener noreferrer">
-                @Oprimedev
-              </a>{" "}
-              | Open source on{" "}
-              <a href="https://github.com/BluOwn/monadescrow" target="_blank" rel="noopener noreferrer">
-                GitHub
-              </a>
-            </p>
-          </footer>
+        {/* Navigation */}
+        <nav className="navigation">
+          <CustomNavPills
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            tabs={navigationTabs.map((tab) => ({
+              ...tab,
+              label:
+                tab.id === "my-escrows" && wallet.connected && escrowLoader.stats.total > 0
+                  ? `${tab.label} (${escrowLoader.stats.total})`
+                  : tab.label,
+            }))}
+          />
+        </nav>
 
-          {/* Escrow Details Modal */}
-          {wallet.connected && (
-            <div className={`modal ${showDetailsModal ? "modal-open" : ""}`} onClick={handleModalClose}>
-              <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        {/* Main Content */}
+        <main className="main">
+          <Suspense fallback={<LoadingIndicator />}>
+            {activeTab === "guide" && <HowToUseTab />}
+
+            {activeTab === "create" && wallet.connected && (
+              <CreateEscrowTab
+                handleCreateEscrow={handleCreateEscrow}
+                sellerAddress={sellerAddress}
+                setSellerAddress={setSellerAddress}
+                arbiterAddress={arbiterAddress}
+                setArbiterAddress={setArbiterAddress}
+                amount={amount}
+                setAmount={setAmount}
+                loading={escrowOps.loading}
+                currentAccount={wallet.account}
+              />
+            )}
+
+            {activeTab === "my-escrows" && wallet.connected && (
+              <MyEscrowsTab
+                escrows={escrowLoader.activeEscrows}
+                onViewDetails={viewEscrowDetails}
+                loadingEscrows={escrowLoader.loading}
+                retryLoadingEscrows={() => escrowLoader.forceRefresh(wallet.contract!, wallet.account)}
+                account={wallet.account}
+                onAction={handleEscrowAction}
+              />
+            )}
+
+            {activeTab === "find" && wallet.connected && (
+              <FindEscrowTab
+                escrowIdToView={escrowIdToView}
+                setEscrowIdToView={setEscrowIdToView}
+                handleFindEscrow={handleFindEscrow}
+                loading={escrowOps.loading}
+              />
+            )}
+
+            {activeTab === "contact" && <ContactForm />}
+          </Suspense>
+
+          {/* Show wallet connection prompt for disabled tabs */}
+          {!wallet.connected && (activeTab === "create" || activeTab === "my-escrows" || activeTab === "find") && (
+            <div className="connect-prompt">
+              <h4>🔗 Connect Your Wallet</h4>
+              <p>Please connect your MetaMask wallet to access this feature</p>
+              <button
+                className={`btn btn-primary ${wallet.loading ? "loading" : ""}`}
+                onClick={connectWallet}
+                disabled={wallet.loading}
+              >
+                {wallet.loading ? <LoadingIndicator /> : "Connect Wallet"}
+              </button>
+            </div>
+          )}
+        </main>
+
+        {/* Contract Info */}
+        <ContractInfo />
+
+        {/* Footer */}
+        <footer className="footer">
+          <p>
+            Built by{" "}
+            <a href={CREATOR_TWITTER} target="_blank" rel="noopener noreferrer">
+              @Oprimedev
+            </a>{" "}
+            | Open source on{" "}
+            <a href="https://github.com/BluOwn/monadescrow" target="_blank" rel="noopener noreferrer">
+              GitHub
+            </a>
+          </p>
+        </footer>
+
+        {/* Escrow Details Modal */}
+        {wallet.connected && (
+          <div className={`modal ${showDetailsModal ? "modal-open" : ""}`} onClick={handleModalClose}>
+            <div className="modal-dialog" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-content">
                 <div className="modal-header">
                   <h3>Escrow Details</h3>
                   <button className="modal-close" onClick={handleModalClose}>
@@ -624,17 +624,17 @@ const App: React.FC = () => {
                 </div>
               </div>
             </div>
-          )}
+          </div>
+        )}
 
-          {/* Toast Notifications */}
-          <ToastNotification
-            message={toastMessage}
-            variant={toastVariant}
-            show={showToast}
-            onClose={handleToastClose}
-            position="top-right"
-          />
-        </div>
+        {/* Toast Notifications */}
+        <ToastNotification
+          message={toastMessage}
+          variant={toastVariant}
+          show={showToast}
+          onClose={handleToastClose}
+          position="top-right"
+        />
       </div>
     </DarkModeWrapper>
   )
