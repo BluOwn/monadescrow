@@ -206,7 +206,7 @@ const App: React.FC = () => {
     if (!escrowIdToView || !wallet.contract) return;
     
     try {
-      await escrowOps.findEscrow(wallet.contract, escrowIdToView);
+      await escrowOps.viewEscrowDetails(wallet.contract, escrowIdToView);
       setShowDetailsModal(true);
     } catch (error) {
       showToastNotification('Escrow not found', 'warning');
@@ -217,7 +217,7 @@ const App: React.FC = () => {
   const handleEscrowAction = async (action: string, escrowId: string, recipient?: string): Promise<void> => {
     if (!wallet.contract) return;
     
-    const success = await escrowOps.executeAction(wallet.contract, action, escrowId, recipient);
+    const success = await escrowOps.handleEscrowAction(wallet.contract, action, escrowId, recipient || null);
     if (success) {
       showToastNotification(`${action} completed successfully!`, 'success');
       await escrowLoader.refreshIfStale(wallet.contract, wallet.account);
