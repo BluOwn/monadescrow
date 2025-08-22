@@ -1,6 +1,17 @@
 // src/utils/rpcConfig.ts - Ankr RPC Configuration
 import { ethers } from 'ethers';
 
+// Extend Window interface to include ethereum
+declare global {
+  interface Window {
+    ethereum?: {
+      request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
+      on?: (event: string, handler: (...args: unknown[]) => void) => void;
+      removeListener?: (event: string, handler: (...args: unknown[]) => void) => void;
+    };
+  }
+}
+
 // Ankr RPC endpoint for Monad Testnet
 export const ANKR_RPC_URL = 'https://rpc.ankr.com/monad_testnet';
 
@@ -25,7 +36,7 @@ export const createAnkrProvider = (): ethers.JsonRpcProvider => {
   let requestCount = 0;
   let lastReset = Date.now();
 
-  provider.send = async function(method: string, params: any[]) {
+  provider.send = async function(method: string, params: unknown[]) {
     // Reset counter every 10 seconds
     const now = Date.now();
     if (now - lastReset >= 10000) {
@@ -65,7 +76,7 @@ export const MONAD_TESTNET_CONFIG = {
 };
 
 // Helper to switch to Monad Testnet with Ankr RPC
-export const switchToMonadTestnet = async () => {
+export const switchToMonadTestnet = async (): Promise<void> => {
   if (!window.ethereum) {
     throw new Error('MetaMask not detected');
   }
@@ -76,9 +87,9 @@ export const switchToMonadTestnet = async () => {
       method: 'wallet_switchEthereumChain',
       params: [{ chainId: MONAD_TESTNET_CONFIG.chainId }],
     });
-  } catch (switchError: any) {
+  } catch (switchError: unknown) {
     // If network doesn't exist, add it
-    if (switchError.code === 4902) {
+    if (switchError && typeof switchError === 'object' && 'code' in switchError && switchError.code === 4902) {
       try {
         await window.ethereum.request({
           method: 'wallet_addEthereumChain',

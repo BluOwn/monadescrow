@@ -43,12 +43,11 @@ const MyEscrowsTab: React.FC<MyEscrowsTabProps> = ({
   const [filter, setFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('newest');
 
-  // Filter escrows based on selected filter
+  // Filter escrows based on selected filter (active escrows only)
   const filteredEscrows = escrows.filter(escrow => {
     if (filter === 'all') return true;
-    if (filter === 'active') return !escrow.fundsDisbursed && !escrow.disputeRaised;
-    if (filter === 'completed') return escrow.fundsDisbursed;
     if (filter === 'disputed') return escrow.disputeRaised;
+    if (filter === 'undisputed') return !escrow.disputeRaised;
     return true;
   });
 
@@ -60,16 +59,14 @@ const MyEscrowsTab: React.FC<MyEscrowsTabProps> = ({
     return 0;
   });
 
-  // Get status display
+  // Get status display (all are active since we don't load completed ones)
   const getStatusDisplay = (escrow: any) => {
-    if (escrow.fundsDisbursed) return 'completed';
     if (escrow.disputeRaised) return 'disputed';
     return 'active';
   };
 
   // Get status color
   const getStatusColor = (escrow: any) => {
-    if (escrow.fundsDisbursed) return 'success';
     if (escrow.disputeRaised) return 'danger';
     return 'primary';
   };
@@ -168,10 +165,9 @@ const MyEscrowsTab: React.FC<MyEscrowsTabProps> = ({
                     value={filter} 
                     onChange={(e) => setFilter(e.target.value)}
                   >
-                    <option value="all">All Escrows</option>
-                    <option value="active">Active</option>
-                    <option value="completed">Completed</option>
-                    <option value="disputed">Disputed</option>
+                    <option value="all">All Active Escrows</option>
+                    <option value="disputed">Disputed Only</option>
+                    <option value="undisputed">No Disputes</option>
                   </Form.Select>
                 </Form.Group>
               </Col>
@@ -198,8 +194,8 @@ const MyEscrowsTab: React.FC<MyEscrowsTabProps> = ({
               {escrows.length === 0 ? (
                 <>
                   <div className="mb-3">📭</div>
-                  <h5>No Escrows Found</h5>
-                  <p className="text-muted">You haven't created or participated in any escrows yet.</p>
+                  <h5>No Active Escrows Found</h5>
+                  <p className="text-muted">You don't have any active escrows at the moment.</p>
                   <Button variant="primary" onClick={() => window.location.hash = '#create'}>
                     Create Your First Escrow
                   </Button>
@@ -208,7 +204,7 @@ const MyEscrowsTab: React.FC<MyEscrowsTabProps> = ({
                 <>
                   <div className="mb-3">🔍</div>
                   <h5>No Results</h5>
-                  <p className="text-muted">No escrows match your current filter.</p>
+                  <p className="text-muted">No active escrows match your current filter.</p>
                   <Button variant="outline-primary" onClick={() => setFilter('all')}>
                     Clear Filters
                   </Button>
@@ -316,16 +312,16 @@ const MyEscrowsTab: React.FC<MyEscrowsTabProps> = ({
             <Alert variant="light" className="mt-4">
               <Row className="text-center">
                 <Col>
-                  <div className="fw-bold text-primary">{escrows.filter(e => !e.fundsDisbursed && !e.disputeRaised).length}</div>
+                  <div className="fw-bold text-primary">{escrows.filter(e => !e.disputeRaised).length}</div>
                   <small className="text-muted">Active</small>
-                </Col>
-                <Col>
-                  <div className="fw-bold text-success">{escrows.filter(e => e.fundsDisbursed).length}</div>
-                  <small className="text-muted">Completed</small>
                 </Col>
                 <Col>
                   <div className="fw-bold text-warning">{escrows.filter(e => e.disputeRaised).length}</div>
                   <small className="text-muted">Disputed</small>
+                </Col>
+                <Col>
+                  <div className="fw-bold text-info">{escrows.length}</div>
+                  <small className="text-muted">Total Active</small>
                 </Col>
                 <Col>
                   <div className="fw-bold text-secondary">
