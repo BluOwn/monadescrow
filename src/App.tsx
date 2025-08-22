@@ -330,7 +330,7 @@ const App: React.FC = () => {
               
               {activeTab === 'my-escrows' && (
                 <MyEscrowsTab
-                  escrows={escrowLoader.escrows}
+                  escrows={escrowLoader.activeEscrows}
                   onViewDetails={handleViewDetails}
                   loadingEscrows={escrowLoader.loading}
                   retryLoadingEscrows={() => escrowLoader.refreshIfStale(wallet.contract!, wallet.account)}
@@ -395,11 +395,10 @@ const App: React.FC = () => {
             <Modal.Body>
               <Suspense fallback={<EscrowDetailsSkeleton />}>
                 <EscrowDetails
-                  escrowId={escrowIdToView}
-                  contract={wallet.contract}
+                  escrow={escrowOps.selectedEscrow}
                   account={wallet.account}
                   onAction={handleEscrowAction}
-                  onClose={() => setShowDetailsModal(false)}
+                  loading={escrowOps.loading}
                 />
               </Suspense>
             </Modal.Body>

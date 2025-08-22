@@ -17,9 +17,9 @@ const MyEscrowsTab: React.FC<MyEscrowsTabProps> = ({
   // Filter escrows based on selected filter
   const filteredEscrows = escrows.filter(escrow => {
     if (filter === 'all') return true;
-    if (filter === 'active') return escrow.status === 'active' || escrow.status === 'funded';
-    if (filter === 'completed') return escrow.status === 'completed';
-    if (filter === 'disputed') return escrow.status === 'disputed';
+    if (filter === 'active') return !escrow.fundsDisbursed && !escrow.disputeRaised;
+    if (filter === 'completed') return escrow.fundsDisbursed;
+    if (filter === 'disputed') return escrow.disputeRaised;
     return true;
   });
 
@@ -31,15 +31,18 @@ const MyEscrowsTab: React.FC<MyEscrowsTabProps> = ({
     return 0;
   });
 
+  // Get status display
+  const getStatusDisplay = (escrow: any) => {
+    if (escrow.fundsDisbursed) return 'completed';
+    if (escrow.disputeRaised) return 'disputed';
+    return 'active';
+  };
+
   // Get status color
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'completed': return 'success';
-      case 'disputed': return 'danger';
-      case 'cancelled': return 'secondary';
-      case 'funded': return 'primary';
-      default: return 'warning';
-    }
+  const getStatusColor = (escrow: any) => {
+    if (escrow.fundsDisbursed) return 'success';
+    if (escrow.disputeRaised) return 'danger';
+    return 'primary';
   };
 
   // Get user role in escrow
@@ -55,22 +58,21 @@ const MyEscrowsTab: React.FC<MyEscrowsTabProps> = ({
   // Get available actions for user
   const getAvailableActions = (escrow: any) => {
     const role = getUserRole(escrow);
-    const status = escrow.status?.toLowerCase();
     const actions = [];
 
-    if (role === 'buyer' && status === 'active') {
+    if (role === 'buyer' && !escrow.fundsDisbursed && !escrow.disputeRaised) {
       actions.push({ label: 'Cancel', action: 'cancel', variant: 'outline-danger' });
     }
     
-    if (role === 'seller' && status === 'funded') {
+    if (role === 'seller' && !escrow.fundsDisbursed && !escrow.disputeRaised) {
       actions.push({ label: 'Confirm Receipt', action: 'confirm', variant: 'success' });
     }
     
-    if ((role === 'buyer' || role === 'seller') && (status === 'active' || status === 'funded')) {
+    if ((role === 'buyer' || role === 'seller') && !escrow.fundsDisbursed && !escrow.disputeRaised) {
       actions.push({ label: 'Raise Dispute', action: 'dispute', variant: 'warning' });
     }
     
-    if (role === 'arbiter' && status === 'disputed') {
+    if (role === 'arbiter' && escrow.disputeRaised && !escrow.fundsDisbursed) {
       actions.push(
         { label: 'Release to Seller', action: 'release-seller', variant: 'success' },
         { label: 'Refund to Buyer', action: 'release-buyer', variant: 'primary' }
@@ -192,8 +194,8 @@ const MyEscrowsTab: React.FC<MyEscrowsTabProps> = ({
                           <div className="escrow-amount">{escrow.amount} MON</div>
                         </div>
                         <div className="text-end">
-                          <Badge bg={getStatusColor(escrow.status)} className="mb-2">
-                            {escrow.status}
+                          <Badge bg={getStatusColor(escrow)} className="mb-2">
+                            {getStatusDisplay(escrow)}
                           </Badge>
                           <Badge bg="outline-secondary" className="d-block">
                             {role}
@@ -221,14 +223,7 @@ const MyEscrowsTab: React.FC<MyEscrowsTabProps> = ({
                             {escrow.arbiter ? `${escrow.arbiter.slice(0, 6)}...${escrow.arbiter.slice(-4)}` : 'N/A'}
                           </code>
                         </div>
-                        {escrow.createdAt && (
-                          <div className="escrow-detail-row">
-                            <span className="escrow-detail-label">Created:</span>
-                            <span className="escrow-detail-value">
-                              {new Date(escrow.createdAt).toLocaleDateString()}
-                            </span>
-                          </div>
-                        )}
+                        {/* Remove the createdAt section since it doesn't exist */}
                       </div>
 
                       {/* Progress Bar */}
@@ -237,15 +232,14 @@ const MyEscrowsTab: React.FC<MyEscrowsTabProps> = ({
                           <div 
                             className="progress-bar" 
                             style={{ 
-                              width: escrow.status === 'completed' ? '100%' : 
-                                     escrow.status === 'disputed' ? '75%' :
-                                     escrow.status === 'funded' ? '50%' : '25%'
+                              width: escrow.fundsDisbursed ? '100%' : 
+                                     escrow.disputeRaised ? '75%' : '50%'
                             }}
                           />
                         </div>
                         <div className="d-flex justify-content-between mt-1">
                           <small className="text-muted">Created</small>
-                          <small className="text-muted">Funded</small>
+                          <small className="text-muted">In Progress</small>
                           <small className="text-muted">Completed</small>
                         </div>
                       </div>
@@ -285,15 +279,15 @@ const MyEscrowsTab: React.FC<MyEscrowsTabProps> = ({
             <Alert variant="light" className="mt-4">
               <Row className="text-center">
                 <Col>
-                  <div className="fw-bold text-primary">{escrows.filter(e => e.status === 'active' || e.status === 'funded').length}</div>
+                  <div className="fw-bold text-primary">{escrows.filter(e => !e.fundsDisbursed && !e.disputeRaised).length}</div>
                   <small className="text-muted">Active</small>
                 </Col>
                 <Col>
-                  <div className="fw-bold text-success">{escrows.filter(e => e.status === 'completed').length}</div>
+                  <div className="fw-bold text-success">{escrows.filter(e => e.fundsDisbursed).length}</div>
                   <small className="text-muted">Completed</small>
                 </Col>
                 <Col>
-                  <div className="fw-bold text-warning">{escrows.filter(e => e.status === 'disputed').length}</div>
+                  <div className="fw-bold text-warning">{escrows.filter(e => e.disputeRaised).length}</div>
                   <small className="text-muted">Disputed</small>
                 </Col>
                 <Col>
