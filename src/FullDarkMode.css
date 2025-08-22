@@ -1,150 +1,497 @@
-/* src/Responsive.css
-   Create this file with the following content: */
+/* Enhanced Dark Mode with Animations and Modern Design */
 
-/* Enhanced responsive styles */
+/* Dark Mode Variables - Updated */
+:root.dark-mode,
+html.dark-mode,
+body.dark-mode,
+.dark-mode {
+  /* Enhanced Dark Mode Color Palette */
+  --body-bg: #0f0f23;
+  --container-bg: #1a1a2e;
+  --card-bg: #16213e;
+  --card-header-bg: #0f172a;
+  --input-bg: #1e293b;
+  --border-color: #334155;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  
+  /* Enhanced Brand Colors */
+  --primary-color: #8b5cf6;
+  --primary-hover: #7c3aed;
+  --primary-light: rgba(139, 92, 246, 0.2);
+  --secondary-color: #06b6d4;
+  --secondary-hover: #0891b2;
+  --secondary-light: rgba(6, 182, 212, 0.2);
+  --accent-color: #f59e0b;
+  --danger-color: #ef4444;
+  --danger-hover: #dc2626;
+  --warning-color: #fbbf24;
+  --warning-hover: #f59e0b;
+  --info-color: #06b6d4;
+  --info-hover: #0891b2;
+  --success-color: #10b981;
+  
+  /* Enhanced Shadows with Color */
+  --shadow-sm: 0 1px 3px rgba(139, 92, 246, 0.15), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow: 0 8px 25px rgba(139, 92, 246, 0.2), 0 3px 10px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 20px 40px rgba(139, 92, 246, 0.25), 0 8px 20px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 25px 50px rgba(139, 92, 246, 0.3), 0 10px 25px rgba(0, 0, 0, 0.6);
+  
+  /* Animation Variables */
+  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+  --transition: all 0.3s var(--spring);
+  --fast-transition: all 0.15s var(--spring);
+}
 
-/* Base mobile styles (for phones < 480px) */
-@media (max-width: 480px) {
-  .container {
-    padding: 15px;
-    margin-top: 10px;
-    margin-bottom: 10px;
-    border-radius: 8px;
+/* Enhanced Dark Mode Base */
+.dark-mode,
+body.dark-mode {
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(6, 182, 212, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(245, 158, 11, 0.1) 0%, transparent 50%),
+    linear-gradient(135deg, var(--body-bg) 0%, #1a1a2e 100%) !important;
+  background-attachment: fixed;
+  color: var(--text-primary) !important;
+}
+
+/* Enhanced Container */
+.dark-mode .container {
+  background: rgba(26, 26, 46, 0.8) !important;
+  backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(139, 92, 246, 0.2) !important;
+  box-shadow: var(--shadow-lg) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Enhanced Custom Nav Pills Dark Mode */
+.dark-mode .custom-nav-pills {
+  background: rgba(139, 92, 246, 0.15) !important;
+  backdrop-filter: blur(10px);
+}
+
+.dark-mode .nav-pill {
+  color: var(--text-secondary) !important;
+  transition: var(--transition) !important;
+}
+
+.dark-mode .nav-pill:hover {
+  color: var(--primary-color) !important;
+  background: rgba(139, 92, 246, 0.2) !important;
+  transform: translateY(-1px) !important;
+}
+
+.dark-mode .nav-pill.active {
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)) !important;
+  color: white !important;
+  box-shadow: var(--shadow) !important;
+  transform: translateY(-2px) !important;
+}
+
+/* Enhanced Timeline Dark Mode */
+.dark-mode .escrow-timeline {
+  background: rgba(139, 92, 246, 0.1) !important;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.dark-mode .timeline-icon {
+  background: var(--border-color) !important;
+  box-shadow: var(--shadow-sm);
+}
+
+.dark-mode .timeline-step.completed .timeline-icon {
+  background: linear-gradient(135deg, var(--success-color), var(--secondary-color)) !important;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4) !important;
+}
+
+.dark-mode .timeline-step.active .timeline-icon {
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)) !important;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4) !important;
+}
+
+.dark-mode .timeline-label {
+  color: var(--text-secondary) !important;
+}
+
+.dark-mode .timeline-step.completed .timeline-label,
+.dark-mode .timeline-step.active .timeline-label {
+  color: var(--text-primary) !important;
+}
+
+/* Enhanced Form Elements Dark Mode */
+.dark-mode .form-control {
+  background: rgba(26, 26, 46, 0.8) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+  backdrop-filter: blur(10px);
+}
+
+.dark-mode .form-control:focus {
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.25) !important;
+  background: rgba(26, 26, 46, 0.95) !important;
+}
+
+.dark-mode .form-label {
+  color: var(--text-primary) !important;
+}
+
+/* Enhanced Progress Bars Dark Mode */
+.dark-mode .progress {
+  background: rgba(139, 92, 246, 0.2) !important;
+  backdrop-filter: blur(5px);
+}
+
+.dark-mode .progress-bar {
+  background: linear-gradient(90deg, var(--primary-color), var(--secondary-color), var(--accent-color)) !important;
+  background-size: 200% 100%;
+}
+
+/* Enhanced Alerts Dark Mode */
+.dark-mode .alert {
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dark-mode .alert-success {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.1)) !important;
+  color: #a7f3d0 !important;
+  border-left: 4px solid var(--success-color) !important;
+}
+
+.dark-mode .alert-danger {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.1)) !important;
+  color: #fca5a5 !important;
+  border-left: 4px solid var(--danger-color) !important;
+}
+
+.dark-mode .alert-warning {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(251, 191, 36, 0.1)) !important;
+  color: #fcd34d !important;
+  border-left: 4px solid var(--warning-color) !important;
+}
+
+.dark-mode .alert-info {
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(6, 182, 212, 0.1)) !important;
+  color: #67e8f9 !important;
+  border-left: 4px solid var(--info-color) !important;
+}
+
+/* Enhanced Cards Dark Mode */
+.dark-mode .card {
+  background: rgba(26, 26, 46, 0.8) !important;
+  border: 1px solid rgba(139, 92, 246, 0.1) !important;
+  backdrop-filter: blur(20px) !important;
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .card:hover {
+  border-color: rgba(139, 92, 246, 0.3) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+.dark-mode .card-header {
+  background: rgba(139, 92, 246, 0.1) !important;
+  border-bottom: 1px solid rgba(139, 92, 246, 0.2) !important;
+}
+
+/* Enhanced Buttons Dark Mode */
+.dark-mode .btn-primary {
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-hover)) !important;
+  border: none !important;
+  box-shadow: var(--shadow) !important;
+}
+
+.dark-mode .btn-primary:hover {
+  background: linear-gradient(135deg, var(--primary-hover), var(--primary-color)) !important;
+  box-shadow: 0 12px 30px rgba(139, 92, 246, 0.4) !important;
+  transform: translateY(-2px) !important;
+}
+
+.dark-mode .btn-success {
+  background: linear-gradient(135deg, var(--success-color), #059669) !important;
+  border: none !important;
+  box-shadow: var(--shadow) !important;
+}
+
+.dark-mode .btn-success:hover {
+  box-shadow: 0 12px 30px rgba(16, 185, 129, 0.4) !important;
+  transform: translateY(-2px) !important;
+}
+
+.dark-mode .btn-danger {
+  background: linear-gradient(135deg, var(--danger-color), var(--danger-hover)) !important;
+  border: none !important;
+  box-shadow: var(--shadow) !important;
+}
+
+.dark-mode .btn-danger:hover {
+  box-shadow: 0 12px 30px rgba(239, 68, 68, 0.4) !important;
+  transform: translateY(-2px) !important;
+}
+
+.dark-mode .btn-outline-secondary {
+  color: var(--text-secondary) !important;
+  border: 2px solid var(--border-color) !important;
+  background: rgba(26, 26, 46, 0.5) !important;
+  backdrop-filter: blur(10px);
+}
+
+.dark-mode .btn-outline-secondary:hover {
+  background: rgba(139, 92, 246, 0.2) !important;
+  color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+  transform: translateY(-2px) !important;
+}
+
+/* Enhanced Modal Dark Mode */
+.dark-mode .modal-content {
+  background: rgba(26, 26, 46, 0.95) !important;
+  border: 1px solid rgba(139, 92, 246, 0.2) !important;
+  backdrop-filter: blur(20px) !important;
+  box-shadow: var(--shadow-xl) !important;
+  color: var(--text-primary) !important;
+}
+
+.dark-mode .modal-header {
+  background: rgba(139, 92, 246, 0.1) !important;
+  border-bottom: 1px solid rgba(139, 92, 246, 0.2) !important;
+}
+
+.dark-mode .modal-title {
+  color: var(--primary-color) !important;
+  font-weight: 700;
+}
+
+.dark-mode .modal-footer {
+  background: rgba(139, 92, 246, 0.05) !important;
+  border-top: 1px solid rgba(139, 92, 246, 0.2) !important;
+}
+
+/* Enhanced Skeleton Loading Dark Mode */
+.dark-mode .skeleton {
+  background: linear-gradient(90deg, #2a2a3e 25%, #3a3a4e 50%, #2a2a3e 75%) !important;
+  background-size: 200% 100%;
+}
+
+/* Enhanced Badge Dark Mode */
+.dark-mode .badge {
+  backdrop-filter: blur(5px);
+}
+
+.dark-mode .badge.bg-primary {
+  background: var(--primary-color) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.dark-mode .badge.bg-success {
+  background: var(--success-color) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.dark-mode .badge.bg-danger {
+  background: var(--danger-color) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.dark-mode .badge.bg-warning {
+  background: var(--warning-color) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.dark-mode .badge.bg-info {
+  background: var(--info-color) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+/* Enhanced Address Display Dark Mode */
+.dark-mode .address-display {
+  background: rgba(139, 92, 246, 0.15) !important;
+  border-color: rgba(139, 92, 246, 0.3) !important;
+  color: var(--primary-color) !important;
+  backdrop-filter: blur(5px);
+}
+
+.dark-mode .address-display:hover {
+  background: rgba(139, 92, 246, 0.25) !important;
+  border-color: rgba(139, 92, 246, 0.5) !important;
+}
+
+/* Enhanced Theme Toggle Dark Mode */
+.dark-mode .theme-toggle {
+  background: rgba(26, 26, 46, 0.8) !important;
+  border-color: var(--border-color) !important;
+  backdrop-filter: blur(10px);
+}
+
+/* Enhanced Security Components Dark Mode */
+.dark-mode .security-banner {
+  background: rgba(245, 158, 11, 0.1) !important;
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  backdrop-filter: blur(10px);
+}
+
+.dark-mode .contract-info {
+  background: rgba(6, 182, 212, 0.1) !important;
+  border: 1px solid rgba(6, 182, 212, 0.2);
+  backdrop-filter: blur(10px);
+}
+
+/* Enhanced Footer Dark Mode */
+.dark-mode .footer {
+  border-top-color: var(--border-color) !important;
+  color: var(--text-secondary) !important;
+}
+
+.dark-mode .footer a {
+  color: var(--primary-color) !important;
+  transition: var(--fast-transition);
+}
+
+.dark-mode .footer a:hover {
+  color: var(--secondary-color) !important;
+  text-shadow: 0 0 8px rgba(6, 182, 212, 0.5);
+}
+
+/* Enhanced List Group Dark Mode */
+.dark-mode .list-group-item {
+  background: var(--card-bg) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+  backdrop-filter: blur(10px);
+  transition: var(--transition);
+}
+
+.dark-mode .list-group-item:hover {
+  background: rgba(139, 92, 246, 0.1) !important;
+  border-color: rgba(139, 92, 246, 0.3) !important;
+  transform: translateX(4px);
+}
+
+/* Enhanced Code Dark Mode */
+.dark-mode code {
+  background: rgba(139, 92, 246, 0.2) !important;
+  color: #a78bfa !important;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  backdrop-filter: blur(5px);
+}
+
+/* Enhanced Placeholders Dark Mode */
+.dark-mode input::placeholder,
+.dark-mode textarea::placeholder {
+  color: var(--text-muted) !important;
+  opacity: 0.7 !important;
+}
+
+/* Animation Classes for Dark Mode */
+.dark-mode .animate-glow {
+  animation: darkGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes darkGlow {
+  from {
+    box-shadow: 0 0 5px rgba(139, 92, 246, 0.5);
   }
-
-  .app-header h1 {
-    font-size: 1.5rem;
-    margin-bottom: 10px;
-  }
-
-  .app-header p {
-    font-size: 0.9rem;
-  }
-
-  .wallet-info {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .wallet-info button {
-    margin-top: 10px;
-  }
-
-  .address-display {
-    max-width: 120px;
-  }
-
-  .nav-tabs .nav-link {
-    padding: 8px 10px;
-    font-size: 0.85rem;
-  }
-
-  .card-title {
-    font-size: 1.2rem;
-  }
-
-  .escrow-item {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .escrow-item button {
-    margin-top: 10px;
-    width: 100%;
-  }
-
-  /* Make form elements larger for touch */
-  .form-control {
-    padding: 12px;
-    font-size: 16px; /* prevents iOS zoom on focus */
-  }
-
-  .btn {
-    padding: 12px;
-    font-size: 16px;
-  }
-
-  /* Adjust modal content for small screens */
-  .modal-body {
-    padding: 15px;
-  }
-
-  .modal-footer,
-  .modal-header {
-    padding: 10px 15px;
+  to {
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.8), 0 0 30px rgba(6, 182, 212, 0.4);
   }
 }
 
-/* Small mobile landscape orientation */
-@media (max-width: 767px) and (orientation: landscape) {
-  .container {
-    max-width: 100%;
-    margin-top: 5px;
-    margin-bottom: 5px;
+.dark-mode .animate-pulse {
+  animation: darkPulse 2s ease-in-out infinite;
+}
+
+@keyframes darkPulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.02);
   }
 }
 
-/* Very small devices (less than 360px) */
-@media (max-width: 360px) {
-  .container {
-    padding: 10px;
-  }
+/* Enhanced Scrollbar Dark Mode */
+.dark-mode ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
 
-  .app-header h1 {
-    font-size: 1.3rem;
-  }
+.dark-mode ::-webkit-scrollbar-track {
+  background: rgba(139, 92, 246, 0.1);
+  border-radius: 10px;
+}
 
-  .app-header p {
-    font-size: 0.8rem;
-  }
+.dark-mode ::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--primary-color), var(--secondary-color));
+  border-radius: 10px;
+  transition: var(--fast-transition);
+}
 
-  .nav-tabs .nav-link {
-    padding: 6px 8px;
-    font-size: 0.8rem;
-  }
+.dark-mode ::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--primary-hover), var(--secondary-hover));
+  box-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
+}
 
-  .card-title {
-    font-size: 1.1rem;
-  }
+/* Enhanced Table Dark Mode */
+.dark-mode .table {
+  --bs-table-bg: var(--card-bg) !important;
+  --bs-table-striped-bg: rgba(139, 92, 246, 0.05) !important;
+  --bs-table-striped-color: var(--text-primary) !important;
+  --bs-table-active-bg: rgba(139, 92, 246, 0.1) !important;
+  --bs-table-active-color: var(--text-primary) !important;
+  --bs-table-hover-bg: rgba(139, 92, 246, 0.1) !important;
+  --bs-table-hover-color: var(--text-primary) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
 
-  .btn {
-    padding: 8px 12px;
+/* Custom Animation Utilities for Dark Mode */
+.dark-mode .fade-in {
+  animation: darkFadeIn 0.5s var(--ease-out-expo);
+}
+
+@keyframes darkFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-/* Optimize address display component */
-.address-display-container {
-  display: inline-flex;
-  align-items: center;
+.dark-mode .slide-up {
+  animation: darkSlideUp 0.4s var(--spring);
 }
 
-.address-display {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* Different max-width based on screen size */
-@media (min-width: 769px) {
-  .address-display {
-    max-width: 200px;
+@keyframes darkSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-@media (min-width: 481px) and (max-width: 768px) {
-  .address-display {
-    max-width: 150px;
-  }
+.dark-mode .scale-in {
+  animation: darkScaleIn 0.3s var(--spring);
 }
 
-@media (max-width: 480px) {
-  .address-display {
-    max-width: 120px;
+@keyframes darkScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
   }
-}
-
-@media (max-width: 360px) {
-  .address-display {
-    max-width: 90px;
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }
