@@ -203,16 +203,37 @@ const App: React.FC = () => {
     }
   };
 
-  // Find escrow handler
+  // Find escrow handler - FIXED
   const handleFindEscrow = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     if (!escrowIdToView || !wallet.contract) return;
     
     try {
-      await escrowOps.viewEscrowDetails(wallet.contract, escrowIdToView);
+      console.log(`🔍 Finding escrow ID: ${escrowIdToView}`);
+      
+      // Fetch escrow details directly from contract
+      const escrowData = await wallet.contract.getEscrow(escrowIdToView);
+      
+      const foundEscrow: Escrow = {
+        id: escrowIdToView,
+        buyer: escrowData[0],
+        seller: escrowData[1],
+        arbiter: escrowData[2],
+        amount: ethers.formatEther(escrowData[3]),
+        fundsDisbursed: escrowData[4],
+        disputeRaised: escrowData[5]
+      };
+      
+      console.log('✅ Found escrow:', foundEscrow);
+      
+      // Set the found escrow in escrow operations
+      escrowOps.setSelectedEscrow(foundEscrow);
       setShowDetailsModal(true);
+      showToastNotification(`Found escrow #${escrowIdToView}!`, 'success');
+      
     } catch (error) {
-      showToastNotification('Escrow not found', 'warning');
+      console.error(`❌ Error finding escrow ${escrowIdToView}:`, error);
+      showToastNotification(`Escrow #${escrowIdToView} not found or invalid`, 'warning');
     }
   };
 

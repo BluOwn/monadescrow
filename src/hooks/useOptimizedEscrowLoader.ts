@@ -143,7 +143,7 @@ const useOptimizedEscrowLoader = () => {
     }
   }, [waitForRateLimit, incrementRequestCount]);
 
-  // Get user's escrow IDs efficiently - ONLY for connected wallet
+  // Get user's escrow IDs efficiently - FIXED to properly use getUserEscrows
   const getUserEscrowIds = useCallback(async (
     contract: EscrowContract,
     userAddress: string
@@ -152,20 +152,19 @@ const useOptimizedEscrowLoader = () => {
     
     try {
       incrementRequestCount();
-      console.log(`🔍 Getting escrow IDs ONLY for connected wallet: ${userAddress}`);
+      console.log(`🔍 Getting escrow IDs for wallet: ${userAddress}`);
       
-      // Use the contract method that gets escrows specifically for this user
-      const escrowIds = await contract.getUserEscrows(userAddress);
-      const userEscrowIds = escrowIds.map((id: unknown) => id?.toString() || '0');
+      // Call the getUserEscrows method from the contract ABI
+      const escrowIdsArray = await contract.getUserEscrows(userAddress);
+      const userEscrowIds = escrowIdsArray.map((id: any) => id.toString());
       
-      console.log(`📋 Found ${userEscrowIds.length} escrows for wallet ${userAddress}`);
+      console.log(`✅ Found ${userEscrowIds.length} escrows for wallet ${userAddress}:`, userEscrowIds);
       return userEscrowIds;
       
     } catch (error) {
-      console.error('❌ getUserEscrows failed, trying alternative method:', error);
+      console.error('❌ getUserEscrows method failed:', error);
+      console.log('🔄 Falling back to manual escrow checking...');
       
-      // If getUserEscrows doesn't work, we need to check escrows individually
-      // but ONLY return ones where the user is involved
       try {
         await waitForRateLimit();
         incrementRequestCount();
@@ -173,40 +172,41 @@ const useOptimizedEscrowLoader = () => {
         const totalCount = await contract.getEscrowCount();
         const total = Number(totalCount);
         
-        console.log(`📊 Checking ${total} escrows for user involvement (wallet: ${userAddress})`);
+        console.log(`📊 Checking ${total} escrows manually for wallet ${userAddress}`);
         
         const userEscrowIds: string[] = [];
         const userAddr = userAddress.toLowerCase();
         
-        // Check escrows in small batches, but only keep user's escrows
+        // Check all escrows (but efficiently)
         for (let i = 0; i < total; i += RATE_LIMIT.batchSize) {
           const batch = [];
           const batchEnd = Math.min(i + RATE_LIMIT.batchSize, total);
           
           for (let j = i; j < batchEnd; j++) {
-            batch.push(j.toString());
+            batch.push(j);
           }
           
           // Check each escrow in parallel
-          const batchPromises = batch.map(async (id) => {
+          const batchPromises = batch.map(async (escrowId) => {
             try {
               await waitForRateLimit();
               incrementRequestCount();
               
-              const data = await contract.getEscrow(id);
+              const data = await contract.getEscrow(escrowId);
               const buyer = data[0].toLowerCase();
               const seller = data[1].toLowerCase();
               const arbiter = data[2].toLowerCase();
               
-              // Only return ID if this user is involved in this escrow
+              // Check if user is involved in this escrow
               if (buyer === userAddr || seller === userAddr || arbiter === userAddr) {
-                console.log(`✅ User is involved in escrow ${id} as ${buyer === userAddr ? 'buyer' : seller === userAddr ? 'seller' : 'arbiter'}`);
-                return id;
+                const role = buyer === userAddr ? 'buyer' : seller === userAddr ? 'seller' : 'arbiter';
+                console.log(`✅ User is ${role} in escrow ${escrowId}`);
+                return escrowId.toString();
               }
               
               return null;
             } catch (error) {
-              console.error(`❌ Error checking escrow ${id}:`, error);
+              console.error(`❌ Error checking escrow ${escrowId}:`, error);
               return null;
             }
           });
@@ -227,12 +227,12 @@ const useOptimizedEscrowLoader = () => {
           }
         }
         
-        console.log(`✅ Final result: Found ${userEscrowIds.length} escrows for wallet ${userAddress}`);
+        console.log(`✅ Manual check complete: Found ${userEscrowIds.length} escrows for wallet ${userAddress}`);
         return userEscrowIds;
         
       } catch (fallbackError) {
-        console.error('❌ Fallback method also failed:', fallbackError);
-        throw new Error(`Unable to fetch escrows for wallet ${userAddress}`);
+        console.error('❌ Manual escrow checking also failed:', fallbackError);
+        throw new Error(`Unable to fetch escrows for wallet ${userAddress}: ${fallbackError}`);
       }
     }
   }, [waitForRateLimit, incrementRequestCount]);
@@ -256,7 +256,8 @@ const useOptimizedEscrowLoader = () => {
     }));
 
     try {
-      console.log(`🚀 Loading ACTIVE escrows ONLY for connected wallet: ${userAddress}`);
+      console.log(`🚀 Starting escrow loading for wallet: ${userAddress}`);
+      console.log(`📞 Contract address: ${contract.target || 'unknown'}`);
       
       // Step 1: Get ONLY the connected user's escrow IDs
       const userEscrowIds = await getUserEscrowIds(contract, userAddress);
@@ -273,7 +274,8 @@ const useOptimizedEscrowLoader = () => {
         return;
       }
 
-      console.log(`📋 Found ${userEscrowIds.length} escrows for wallet ${userAddress}, filtering for ACTIVE ones only...`);
+      console.log(`📋 Processing ${userEscrowIds.length} escrows for wallet ${userAddress}`);
+      console.log(`🔍 Escrow IDs to check: [${userEscrowIds.join(', ')}]`);
       
       // Step 2: Load each escrow and keep ONLY active ones
       const activeEscrows: Escrow[] = [];
@@ -294,30 +296,35 @@ const useOptimizedEscrowLoader = () => {
         }
 
         const batch = userEscrowIds.slice(i, i + RATE_LIMIT.batchSize);
-        console.log(`📦 Processing user's escrows batch: ${batch.join(', ')}`);
+        console.log(`📦 Processing batch ${Math.ceil((i + 1) / RATE_LIMIT.batchSize)}/${Math.ceil(userEscrowIds.length / RATE_LIMIT.batchSize)}: [${batch.join(', ')}]`);
 
         for (const escrowId of batch) {
           try {
+            console.log(`🔄 Loading escrow ${escrowId}...`);
             const escrow = await getCachedOrFetchActiveEscrow(contract, escrowId);
             
-            if (escrow && isActiveEscrow(escrow)) {
-              // This is an ACTIVE escrow for the connected user
-              activeEscrows.push(escrow);
-              
-              // Calculate stats
+            if (escrow) {
               const userAddr = userAddress.toLowerCase();
-              if (escrow.buyer.toLowerCase() === userAddr) stats.asBuyer++;
-              if (escrow.seller.toLowerCase() === userAddr) stats.asSeller++;
-              if (escrow.arbiter.toLowerCase() === userAddr) stats.asArbiter++;
-              if (escrow.disputeRaised) stats.disputed++;
-              stats.total++;
+              const userRole = escrow.buyer.toLowerCase() === userAddr ? 'buyer' : 
+                             escrow.seller.toLowerCase() === userAddr ? 'seller' : 'arbiter';
               
-              console.log(`✅ ACTIVE escrow ${escrowId} loaded for user (Role: ${
-                escrow.buyer.toLowerCase() === userAddr ? 'Buyer' : 
-                escrow.seller.toLowerCase() === userAddr ? 'Seller' : 'Arbiter'
-              })`);
-            } else if (escrow) {
-              console.log(`⏭️ Escrow ${escrowId} is COMPLETED, skipping (only showing active escrows)`);
+              if (isActiveEscrow(escrow)) {
+                // This is an ACTIVE escrow for the connected user
+                activeEscrows.push(escrow);
+                
+                // Calculate stats
+                if (escrow.buyer.toLowerCase() === userAddr) stats.asBuyer++;
+                if (escrow.seller.toLowerCase() === userAddr) stats.asSeller++;
+                if (escrow.arbiter.toLowerCase() === userAddr) stats.asArbiter++;
+                if (escrow.disputeRaised) stats.disputed++;
+                stats.total++;
+                
+                console.log(`✅ ACTIVE escrow ${escrowId} added (User role: ${userRole}, Amount: ${escrow.amount} MON, Disputed: ${escrow.disputeRaised})`);
+              } else {
+                console.log(`⏭️ Escrow ${escrowId} is COMPLETED (User role: ${userRole}, fundsDisbursed: true) - skipping`);
+              }
+            } else {
+              console.log(`❌ Failed to load escrow ${escrowId}`);
             }
             
             processed++;
@@ -345,13 +352,12 @@ const useOptimizedEscrowLoader = () => {
       // Sort by ID (newest first)
       activeEscrows.sort((a, b) => parseInt(b.id) - parseInt(a.id));
 
-      console.log(`✅ Wallet-specific ACTIVE escrow loading complete for ${userAddress}:`, {
-        userEscrowsChecked: userEscrowIds.length,
-        activeEscrowsFound: activeEscrows.length,
-        processed,
-        failed,
-        stats
-      });
+      console.log(`✅ LOADING COMPLETE for wallet ${userAddress}:`);
+      console.log(`   📊 Total escrows checked: ${userEscrowIds.length}`);
+      console.log(`   🎯 Active escrows found: ${activeEscrows.length}`);
+      console.log(`   👤 User roles: Buyer(${stats.asBuyer}) Seller(${stats.asSeller}) Arbiter(${stats.asArbiter})`);
+      console.log(`   ⚡ Processing: ${processed} successful, ${failed} failed`);
+      console.log(`   💰 Total active value: ${activeEscrows.reduce((sum, e) => sum + parseFloat(e.amount), 0).toFixed(3)} MON`);
 
       setState(prev => ({
         ...prev,
@@ -363,11 +369,11 @@ const useOptimizedEscrowLoader = () => {
       }));
 
     } catch (error) {
-      console.error(`❌ Critical error loading active escrows for wallet ${userAddress}:`, error);
+      console.error(`❌ CRITICAL ERROR loading escrows for wallet ${userAddress}:`, error);
       setState(prev => ({
         ...prev,
         loading: false,
-        error: error instanceof Error ? error.message : `Failed to load active escrows for wallet ${userAddress}`
+        error: error instanceof Error ? error.message : `Failed to load escrows for wallet ${userAddress}`
       }));
     }
   }, [getUserEscrowIds, getCachedOrFetchActiveEscrow]);
