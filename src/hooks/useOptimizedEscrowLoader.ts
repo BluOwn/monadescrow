@@ -1,59 +1,128 @@
-// src/hooks/useOptimizedEscrowLoader.ts
+// src/hooks/useOptimizedEscrowLoader.ts - Optimized for Ankr RPC
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { ethers } from 'ethers';
 import { Escrow, EscrowContract } from '../types';
 
 interface OptimizedEscrowState {
-  userEscrows: Escrow[];
-  arbitratedEscrows: Escrow[];
+  activeEscrows: Escrow[];
   loading: boolean;
   error: string | null;
   lastUpdated: number;
-  totalChecked: number;
-  progress: number;
+  progress: {
+    total: number;
+    loaded: number;
+    failed: number;
+    percentage: number;
+  };
+  stats: {
+    total: number;
+    asBuyer: number;
+    asSeller: number;
+    asArbiter: number;
+    disputed: number;
+  };
 }
 
-export const useOptimizedEscrowLoader = () => {
+// Ankr RPC configuration
+const ANKR_RPC_URL = 'https://rpc.ankr.com/monad_testnet';
+const RATE_LIMIT = {
+  maxRequestsPer10Sec: 250, // Conservative limit (300 - buffer)
+  maxRequestsPer10Min: 10000, // Conservative limit (12000 - buffer)
+  batchSize: 5, // Small batches to avoid overwhelming
+  delayBetweenBatches: 500, // 500ms delay between batches
+  delayBetweenRequests: 50 // 50ms delay between individual requests
+};
+
+// In-memory cache for escrow data
+const escrowCache = new Map<string, { data: Escrow; timestamp: number }>();
+const CACHE_DURATION = 30000; // 30 seconds cache
+
+const useOptimizedEscrowLoader = () => {
   const [state, setState] = useState<OptimizedEscrowState>({
-    userEscrows: [],
-    arbitratedEscrows: [],
+    activeEscrows: [],
     loading: false,
     error: null,
     lastUpdated: 0,
-    totalChecked: 0,
-    progress: 0
+    progress: { total: 0, loaded: 0, failed: 0, percentage: 0 },
+    stats: { total: 0, asBuyer: 0, asSeller: 0, asArbiter: 0, disputed: 0 }
   });
 
-  // Use refs to prevent memory leaks and excessive re-renders
   const abortControllerRef = useRef<AbortController | null>(null);
-  const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const isUnmountedRef = useRef(false);
+  const requestCountRef = useRef({ per10Sec: 0, per10Min: 0 });
+  const lastResetRef = useRef({ sec: Date.now(), min: Date.now() });
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      isUnmountedRef.current = true;
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-      if (loadingTimeoutRef.current) {
-        clearTimeout(loadingTimeoutRef.current);
-      }
-    };
-  }, []);
-
-  // Safe state update that checks if component is still mounted
-  const safeSetState = useCallback((updater: (prev: OptimizedEscrowState) => OptimizedEscrowState) => {
-    if (!isUnmountedRef.current) {
-      setState(updater);
+  // Reset rate limit counters
+  const resetRateLimitCounters = useCallback(() => {
+    const now = Date.now();
+    
+    // Reset 10-second counter
+    if (now - lastResetRef.current.sec >= 10000) {
+      requestCountRef.current.per10Sec = 0;
+      lastResetRef.current.sec = now;
+    }
+    
+    // Reset 10-minute counter
+    if (now - lastResetRef.current.min >= 600000) {
+      requestCountRef.current.per10Min = 0;
+      lastResetRef.current.min = now;
     }
   }, []);
 
-  // Helper to format escrow data
-  const formatEscrow = useCallback((id: number, data: any): Escrow | null => {
+  // Check if we can make a request
+  const canMakeRequest = useCallback(() => {
+    resetRateLimitCounters();
+    return (
+      requestCountRef.current.per10Sec < RATE_LIMIT.maxRequestsPer10Sec &&
+      requestCountRef.current.per10Min < RATE_LIMIT.maxRequestsPer10Min
+    );
+  }, [resetRateLimitCounters]);
+
+  // Increment request counter
+  const incrementRequestCount = useCallback(() => {
+    requestCountRef.current.per10Sec++;
+    requestCountRef.current.per10Min++;
+  }, []);
+
+  // Rate-limited delay
+  const waitForRateLimit = useCallback(async () => {
+    while (!canMakeRequest()) {
+      console.log('⏳ Rate limit reached, waiting...');
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+  }, [canMakeRequest]);
+
+  // Get cached escrow or fetch new
+  const getCachedOrFetchEscrow = useCallback(async (
+    contract: EscrowContract,
+    escrowId: string
+  ): Promise<Escrow | null> => {
+    const cacheKey = `${contract.target}-${escrowId}`;
+    const cached = escrowCache.get(cacheKey);
+    
+    // Return cached data if still valid
+    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+      console.log(`📋 Cache hit for escrow ${escrowId}`);
+      return cached.data;
+    }
+
+    // Wait for rate limit clearance
+    await waitForRateLimit();
+    
     try {
-      return {
-        id: id.toString(),
+      incrementRequestCount();
+      
+      console.log(`🔄 Fetching escrow ${escrowId} from Ankr RPC`);
+      
+      // Add timeout to prevent hanging
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Request timeout')), 5000);
+      });
+
+      const dataPromise = contract.getEscrow(escrowId);
+      const data = await Promise.race([dataPromise, timeoutPromise]);
+
+      const escrow: Escrow = {
+        id: escrowId,
         buyer: data[0],
         seller: data[1],
         arbiter: data[2],
@@ -61,205 +130,98 @@ export const useOptimizedEscrowLoader = () => {
         fundsDisbursed: data[4],
         disputeRaised: data[5]
       };
+
+      // Cache the result
+      escrowCache.set(cacheKey, { data: escrow, timestamp: Date.now() });
+      
+      return escrow;
     } catch (error) {
-      console.warn(`Failed to format escrow ${id}:`, error);
+      console.error(`❌ Failed to fetch escrow ${escrowId}:`, error);
       return null;
     }
-  }, []);
+  }, [waitForRateLimit, incrementRequestCount]);
 
-  // OPTIMIZED: Load user escrows efficiently
-  const loadUserEscrows = useCallback(async (
-    contract: EscrowContract, 
+  // Get user's escrow IDs efficiently
+  const getUserEscrowIds = useCallback(async (
+    contract: EscrowContract,
     userAddress: string
-  ): Promise<Escrow[]> => {
+  ): Promise<string[]> => {
+    await waitForRateLimit();
+    
     try {
-      console.log('📝 Loading user escrows for:', userAddress);
+      incrementRequestCount();
+      console.log('🔍 Getting user escrow IDs from Ankr RPC');
       
-      // Get user's escrow IDs first
-      const userEscrowIds = await contract.getUserEscrows(userAddress);
-      console.log(`Found ${userEscrowIds.length} user escrows`);
-      
-      if (userEscrowIds.length === 0) {
-        return [];
-      }
-
-      // Limit to prevent excessive loading
-      const MAX_USER_ESCROWS = 50;
-      const escrowIdsToLoad = userEscrowIds.slice(-MAX_USER_ESCROWS); // Get the most recent ones
-      
-      // Load escrows in small batches with timeout
-      const BATCH_SIZE = 5;
-      const userEscrows: Escrow[] = [];
-      
-      for (let i = 0; i < escrowIdsToLoad.length; i += BATCH_SIZE) {
-        if (isUnmountedRef.current || abortControllerRef.current?.signal.aborted) {
-          break;
-        }
-        
-        const batch = escrowIdsToLoad.slice(i, i + BATCH_SIZE);
-        
-        const batchPromises = batch.map(async (id: any) => {
-          try {
-            // Add timeout to prevent hanging
-            const timeoutPromise = new Promise((_, reject) => {
-              setTimeout(() => reject(new Error('Timeout')), 3000);
-            });
-            
-            const dataPromise = contract.getEscrow(id);
-            const data = await Promise.race([dataPromise, timeoutPromise]);
-            
-            return formatEscrow(Number(id), data);
-          } catch (error) {
-            // Silent fail for individual escrows
-            return null;
-          }
-        });
-        
-        const batchResults = await Promise.allSettled(batchPromises);
-        
-        batchResults.forEach(result => {
-          if (result.status === 'fulfilled' && result.value) {
-            userEscrows.push(result.value);
-          }
-        });
-        
-        // Small delay between batches
-        if (i + BATCH_SIZE < escrowIdsToLoad.length) {
-          await new Promise(resolve => setTimeout(resolve, 200));
-        }
-      }
-      
-      // Sort by ID descending (newest first)
-      userEscrows.sort((a, b) => parseInt(b.id) - parseInt(a.id));
-      
-      console.log(`✅ Loaded ${userEscrows.length} user escrows`);
-      return userEscrows;
-      
+      const escrowIds = await contract.getUserEscrows(userAddress);
+      return escrowIds.map((id: any) => id.toString());
     } catch (error) {
-      console.error('Error loading user escrows:', error);
-      throw error;
-    }
-  }, [formatEscrow]);
-
-  // OPTIMIZED: Load arbitrated escrows with smart sampling
-  const loadArbitratedEscrows = useCallback(async (
-    contract: EscrowContract, 
-    userAddress: string
-  ): Promise<Escrow[]> => {
-    try {
-      console.log('⚖️ Loading arbitrated escrows for:', userAddress);
+      console.error('❌ Failed to get user escrow IDs:', error);
       
-      const totalEscrowCount = await contract.getEscrowCount();
-      const totalCount = Number(totalEscrowCount);
-      
-      console.log(`Total escrows in contract: ${totalCount}`);
-      
-      if (totalCount === 0) {
-        return [];
-      }
-      
-      // OPTIMIZATION: Smart sampling instead of checking all escrows
-      // Check recent escrows first, then sample older ones
-      const MAX_RECENT_CHECK = 100; // Check last 100 escrows fully
-      const MAX_SAMPLE_CHECK = 50;  // Sample 50 from older escrows
-      
-      const escrowsToCheck: number[] = [];
-      
-      // 1. Add recent escrows (more likely to be active)
-      const recentStart = Math.max(0, totalCount - MAX_RECENT_CHECK);
-      for (let i = recentStart; i < totalCount; i++) {
-        escrowsToCheck.push(i);
-      }
-      
-      // 2. Sample older escrows if there are any
-      if (recentStart > 0) {
-        const olderEscrowsCount = recentStart;
-        const sampleSize = Math.min(MAX_SAMPLE_CHECK, olderEscrowsCount);
-        const sampleStep = Math.floor(olderEscrowsCount / sampleSize);
+      // Fallback: try to get total count and check each one
+      try {
+        await waitForRateLimit();
+        incrementRequestCount();
         
-        for (let i = 0; i < sampleSize; i++) {
-          const escrowId = i * sampleStep;
-          if (escrowId < recentStart) {
-            escrowsToCheck.push(escrowId);
+        const totalCount = await contract.getEscrowCount();
+        const total = Number(totalCount);
+        
+        console.log(`📊 Fallback: checking ${total} escrows for user involvement`);
+        
+        // Only check recent escrows to avoid overwhelming the RPC
+        const maxToCheck = Math.min(total, 50); // Limit to last 50 escrows
+        const startId = Math.max(0, total - maxToCheck);
+        
+        const userEscrowIds: string[] = [];
+        
+        // Process in small batches
+        for (let i = startId; i < total; i += RATE_LIMIT.batchSize) {
+          const batch = [];
+          const batchEnd = Math.min(i + RATE_LIMIT.batchSize, total);
+          
+          for (let j = i; j < batchEnd; j++) {
+            batch.push(j.toString());
           }
-        }
-      }
-      
-      console.log(`Checking ${escrowsToCheck.length} escrows for arbitration`);
-      
-      const arbitratedEscrows: Escrow[] = [];
-      const BATCH_SIZE = 8;
-      let processed = 0;
-      
-      // Process in batches with progress reporting
-      for (let i = 0; i < escrowsToCheck.length; i += BATCH_SIZE) {
-        if (isUnmountedRef.current || abortControllerRef.current?.signal.aborted) {
-          break;
-        }
-        
-        const batch = escrowsToCheck.slice(i, i + BATCH_SIZE);
-        
-        const batchPromises = batch.map(async (escrowId) => {
-          try {
-            // Add timeout
-            const timeoutPromise = new Promise((_, reject) => {
-              setTimeout(() => reject(new Error('Timeout')), 2000);
-            });
-            
-            const dataPromise = contract.getEscrow(escrowId);
-            const data = await Promise.race([dataPromise, timeoutPromise]);
-            
-            const escrow = formatEscrow(escrowId, data);
-            
-            // Check if user is arbiter
-            if (escrow && escrow.arbiter.toLowerCase() === userAddress.toLowerCase()) {
-              return escrow;
+          
+          // Check each escrow in the batch
+          const batchPromises = batch.map(async (id) => {
+            const escrow = await getCachedOrFetchEscrow(contract, id);
+            if (escrow) {
+              const userAddr = userAddress.toLowerCase();
+              if (
+                escrow.buyer.toLowerCase() === userAddr ||
+                escrow.seller.toLowerCase() === userAddr ||
+                escrow.arbiter.toLowerCase() === userAddr
+              ) {
+                return id;
+              }
             }
             return null;
-          } catch (error) {
-            // Silent fail for individual checks
-            return null;
+          });
+          
+          const batchResults = await Promise.allSettled(batchPromises);
+          batchResults.forEach(result => {
+            if (result.status === 'fulfilled' && result.value) {
+              userEscrowIds.push(result.value);
+            }
+          });
+          
+          // Delay between batches
+          if (i + RATE_LIMIT.batchSize < total) {
+            await new Promise(resolve => setTimeout(resolve, RATE_LIMIT.delayBetweenBatches));
           }
-        });
-        
-        const batchResults = await Promise.allSettled(batchPromises);
-        
-        batchResults.forEach(result => {
-          if (result.status === 'fulfilled' && result.value) {
-            arbitratedEscrows.push(result.value);
-          }
-        });
-        
-        processed += batch.length;
-        
-        // Update progress
-        safeSetState(prev => ({
-          ...prev,
-          totalChecked: processed,
-          progress: (processed / escrowsToCheck.length) * 100
-        }));
-        
-        // Small delay between batches
-        if (i + BATCH_SIZE < escrowsToCheck.length) {
-          await new Promise(resolve => setTimeout(resolve, 150));
         }
+        
+        return userEscrowIds;
+      } catch (fallbackError) {
+        console.error('❌ Fallback method also failed:', fallbackError);
+        throw new Error('Unable to fetch user escrows');
       }
-      
-      // Sort by ID descending
-      arbitratedEscrows.sort((a, b) => parseInt(b.id) - parseInt(a.id));
-      
-      console.log(`✅ Found ${arbitratedEscrows.length} arbitrated escrows`);
-      return arbitratedEscrows;
-      
-    } catch (error) {
-      console.error('Error loading arbitrated escrows:', error);
-      throw error;
     }
-  }, [formatEscrow, safeSetState]);
+  }, [waitForRateLimit, incrementRequestCount, getCachedOrFetchEscrow]);
 
-  // MAIN LOADING FUNCTION - Optimized and cancellable
-  const loadAllEscrows = useCallback(async (
-    contract: EscrowContract, 
+  // Main loading function optimized for Ankr RPC
+  const loadActiveEscrows = useCallback(async (
+    contract: EscrowContract,
     userAddress: string
   ) => {
     // Cancel any existing operation
@@ -267,161 +229,189 @@ export const useOptimizedEscrowLoader = () => {
       abortControllerRef.current.abort();
     }
     
-    // Clear existing timeout
-    if (loadingTimeoutRef.current) {
-      clearTimeout(loadingTimeoutRef.current);
-    }
-    
-    // Create new abort controller
     abortControllerRef.current = new AbortController();
     
-    safeSetState(prev => ({ 
+    setState(prev => ({ 
       ...prev, 
       loading: true, 
-      error: null, 
-      progress: 0,
-      totalChecked: 0
+      error: null,
+      progress: { total: 0, loaded: 0, failed: 0, percentage: 0 }
     }));
-    
-    // Set overall timeout
-    loadingTimeoutRef.current = setTimeout(() => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-      safeSetState(prev => ({
-        ...prev,
-        loading: false,
-        error: 'Loading timed out. Please try again.'
-      }));
-    }, 30000); // 30 second timeout
-    
+
     try {
-      console.log('🔄 Starting optimized escrow loading...');
+      console.log('🚀 Starting optimized escrow loading with Ankr RPC');
+      console.log('📊 Rate limits:', RATE_LIMIT);
       
-      // Load user escrows and arbitrated escrows in sequence (not parallel to reduce load)
-      safeSetState(prev => ({ ...prev, progress: 10 }));
+      // Step 1: Get user's escrow IDs
+      const userEscrowIds = await getUserEscrowIds(contract, userAddress);
       
-      const userEscrows = await loadUserEscrows(contract, userAddress);
-      
-      if (abortControllerRef.current?.signal.aborted) {
-        return;
-      }
-      
-      safeSetState(prev => ({ 
-        ...prev, 
-        userEscrows,
-        progress: 50 
-      }));
-      
-      const arbitratedEscrows = await loadArbitratedEscrows(contract, userAddress);
-      
-      if (abortControllerRef.current?.signal.aborted) {
-        return;
-      }
-      
-      safeSetState(prev => ({
-        ...prev,
-        arbitratedEscrows,
-        loading: false,
-        error: null,
-        lastUpdated: Date.now(),
-        progress: 100
-      }));
-      
-      console.log('✅ Escrow loading completed successfully');
-      
-    } catch (error) {
-      if (!abortControllerRef.current?.signal.aborted) {
-        console.error('❌ Error loading escrows:', error);
-        safeSetState(prev => ({
+      if (userEscrowIds.length === 0) {
+        setState(prev => ({
           ...prev,
           loading: false,
-          error: error instanceof Error ? error.message : 'Failed to load escrows'
+          activeEscrows: [],
+          stats: { total: 0, asBuyer: 0, asSeller: 0, asArbiter: 0, disputed: 0 },
+          lastUpdated: Date.now()
         }));
+        return;
       }
-    } finally {
-      if (loadingTimeoutRef.current) {
-        clearTimeout(loadingTimeoutRef.current);
-        loadingTimeoutRef.current = null;
-      }
-    }
-  }, [loadUserEscrows, loadArbitratedEscrows, safeSetState]);
 
-  // Quick refresh function - only reloads if data is stale
+      console.log(`📋 Found ${userEscrowIds.length} escrows for user`);
+      
+      // Step 2: Load escrow details in optimized batches
+      const activeEscrows: Escrow[] = [];
+      const stats = { total: 0, asBuyer: 0, asSeller: 0, asArbiter: 0, disputed: 0 };
+      let loaded = 0;
+      let failed = 0;
+
+      setState(prev => ({
+        ...prev,
+        progress: { total: userEscrowIds.length, loaded: 0, failed: 0, percentage: 0 }
+      }));
+
+      // Process in small batches with delays
+      for (let i = 0; i < userEscrowIds.length; i += RATE_LIMIT.batchSize) {
+        // Check if operation was cancelled
+        if (abortControllerRef.current?.signal.aborted) {
+          console.log('🛑 Operation cancelled');
+          return;
+        }
+
+        const batch = userEscrowIds.slice(i, i + RATE_LIMIT.batchSize);
+        console.log(`📦 Processing batch ${Math.floor(i/RATE_LIMIT.batchSize) + 1}/${Math.ceil(userEscrowIds.length/RATE_LIMIT.batchSize)}`);
+
+        // Process batch with individual delays
+        for (const escrowId of batch) {
+          try {
+            const escrow = await getCachedOrFetchEscrow(contract, escrowId);
+            
+            if (escrow) {
+              activeEscrows.push(escrow);
+              
+              // Calculate stats
+              const userAddr = userAddress.toLowerCase();
+              if (escrow.buyer.toLowerCase() === userAddr) stats.asBuyer++;
+              if (escrow.seller.toLowerCase() === userAddr) stats.asSeller++;
+              if (escrow.arbiter.toLowerCase() === userAddr) stats.asArbiter++;
+              if (escrow.disputeRaised) stats.disputed++;
+              stats.total++;
+              
+              loaded++;
+            } else {
+              failed++;
+            }
+          } catch (error) {
+            console.error(`❌ Error processing escrow ${escrowId}:`, error);
+            failed++;
+          }
+          
+          // Update progress
+          const percentage = Math.round(((loaded + failed) / userEscrowIds.length) * 100);
+          setState(prev => ({
+            ...prev,
+            progress: { total: userEscrowIds.length, loaded, failed, percentage },
+            activeEscrows: [...activeEscrows]
+          }));
+          
+          // Small delay between individual requests
+          await new Promise(resolve => setTimeout(resolve, RATE_LIMIT.delayBetweenRequests));
+        }
+        
+        // Longer delay between batches
+        if (i + RATE_LIMIT.batchSize < userEscrowIds.length) {
+          await new Promise(resolve => setTimeout(resolve, RATE_LIMIT.delayBetweenBatches));
+        }
+      }
+
+      // Sort by ID (newest first)
+      activeEscrows.sort((a, b) => parseInt(b.id) - parseInt(a.id));
+
+      console.log('✅ Optimized loading complete:', {
+        total: userEscrowIds.length,
+        loaded,
+        failed,
+        cached: userEscrowIds.length - (loaded + failed),
+        stats
+      });
+
+      setState(prev => ({
+        ...prev,
+        activeEscrows,
+        loading: false,
+        error: failed > 0 ? `Loaded ${loaded}/${userEscrowIds.length} escrows (${failed} failed)` : null,
+        lastUpdated: Date.now(),
+        stats
+      }));
+
+    } catch (error) {
+      console.error('❌ Critical error in optimized escrow loading:', error);
+      setState(prev => ({
+        ...prev,
+        loading: false,
+        error: error instanceof Error ? error.message : 'Failed to load escrows'
+      }));
+    }
+  }, [getUserEscrowIds, getCachedOrFetchEscrow]);
+
+  // Quick refresh with staleness check
   const refreshIfStale = useCallback(async (
-    contract: EscrowContract, 
-    userAddress: string, 
-    maxAge: number = 60000 // Increased to 1 minute
+    contract: EscrowContract,
+    userAddress: string,
+    maxAge: number = 60000 // Increased to 1 minute due to rate limits
   ) => {
     const now = Date.now();
     const isStale = now - state.lastUpdated > maxAge;
-    
-    if (isStale || state.userEscrows.length === 0) {
-      console.log('🔄 Data is stale, refreshing...');
-      await loadAllEscrows(contract, userAddress);
+
+    if (isStale || state.activeEscrows.length === 0) {
+      console.log('🔄 Data is stale, refreshing with Ankr RPC...');
+      await loadActiveEscrows(contract, userAddress);
     } else {
       console.log('✅ Data is fresh, no refresh needed');
     }
-  }, [state.lastUpdated, state.userEscrows.length, loadAllEscrows]);
+  }, [state.lastUpdated, state.activeEscrows.length, loadActiveEscrows]);
 
-  // Force refresh - always reloads
-  const forceRefresh = useCallback(async (
-    contract: EscrowContract, 
-    userAddress: string
-  ) => {
-    console.log('🔄 Force refresh requested');
-    await loadAllEscrows(contract, userAddress);
-  }, [loadAllEscrows]);
+  // Clear cache when needed
+  const clearCache = useCallback(() => {
+    escrowCache.clear();
+    console.log('🧹 Escrow cache cleared');
+  }, []);
 
-  // Cancel current loading operation
-  const cancelLoading = useCallback(() => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-    if (loadingTimeoutRef.current) {
-      clearTimeout(loadingTimeoutRef.current);
-      loadingTimeoutRef.current = null;
-    }
-    safeSetState(prev => ({
-      ...prev,
-      loading: false,
-      error: null
-    }));
-  }, [safeSetState]);
-
-  // Clear all data
-  const clearData = useCallback(() => {
-    cancelLoading();
-    safeSetState(prev => ({
-      ...prev,
-      userEscrows: [],
-      arbitratedEscrows: [],
-      error: null,
-      lastUpdated: 0,
-      totalChecked: 0,
-      progress: 0
-    }));
-  }, [cancelLoading, safeSetState]);
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
 
   return {
     // Data
-    userEscrows: state.userEscrows,
-    arbitratedEscrows: state.arbitratedEscrows,
+    activeEscrows: state.activeEscrows,
     loading: state.loading,
     error: state.error,
     lastUpdated: state.lastUpdated,
     progress: state.progress,
-    totalChecked: state.totalChecked,
-    
+    stats: state.stats,
+
     // Actions
-    loadAllEscrows,
+    loadActiveEscrows,
     refreshIfStale,
-    forceRefresh,
-    clearData,
-    cancelLoading,
-    
+    clearCache,
+
     // Computed values
-    hasData: state.userEscrows.length > 0 || state.arbitratedEscrows.length > 0,
-    isStale: Date.now() - state.lastUpdated > 60000
+    hasData: state.activeEscrows.length > 0,
+    isStale: Date.now() - state.lastUpdated > 60000,
+    isPartiallyLoaded: state.progress.failed > 0 && state.progress.loaded > 0,
+    
+    // Rate limit info
+    rateLimitInfo: {
+      per10Sec: requestCountRef.current.per10Sec,
+      per10Min: requestCountRef.current.per10Min,
+      maxPer10Sec: RATE_LIMIT.maxRequestsPer10Sec,
+      maxPer10Min: RATE_LIMIT.maxRequestsPer10Min
+    }
   };
 };
+
+export default useOptimizedEscrowLoader;

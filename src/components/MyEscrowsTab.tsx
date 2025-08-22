@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Card, Button, Badge, Alert, Row, Col, Form } from 'react-bootstrap';
 import { MyEscrowsTabProps } from '../types';
+import LoadingProgress from './LoadingProgress';
 
 const MyEscrowsTab: React.FC<MyEscrowsTabProps> = ({ 
   escrows, 
@@ -9,7 +10,10 @@ const MyEscrowsTab: React.FC<MyEscrowsTabProps> = ({
   loadingEscrows,
   retryLoadingEscrows,
   account,
-  onAction
+  onAction,
+  progress,
+  rateLimitInfo,
+  error: escrowError
 }) => {
   const [filter, setFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('newest');
@@ -120,7 +124,15 @@ const MyEscrowsTab: React.FC<MyEscrowsTabProps> = ({
         </Card.Header>
 
         <Card.Body>
-          {/* Filters and Sorting */}
+          {/* Loading Progress */}
+          <LoadingProgress 
+            loading={loadingEscrows}
+            progress={progress || { total: 0, loaded: 0, failed: 0, percentage: 0 }}
+            rateLimitInfo={rateLimitInfo}
+            error={escrowError}
+          />
+
+          {/* Filters and Sorting */}d Sorting */}
           {escrows.length > 0 && (
             <Row className="mb-4">
               <Col md={6}>
