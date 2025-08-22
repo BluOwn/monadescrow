@@ -1,7 +1,6 @@
-// src/components/CreateEscrowTab.tsx
+// src/components/CreateEscrowTab.tsx - Minimalist Design
 import React, { useState } from 'react';
-import { Card, Form, Button, Spinner, Alert, Badge, Collapse } from 'react-bootstrap';
-import { ContractInfo } from './SecurityComponents';
+import { Card, Form, Button, Alert, Badge, Collapse } from 'react-bootstrap';
 import { CreateEscrowTabProps } from '../types';
 
 const CreateEscrowTab: React.FC<CreateEscrowTabProps> = ({ 
@@ -15,24 +14,22 @@ const CreateEscrowTab: React.FC<CreateEscrowTabProps> = ({
   loading,
   currentAccount
 }) => {
-  const [showArbiterHelper, setShowArbiterHelper] = useState<boolean>(false);
+  const [showHelper, setShowHelper] = useState<boolean>(false);
   
-  // Website's recommended arbiter address
-  const WEBSITE_ARBITER = "0xC4E06Cd628D1ABA8436a812D8a1fA49a4b3BbC47";
+  // Recommended arbiter address
+  const RECOMMENDED_ARBITER = "0xC4E06Cd628D1ABA8436a812D8a1fA49a4b3BbC47";
   
-  // Helper to check if an address matches the current account
+  // Validation helpers
   const isCurrentAccount = (address: string): boolean => {
     if (!address || !currentAccount) return false;
     return address.toLowerCase() === currentAccount.toLowerCase();
   };
 
-  // Check if seller and arbiter are the same
   const isSellerArbiterSame = (seller: string, arbiter: string): boolean => {
     if (!seller || !arbiter) return false;
     return seller.toLowerCase() === arbiter.toLowerCase();
   };
 
-  // Check if form is valid
   const isFormValid = (): boolean => {
     return (
       !isCurrentAccount(sellerAddress) && 
@@ -40,175 +37,211 @@ const CreateEscrowTab: React.FC<CreateEscrowTabProps> = ({
       !isSellerArbiterSame(sellerAddress, arbiterAddress) &&
       !!sellerAddress &&
       !!arbiterAddress &&
-      !!amount
+      !!amount &&
+      parseFloat(amount) > 0
     );
   };
 
-  // Copy website arbiter address to clipboard and set it
-  const useWebsiteArbiter = (): void => {
-    setArbiterAddress(WEBSITE_ARBITER);
-    navigator.clipboard.writeText(WEBSITE_ARBITER);
+  const useRecommendedArbiter = (): void => {
+    setArbiterAddress(RECOMMENDED_ARBITER);
+    navigator.clipboard.writeText(RECOMMENDED_ARBITER);
   };
 
-  // Calculate validation states for form controls
-  const sellerAddressInvalid: boolean = 
-    sellerAddress ? isCurrentAccount(sellerAddress) : false;
+  const getAddressValidation = (address: string, type: 'seller' | 'arbiter') => {
+    if (!address) return { isValid: true, message: '' };
+    
+    if (isCurrentAccount(address)) {
+      return { 
+        isValid: false, 
+        message: `${type === 'seller' ? 'Seller' : 'Arbiter'} cannot be your own address` 
+      };
+    }
+    
+    if (type === 'arbiter' && sellerAddress && isSellerArbiterSame(sellerAddress, address)) {
+      return { 
+        isValid: false, 
+        message: 'Arbiter must be different from seller' 
+      };
+    }
+    
+    return { isValid: true, message: '' };
+  };
 
-  const arbiterAddressInvalid: boolean = 
-    arbiterAddress ? (
-      isCurrentAccount(arbiterAddress) || 
-      Boolean(sellerAddress && isSellerArbiterSame(sellerAddress, arbiterAddress))
-    ) : false;
-
-  // Booleans to control specific error message display
-  const isArbiterSameAsBuyer: boolean = 
-    arbiterAddress ? isCurrentAccount(arbiterAddress) : false;
-
-  const isArbiterSameAsSeller: boolean = 
-    Boolean(arbiterAddress && sellerAddress && isSellerArbiterSame(sellerAddress, arbiterAddress));
+  const sellerValidation = getAddressValidation(sellerAddress, 'seller');
+  const arbiterValidation = getAddressValidation(arbiterAddress, 'arbiter');
 
   return (
-    <Card>
-      <Card.Body>
-        <Card.Title>Create New Escrow</Card.Title>
-        <ContractInfo />
+    <div className="create-escrow-container">
+      <Card className="create-escrow-card">
+        <Card.Header>
+          <div className="d-flex justify-content-between align-items-center">
+            <Card.Title className="mb-0">Create New Escrow</Card.Title>
+            <Badge bg="primary">Step 1 of 2</Badge>
+          </div>
+        </Card.Header>
         
-        <Alert variant="info" className="mb-3">
-          <strong>Role Requirements:</strong>
-          <p className="mb-0">The buyer (you), seller, and arbiter must be different accounts. Your account will be the buyer.</p>
-        </Alert>
-        
-        <Form onSubmit={handleCreateEscrow}>
-          <Form.Group className="mb-3">
-            <Form.Label>Seller Address</Form.Label>
-            <Form.Control
-              type="text"
-              placeholder="0x..."
-              value={sellerAddress}
-              onChange={(e) => setSellerAddress(e.target.value)}
-              isInvalid={sellerAddressInvalid}
-              required
-            />
-            {sellerAddressInvalid && (
-              <Form.Control.Feedback type="invalid">
-                Seller cannot be the same as buyer (your account)
-              </Form.Control.Feedback>
-            )}
-            <Form.Text className="text-muted">
-              The address of the party who will receive the funds
-            </Form.Text>
-          </Form.Group>
-          
-          <Form.Group className="mb-3">
-            <div className="d-flex justify-content-between align-items-center mb-2">
-              <Form.Label className="mb-0">Arbiter Address</Form.Label>
-              <Button 
-                variant="outline-info" 
-                size="sm"
-                onClick={() => setShowArbiterHelper(!showArbiterHelper)}
-              >
-                Need an Arbiter? {showArbiterHelper ? '▲' : '▼'}
-              </Button>
-            </div>
-            
-            <Collapse in={showArbiterHelper}>
+        <Card.Body>
+          {/* Contract Information */}
+          <Alert variant="info" className="contract-info">
+            <div className="d-flex align-items-center justify-content-between">
               <div>
-                <Alert variant="light" className="mb-3">
-                  <div className="d-flex justify-content-between align-items-start">
-                    <div style={{ flex: 1 }}>
-                      <h6 className="mb-2">🏛️ Website Arbiter Service</h6>
-                      <p className="mb-2">
-                        Use our trusted arbiter service for dispute resolution:
-                      </p>
-                      <div className="mb-2">
-                        <code 
-                          style={{ 
-                            fontSize: '0.9rem', 
-                            padding: '4px 8px', 
-                            backgroundColor: '#f8f9fa',
-                            border: '1px solid #dee2e6',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            display: 'inline-block',
-                            wordBreak: 'break-all'
-                          }}
-                          onClick={() => navigator.clipboard.writeText(WEBSITE_ARBITER)}
-                          title="Click to copy"
-                        >
-                          {WEBSITE_ARBITER}
-                        </code>
-                        <Badge bg="secondary" className="ms-2">Click to copy</Badge>
-                      </div>
-                      <div className="mb-2">
-                        <Button 
-                          variant="success" 
-                          size="sm" 
-                          className="me-2"
-                          onClick={useWebsiteArbiter}
-                        >
-                          Use This Arbiter
-                        </Button>
-                      </div>
-                      <div>
-                        <small className="text-muted">
-                          <strong>Contact for arbiter services:</strong><br/>
-                          📞 Telegram: <a href="https://t.me/oprimedev" target="_blank" rel="noopener noreferrer">@oprimedev</a><br/>
-                          📝 Request Form: <a href="https://forms.gle/oxkvRCLJNvC4vXjb7" target="_blank" rel="noopener noreferrer">Google Form</a>
-                        </small>
-                      </div>
-                    </div>
+                <h6 className="mb-1">Smart Contract</h6>
+                <p className="mb-0 small">Verified on Monad Testnet</p>
+              </div>
+              <Badge bg="success">Verified ✓</Badge>
+            </div>
+          </Alert>
+
+          {/* Role Requirements */}
+          <Alert variant="light" className="requirements-info">
+            <h6 className="mb-2">Requirements</h6>
+            <ul className="mb-0 small">
+              <li>Buyer (you), seller, and arbiter must be different addresses</li>
+              <li>Minimum amount: 0.001 MON</li>
+              <li>Ensure you have sufficient balance for gas fees</li>
+            </ul>
+          </Alert>
+
+          {/* Create Escrow Form */}
+          <Form onSubmit={handleCreateEscrow}>
+            {/* Seller Address */}
+            <Form.Group className="mb-4">
+              <Form.Label>
+                Seller Address
+                <Badge bg="secondary" className="ms-2">Required</Badge>
+              </Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="0x..."
+                value={sellerAddress}
+                onChange={(e) => setSellerAddress(e.target.value)}
+                isInvalid={!sellerValidation.isValid}
+                required
+              />
+              {!sellerValidation.isValid && (
+                <Form.Control.Feedback type="invalid">
+                  {sellerValidation.message}
+                </Form.Control.Feedback>
+              )}
+              <Form.Text className="text-muted">
+                The address that will receive the funds when escrow is completed
+              </Form.Text>
+            </Form.Group>
+
+            {/* Arbiter Address */}
+            <Form.Group className="mb-4">
+              <Form.Label>
+                Arbiter Address
+                <Badge bg="secondary" className="ms-2">Required</Badge>
+                <Button 
+                  variant="link" 
+                  size="sm" 
+                  className="ms-2 p-0"
+                  onClick={() => setShowHelper(!showHelper)}
+                >
+                  Need help?
+                </Button>
+              </Form.Label>
+              
+              <Collapse in={showHelper}>
+                <Alert variant="light" className="helper-box">
+                  <h6>Recommended Arbiter</h6>
+                  <p className="mb-2 small">
+                    Use our trusted arbiter service for secure dispute resolution:
+                  </p>
+                  <div className="d-flex align-items-center gap-2">
+                    <code className="flex-grow-1">{RECOMMENDED_ARBITER}</code>
+                    <Button 
+                      variant="outline-primary" 
+                      size="sm"
+                      onClick={useRecommendedArbiter}
+                    >
+                      Use This
+                    </Button>
                   </div>
                 </Alert>
-              </div>
-            </Collapse>
-            
-            <Form.Control
-              type="text"
-              placeholder="0x... or use website arbiter above"
-              value={arbiterAddress}
-              onChange={(e) => setArbiterAddress(e.target.value)}
-              isInvalid={arbiterAddressInvalid}
-              required
-            />
-            {isArbiterSameAsBuyer && (
-              <Form.Control.Feedback type="invalid">
-                Arbiter cannot be the same as buyer (your account)
-              </Form.Control.Feedback>
-            )}
-            {isArbiterSameAsSeller && (
-              <Form.Control.Feedback type="invalid">
-                Arbiter cannot be the same as seller
-              </Form.Control.Feedback>
-            )}
-            <Form.Text className="text-muted">
-              A trusted third party who can resolve disputes and refund funds if needed
-            </Form.Text>
-          </Form.Group>
-          
-          <Form.Group className="mb-3">
-            <Form.Label>Amount (MON)</Form.Label>
-            <Form.Control
-              type="text"
-              placeholder="0.01"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              required
-            />
-            <Form.Text className="text-muted">
-              The amount to place in escrow (Max: 1000 MON)
-            </Form.Text>
-          </Form.Group>
-          
-          <Button 
-            variant="primary" 
-            type="submit" 
-            disabled={loading || !isFormValid()}
-          >
-            {loading ? <Spinner animation="border" size="sm" /> : 'Create Escrow'}
-          </Button>
-        </Form>
-      </Card.Body>
-    </Card>
+              </Collapse>
+
+              <Form.Control
+                type="text"
+                placeholder="0x..."
+                value={arbiterAddress}
+                onChange={(e) => setArbiterAddress(e.target.value)}
+                isInvalid={!arbiterValidation.isValid}
+                required
+              />
+              {!arbiterValidation.isValid && (
+                <Form.Control.Feedback type="invalid">
+                  {arbiterValidation.message}
+                </Form.Control.Feedback>
+              )}
+              <Form.Text className="text-muted">
+                Neutral third party who can resolve disputes
+              </Form.Text>
+            </Form.Group>
+
+            {/* Amount */}
+            <Form.Group className="mb-4">
+              <Form.Label>
+                Amount (MON)
+                <Badge bg="secondary" className="ms-2">Required</Badge>
+              </Form.Label>
+              <Form.Control
+                type="number"
+                step="0.001"
+                min="0.001"
+                placeholder="0.000"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                required
+              />
+              <Form.Text className="text-muted">
+                Minimum: 0.001 MON • This amount will be locked in escrow
+              </Form.Text>
+            </Form.Group>
+
+            {/* Action Buttons */}
+            <div className="d-grid gap-2">
+              <Button 
+                variant="primary" 
+                type="submit" 
+                disabled={loading || !isFormValid()}
+                size="lg"
+              >
+                {loading ? (
+                  <>
+                    <div className="spinner-border spinner-border-sm me-2" role="status">
+                      <span className="visually-hidden">Loading...</span>
+                    </div>
+                    Creating Escrow...
+                  </>
+                ) : (
+                  <>
+                    ✨ Create Escrow
+                  </>
+                )}
+              </Button>
+              
+              {!isFormValid() && sellerAddress && arbiterAddress && amount && (
+                <Alert variant="warning" className="mb-0">
+                  Please fix the validation errors above to continue
+                </Alert>
+              )}
+            </div>
+          </Form>
+
+          {/* Security Notice */}
+          <Alert variant="warning" className="mt-4 security-notice">
+            <h6>🔒 Security Notice</h6>
+            <ul className="mb-0 small">
+              <li>Always verify addresses before creating escrow</li>
+              <li>Choose a trusted arbiter for dispute resolution</li>
+              <li>This is testnet - use only test funds</li>
+            </ul>
+          </Alert>
+        </Card.Body>
+      </Card>
+    </div>
   );
 };
 
