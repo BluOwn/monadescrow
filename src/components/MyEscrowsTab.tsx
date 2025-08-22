@@ -1,8 +1,33 @@
 // src/components/MyEscrowsTab.tsx - Minimalist Design
 import React, { useState } from 'react';
 import { Card, Button, Badge, Alert, Row, Col, Form } from 'react-bootstrap';
-import { MyEscrowsTabProps } from '../types';
 import LoadingProgress from './LoadingProgress';
+
+interface ProgressInfo {
+  total: number;
+  loaded: number;
+  failed: number;
+  percentage: number;
+}
+
+interface RateLimitInfo {
+  per10Sec: number;
+  per10Min: number;
+  maxPer10Sec: number;
+  maxPer10Min: number;
+}
+
+interface MyEscrowsTabProps {
+  escrows: any[];
+  onViewDetails: (escrowId: string) => void;
+  loadingEscrows: boolean;
+  retryLoadingEscrows: () => void;
+  account: string;
+  onAction: (action: string, escrowId: string, recipient?: string) => void;
+  progress?: ProgressInfo;
+  rateLimitInfo?: RateLimitInfo;
+  error?: string | null;
+}
 
 const MyEscrowsTab: React.FC<MyEscrowsTabProps> = ({ 
   escrows, 
@@ -132,7 +157,7 @@ const MyEscrowsTab: React.FC<MyEscrowsTabProps> = ({
             error={escrowError}
           />
 
-          {/* Filters and Sorting */}d Sorting */}
+          {/* Filters and Sorting */}
           {escrows.length > 0 && (
             <Row className="mb-4">
               <Col md={6}>

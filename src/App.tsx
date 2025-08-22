@@ -343,6 +343,9 @@ const App: React.FC = () => {
                   }}
                   account={wallet.account}
                   onAction={handleEscrowAction}
+                  progress={escrowLoader.progress}
+                  rateLimitInfo={escrowLoader.rateLimitInfo}
+                  error={escrowLoader.error}
                 />
               )}
               
