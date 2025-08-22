@@ -1,332 +1,233 @@
-// src/components/HowToUseTab.tsx - Minimalist Guide
-import React, { useState } from 'react';
-import { Card, Button, Alert, Badge, Collapse, Row, Col } from 'react-bootstrap';
+// src/components/HowToUseTab.tsx - Simple guide for new users
+import React from 'react';
+import { Card, Row, Col, Alert, Badge } from 'react-bootstrap';
 
 const HowToUseTab: React.FC = () => {
-  const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>({
-    setup: true,
-    create: false,
-    manage: false,
-    security: false
-  });
-
-  const toggleSection = (section: string) => {
-    setOpenSections(prev => ({
-      ...prev,
-      [section]: !prev[section]
-    }));
-  };
-
-  const steps = [
-    {
-      id: 'setup',
-      title: 'Getting Started',
-      icon: '🚀',
-      description: 'Set up your wallet and connect to Monad Testnet',
-      content: (
-        <div>
-          <h6>Prerequisites</h6>
-          <ul className="mb-3">
-            <li>MetaMask browser extension installed</li>
-            <li>Monad Testnet configured in MetaMask</li>
-            <li>Test MON tokens in your wallet</li>
-          </ul>
-          
-          <Alert variant="info">
-            <h6>🌐 Network Configuration</h6>
-            <p className="mb-2">Add Monad Testnet to MetaMask:</p>
-            <ul className="mb-0 small">
-              <li><strong>Network Name:</strong> Monad Testnet</li>
-              <li><strong>RPC URL:</strong> https://testnet-rpc.monad.xyz</li>
-              <li><strong>Chain ID:</strong> 10143</li>
-              <li><strong>Currency Symbol:</strong> MON</li>
-            </ul>
-          </Alert>
-          
-          <div className="d-grid">
-            <Button variant="primary" size="lg">
-              🦊 Connect MetaMask
-            </Button>
-          </div>
-        </div>
-      )
-    },
-    {
-      id: 'create',
-      title: 'Creating an Escrow',
-      icon: '✨',
-      description: 'Learn how to create secure escrow agreements',
-      content: (
-        <div>
-          <h6>Step-by-Step Process</h6>
-          <div className="process-steps">
-            <div className="step-item">
-              <Badge bg="primary" className="step-number">1</Badge>
-              <div>
-                <strong>Enter Seller Address</strong>
-                <p className="mb-0 small text-muted">The wallet address that will receive funds when escrow completes</p>
-              </div>
-            </div>
-            <div className="step-item">
-              <Badge bg="primary" className="step-number">2</Badge>
-              <div>
-                <strong>Choose an Arbiter</strong>
-                <p className="mb-0 small text-muted">A neutral third party who can resolve disputes</p>
-              </div>
-            </div>
-            <div className="step-item">
-              <Badge bg="primary" className="step-number">3</Badge>
-              <div>
-                <strong>Set Amount</strong>
-                <p className="mb-0 small text-muted">Enter the amount of MON to lock in escrow (minimum 0.001)</p>
-              </div>
-            </div>
-            <div className="step-item">
-              <Badge bg="success" className="step-number">✓</Badge>
-              <div>
-                <strong>Confirm Transaction</strong>
-                <p className="mb-0 small text-muted">Review details and sign the transaction in MetaMask</p>
-              </div>
-            </div>
-          </div>
-          
-          <Alert variant="warning" className="mt-3">
-            <strong>⚠️ Important:</strong> Buyer, seller, and arbiter must all be different addresses!
-          </Alert>
-        </div>
-      )
-    },
-    {
-      id: 'manage',
-      title: 'Managing Escrows',
-      icon: '📋',
-      description: 'Track and manage your escrow agreements',
-      content: (
-        <div>
-          <h6>Escrow Lifecycle</h6>
-          <div className="lifecycle-stages">
-            <div className="stage-item">
-              <Badge bg="warning">Created</Badge>
-              <div className="stage-content">
-                <strong>Initial State</strong>
-                <p className="mb-0 small">Escrow is created but not yet funded. Buyer can cancel at this stage.</p>
-              </div>
-            </div>
-            <div className="stage-item">
-              <Badge bg="primary">Funded</Badge>
-              <div className="stage-content">
-                <strong>Active Escrow</strong>
-                <p className="mb-0 small">Funds are locked. Seller can confirm receipt or disputes can be raised.</p>
-              </div>
-            </div>
-            <div className="stage-item">
-              <Badge bg="danger">Disputed</Badge>
-              <div className="stage-content">
-                <strong>Under Review</strong>
-                <p className="mb-0 small">Arbiter must decide whether to release funds to seller or refund buyer.</p>
-              </div>
-            </div>
-            <div className="stage-item">
-              <Badge bg="success">Completed</Badge>
-              <div className="stage-content">
-                <strong>Final State</strong>
-                <p className="mb-0 small">Funds have been released to the seller or refunded to the buyer.</p>
-              </div>
-            </div>
-          </div>
-          
-          <h6 className="mt-4">Available Actions</h6>
-          <Row>
-            <Col md={6}>
-              <Card className="action-card">
-                <Card.Body className="py-3">
-                  <h6>👨‍💼 As Buyer</h6>
-                  <ul className="mb-0 small">
-                    <li>Cancel unfunded escrows</li>
-                    <li>Raise disputes</li>
-                    <li>View escrow details</li>
-                  </ul>
-                </Card.Body>
-              </Card>
-            </Col>
-            <Col md={6}>
-              <Card className="action-card">
-                <Card.Body className="py-3">
-                  <h6>👩‍💼 As Seller</h6>
-                  <ul className="mb-0 small">
-                    <li>Confirm receipt of payment</li>
-                    <li>Raise disputes</li>
-                    <li>View escrow details</li>
-                  </ul>
-                </Card.Body>
-              </Card>
-            </Col>
-          </Row>
-        </div>
-      )
-    },
-    {
-      id: 'security',
-      title: 'Security & Best Practices',
-      icon: '🔒',
-      description: 'Keep your transactions safe and secure',
-      content: (
-        <div>
-          <h6>Security Guidelines</h6>
-          <Alert variant="danger">
-            <h6>🚨 Critical Security Rules</h6>
-            <ul className="mb-0">
-              <li>Never share your private keys or seed phrase</li>
-              <li>Always verify contract addresses before interacting</li>
-              <li>Double-check all addresses before creating escrows</li>
-              <li>This is testnet only - never use real funds</li>
-            </ul>
-          </Alert>
-          
-          <h6>Best Practices</h6>
-          <div className="best-practices">
-            <div className="practice-item">
-              <span className="practice-icon">✅</span>
-              <div>
-                <strong>Verify Addresses</strong>
-                <p className="mb-0 small">Always double-check wallet addresses before creating escrows</p>
-              </div>
-            </div>
-            <div className="practice-item">
-              <span className="practice-icon">✅</span>
-              <div>
-                <strong>Choose Trusted Arbiters</strong>
-                <p className="mb-0 small">Select arbiters you trust to resolve disputes fairly</p>
-              </div>
-            </div>
-            <div className="practice-item">
-              <span className="practice-icon">✅</span>
-              <div>
-                <strong>Start Small</strong>
-                <p className="mb-0 small">Test with small amounts before larger transactions</p>
-              </div>
-            </div>
-            <div className="practice-item">
-              <span className="practice-icon">✅</span>
-              <div>
-                <strong>Monitor Gas Fees</strong>
-                <p className="mb-0 small">Ensure you have enough MON for transaction fees</p>
-              </div>
-            </div>
-          </div>
-          
-          <Alert variant="info" className="mt-3">
-            <h6>🔍 Contract Verification</h6>
-            <p className="mb-1">Our smart contract is verified and open source:</p>
-            <Button 
-              variant="outline-primary" 
-              size="sm"
-              href="https://github.com/BluOwn/monadescrow" 
-              target="_blank"
-            >
-              📄 View Source Code
-            </Button>
-          </Alert>
-        </div>
-      )
-    }
-  ];
-
   return (
-    <div className="how-to-use-container">
-      <Card className="welcome-card">
-        <Card.Header className="text-center">
-          <h2 className="mb-2">Welcome to Monad Escrow</h2>
-          <p className="text-muted mb-0">
-            Secure, decentralized escrow service on Monad Testnet
+    <div className="how-to-use">
+      {/* Header */}
+      <Card className="mb-4">
+        <Card.Body className="text-center">
+          <h2>🚀 How to Use Monad Escrow</h2>
+          <p className="lead">
+            Simple, secure escrow transactions on Monad Testnet
           </p>
-        </Card.Header>
-        
-        <Card.Body>
-          <Alert variant="primary" className="welcome-alert">
-            <h5>🎯 What is Monad Escrow?</h5>
-            <p className="mb-3">
-              Monad Escrow is a smart contract-based service that enables secure transactions 
-              between parties who don't trust each other. Funds are held in escrow until 
-              both parties fulfill their obligations or a dispute is resolved.
-            </p>
-            
-            <Row>
-              <Col md={4} className="text-center">
-                <div className="feature-item">
-                  <div className="feature-icon">🔒</div>
-                  <h6>Secure</h6>
-                  <p className="small text-muted">Smart contract protection</p>
-                </div>
-              </Col>
-              <Col md={4} className="text-center">
-                <div className="feature-item">
-                  <div className="feature-icon">⚖️</div>
-                  <h6>Fair</h6>
-                  <p className="small text-muted">Neutral arbitration system</p>
-                </div>
-              </Col>
-              <Col md={4} className="text-center">
-                <div className="feature-item">
-                  <div className="feature-icon">🌐</div>
-                  <h6>Decentralized</h6>
-                  <p className="small text-muted">No central authority</p>
-                </div>
-              </Col>
-            </Row>
-          </Alert>
         </Card.Body>
       </Card>
 
-      {/* Interactive Guide Sections */}
-      <div className="guide-sections">
-        {steps.map((step) => (
-          <Card key={step.id} className="guide-section">
-            <Card.Header>
-              <Button
-                variant="link"
-                className="w-100 text-start p-0 text-decoration-none"
-                onClick={() => toggleSection(step.id)}
-              >
-                <div className="d-flex justify-content-between align-items-center">
-                  <div className="d-flex align-items-center gap-3">
-                    <span className="step-icon">{step.icon}</span>
-                    <div>
-                      <h5 className="mb-0">{step.title}</h5>
-                      <p className="mb-0 small text-muted">{step.description}</p>
-                    </div>
-                  </div>
-                  <Badge bg={openSections[step.id] ? 'primary' : 'secondary'}>
-                    {openSections[step.id] ? '▼' : '▶'}
-                  </Badge>
-                </div>
-              </Button>
-            </Card.Header>
-            
-            <Collapse in={openSections[step.id]}>
-              <Card.Body>
-                {step.content}
-              </Card.Body>
-            </Collapse>
-          </Card>
-        ))}
-      </div>
-
-      {/* Call to Action */}
-      <Card className="cta-card">
-        <Card.Body className="text-center">
-          <h4>Ready to Get Started?</h4>
-          <p className="text-muted mb-4">
-            Connect your wallet and create your first secure escrow transaction
+      {/* What is Escrow */}
+      <Card className="mb-4">
+        <Card.Header>
+          <h4>🤔 What is Escrow?</h4>
+        </Card.Header>
+        <Card.Body>
+          <p>
+            Escrow is a secure way to trade where funds are held by a trusted third party until both parties fulfill their obligations.
           </p>
-          <div className="d-grid gap-2 d-md-flex justify-content-md-center">
-            <Button variant="primary" size="lg">
-              🦊 Connect Wallet
-            </Button>
-            <Button variant="outline-secondary" size="lg">
-              📚 Learn More
-            </Button>
+          <div className="text-center my-3">
+            <Badge bg="info" className="me-2">Buyer</Badge>
+            <span>→</span>
+            <Badge bg="warning" className="mx-2">Escrow</Badge>
+            <span>→</span>
+            <Badge bg="success" className="ms-2">Seller</Badge>
           </div>
+          <p className="text-muted">
+            <small>💡 Perfect for buying/selling digital goods, services, or any transaction where trust is needed.</small>
+          </p>
+        </Card.Body>
+      </Card>
+
+      {/* Step-by-Step Guide */}
+      <Card className="mb-4">
+        <Card.Header>
+          <h4>📋 Step-by-Step Guide</h4>
+        </Card.Header>
+        <Card.Body>
+          <Row>
+            <Col md={6}>
+              <div className="step-card mb-3">
+                <h5>
+                  <Badge bg="primary" className="me-2">1</Badge>
+                  Connect Wallet
+                </h5>
+                <p>Connect your MetaMask wallet to Monad Testnet</p>
+                <Alert variant="info" className="py-2">
+                  <small>
+                    <strong>Need testnet MON?</strong><br/>
+                    Get free testnet tokens from the Monad faucet
+                  </small>
+                </Alert>
+              </div>
+
+              <div className="step-card mb-3">
+                <h5>
+                  <Badge bg="primary" className="me-2">2</Badge>
+                  Create Escrow
+                </h5>
+                <p>Fill in the details:</p>
+                <ul>
+                  <li><strong>Seller Address:</strong> Who receives the funds</li>
+                  <li><strong>Arbiter Address:</strong> Trusted dispute resolver</li>
+                  <li><strong>Amount:</strong> How much MON to escrow</li>
+                </ul>
+              </div>
+
+              <div className="step-card mb-3">
+                <h5>
+                  <Badge bg="primary" className="me-2">3</Badge>
+                  Complete Transaction
+                </h5>
+                <p>Once both parties are satisfied:</p>
+                <ul>
+                  <li>Buyer clicks <strong>"Release Funds"</strong></li>
+                  <li>Seller receives the MON</li>
+                  <li>Escrow is completed ✅</li>
+                </ul>
+              </div>
+            </Col>
+
+            <Col md={6}>
+              <div className="roles-explanation">
+                <h5>👥 Understanding Roles</h5>
+                
+                <div className="role-card mb-3">
+                  <h6>
+                    <Badge bg="info" className="me-2">🛒 Buyer</Badge>
+                  </h6>
+                  <p>
+                    <strong>You are the buyer</strong> when you create an escrow.
+                    You send MON to the escrow contract and can release it to the seller.
+                  </p>
+                </div>
+
+                <div className="role-card mb-3">
+                  <h6>
+                    <Badge bg="success" className="me-2">💰 Seller</Badge>
+                  </h6>
+                  <p>
+                    <strong>You are the seller</strong> when someone creates an escrow with your address.
+                    You receive MON when the buyer releases funds.
+                  </p>
+                </div>
+
+                <div className="role-card mb-3">
+                  <h6>
+                    <Badge bg="warning" className="me-2">⚖️ Arbiter</Badge>
+                  </h6>
+                  <p>
+                    <strong>You are the arbiter</strong> when chosen as a dispute resolver.
+                    You can refund the buyer or resolve disputes fairly.
+                  </p>
+                </div>
+              </div>
+            </Col>
+          </Row>
+        </Card.Body>
+      </Card>
+
+      {/* Common Actions */}
+      <Card className="mb-4">
+        <Card.Header>
+          <h4>⚡ Common Actions</h4>
+        </Card.Header>
+        <Card.Body>
+          <Row>
+            <Col md={4}>
+              <div className="action-card">
+                <h6>🟢 Release Funds</h6>
+                <p><strong>As Buyer:</strong> Release funds to seller when satisfied with goods/services</p>
+              </div>
+            </Col>
+            <Col md={4}>
+              <div className="action-card">
+                <h6>🔴 Refund Buyer</h6>
+                <p><strong>As Seller/Arbiter:</strong> Return funds to buyer if issues arise</p>
+              </div>
+            </Col>
+            <Col md={4}>
+              <div className="action-card">
+                <h6>⚠️ Raise Dispute</h6>
+                <p><strong>As Buyer/Seller:</strong> Ask arbiter to resolve disagreements</p>
+              </div>
+            </Col>
+          </Row>
+        </Card.Body>
+      </Card>
+
+      {/* Safety Tips */}
+      <Card className="mb-4">
+        <Card.Header>
+          <h4>🛡️ Safety Tips</h4>
+        </Card.Header>
+        <Card.Body>
+          <Row>
+            <Col md={6}>
+              <Alert variant="success">
+                <h6>✅ Do This</h6>
+                <ul className="mb-0">
+                  <li>Verify all addresses before creating escrow</li>
+                  <li>Choose a trusted arbiter both parties agree on</li>
+                  <li>Communicate clearly about expectations</li>
+                  <li>Keep transaction records</li>
+                </ul>
+              </Alert>
+            </Col>
+            <Col md={6}>
+              <Alert variant="danger">
+                <h6>❌ Don't Do This</h6>
+                <ul className="mb-0">
+                  <li>Never share your private keys</li>
+                  <li>Don't use untrusted arbiters</li>
+                  <li>Avoid escrows without clear terms</li>
+                  <li>Don't ignore disputes</li>
+                </ul>
+              </Alert>
+            </Col>
+          </Row>
+        </Card.Body>
+      </Card>
+
+      {/* FAQ */}
+      <Card className="mb-4">
+        <Card.Header>
+          <h4>❓ Quick FAQ</h4>
+        </Card.Header>
+        <Card.Body>
+          <div className="faq-item mb-3">
+            <h6>Q: What happens if the seller doesn't deliver?</h6>
+            <p>A: You can raise a dispute, and the arbiter will decide whether to refund you or release funds to the seller.</p>
+          </div>
+
+          <div className="faq-item mb-3">
+            <h6>Q: Can I cancel an escrow?</h6>
+            <p>A: Once created, escrows can only be resolved by releasing funds, refunding, or arbiter decision. Choose carefully!</p>
+          </div>
+
+          <div className="faq-item mb-3">
+            <h6>Q: How do I choose a good arbiter?</h6>
+            <p>A: Pick someone both parties trust - could be a mutual friend, reputable community member, or our website arbiter service.</p>
+          </div>
+
+          <div className="faq-item mb-0">
+            <h6>Q: Are there any fees?</h6>
+            <p>A: Only standard Monad network gas fees. The escrow contract itself is free to use!</p>
+          </div>
+        </Card.Body>
+      </Card>
+
+      {/* Get Started */}
+      <Card className="mb-4">
+        <Card.Body className="text-center">
+          <h4>🎉 Ready to Get Started?</h4>
+          <p>
+            Connect your wallet and create your first secure escrow transaction!
+          </p>
+          <Alert variant="info" className="mt-3">
+            <small>
+              <strong>New to Monad Testnet?</strong><br/>
+              Add network: RPC URL, Chain ID 10143, Currency: MON
+            </small>
+          </Alert>
         </Card.Body>
       </Card>
     </div>

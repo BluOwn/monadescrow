@@ -1,29 +1,28 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+// vite.config.ts
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import { resolve } from 'path';
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    alias: {
+      // Set up path alias to match your CRA setup
+      'src': resolve(__dirname, 'src')
+    },
+  },
+  // Polyfill needed features that might be used by ethers.js
+  define: {
+    'process.env': {},
+    'global': {},
+  },
+  // Handle assets like CRA does
   build: {
-    outDir: 'dist',
-    sourcemap: false,
-    minify: 'esbuild', // Use esbuild instead of terser for faster builds
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom'],
-          bootstrap: ['react-bootstrap', 'bootstrap'],
-          ethers: ['ethers']
-        }
-      }
-    }
+    outDir: 'build', // Match CRA output dir name
   },
+  // Setup server to support .well-known and other routes
   server: {
-    port: 3000,
-    open: true
-  },
-  preview: {
-    port: 4173,
-    open: true
+    port: 3000, // Same as CRA
   }
-})
+});
