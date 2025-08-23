@@ -1,4 +1,4 @@
-// src/App.tsx - Final Fixed Version Matching Your Actual Hook Interfaces
+// src/App.tsx - Minimal Working Version Using Only Existing Hook Properties
 import React, { Suspense, useState, useEffect, useContext, useCallback } from 'react';
 import { Button, Container, Alert, Modal, Badge, Card, Row, Col, ProgressBar, Navbar, Nav } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -7,12 +7,12 @@ import './App.css';
 // Import contexts
 import { ThemeContext } from './contexts/ThemeContext';
 
-// Import hooks (using your actual hook interfaces)
+// Import hooks (using only existing properties)
 import useWallet from './hooks/useWallet';
 import useRobustEscrowLoader from './hooks/useRobustEscrowLoader';
 import useEscrowOperations from './hooks/useEscrowOperations';
 
-// Enhanced Components - Fixed imports
+// Enhanced Components
 import EnhancedNavPills from './components/EnhancedNavPills';
 import EscrowDashboard from './components/EscrowDashboard';
 import EnhancedEscrowCard from './components/EnhancedEscrowCard';
@@ -42,11 +42,11 @@ import {
   NetworkWarning
 } from './components/SecurityComponents';
 
-// Types - Matching your actual Escrow type
+// Types
 type TabType = 'dashboard' | 'my-escrows' | 'create' | 'activity';
 type SortBy = 'date' | 'amount' | 'status';
 
-// Use your actual Escrow type and extend it if needed
+// Extended Escrow interface that matches what components expect
 interface ExtendedEscrow {
   id: string;
   buyer: string;
@@ -56,10 +56,6 @@ interface ExtendedEscrow {
   status: 'pending' | 'funded' | 'completed' | 'disputed' | 'resolved';
   createdAt: Date;
   description?: string;
-  // Add any other properties from your actual Escrow type
-  escrowId?: string;
-  state?: number;
-  timestamp?: number;
 }
 
 interface Notification {
@@ -72,7 +68,7 @@ interface Notification {
 // Helper function to convert your Escrow type to ExtendedEscrow
 const convertToExtendedEscrow = (escrow: any): ExtendedEscrow => {
   return {
-    id: escrow.escrowId || escrow.id || '',
+    id: escrow.escrowId?.toString() || escrow.id?.toString() || Math.random().toString(),
     buyer: escrow.buyer || '',
     seller: escrow.seller || '',
     arbiter: escrow.arbiter || '',
@@ -82,44 +78,35 @@ const convertToExtendedEscrow = (escrow: any): ExtendedEscrow => {
             escrow.state === 2 ? 'completed' : 
             escrow.state === 3 ? 'disputed' : 'resolved',
     createdAt: escrow.timestamp ? new Date(escrow.timestamp * 1000) : new Date(),
-    description: escrow.description || '',
-    ...escrow
+    description: escrow.description || `Escrow #${escrow.escrowId || escrow.id || ''}`,
   };
 };
 
 const App: React.FC = () => {
   const { darkMode, toggleDarkMode } = useContext(ThemeContext);
   
-  // Wallet hook - using actual property names from your hook
+  // Wallet hook - using only existing properties
   const {
     account,
     connected,
     error: walletError,
     connectWallet,
-    disconnectWallet,
-    provider,
-    signer,
-    chainName,
-    balance
+    disconnectWallet
   } = useWallet();
 
-  // Escrow loader hook - using actual property names
+  // Escrow loader hook - using only existing properties
   const {
     activeEscrows,
     loading,
     error: escrowError,
-    refetchEscrows,
     progress,
     stats
   } = useRobustEscrowLoader();
 
-  // Escrow operations hook - using actual property names
+  // Escrow operations hook - using only existing properties
   const {
     createEscrow,
-    isCreating,
-    isOperating: operationInProgress,
-    operationError,
-    rateLimitAlert
+    rateLimited
   } = useEscrowOperations();
 
   // Enhanced State Management
@@ -135,8 +122,8 @@ const App: React.FC = () => {
   // Convert escrows to the format expected by components
   const convertedEscrows = activeEscrows?.map(convertToExtendedEscrow) || [];
   
-  // Check if wallet is connecting (derived from state)
-  const isConnecting = !connected && !walletError && account === null;
+  // Derive connecting state
+  const isConnecting = !connected && !walletError && !account;
 
   // Enhanced Effects
   useEffect(() => {
@@ -166,9 +153,8 @@ const App: React.FC = () => {
       message,
       timestamp: new Date()
     };
-    setNotifications(prev => [notification, ...prev.slice(0, 4)]); // Keep only 5 latest
+    setNotifications(prev => [notification, ...prev.slice(0, 4)]);
     
-    // Auto remove after 5 seconds
     setTimeout(() => {
       setNotifications(prev => prev.filter(n => n.id !== notification.id));
     }, 5000);
@@ -176,6 +162,11 @@ const App: React.FC = () => {
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab as TabType);
+  };
+
+  // Simple refresh function
+  const handleRefresh = () => {
+    window.location.reload();
   };
 
   const filteredEscrows = convertedEscrows?.filter((escrow: ExtendedEscrow) => {
@@ -248,14 +239,14 @@ const App: React.FC = () => {
         <SecurityBanner />
 
         {/* Network Warning */}
-        <NetworkWarning currentNetwork={chainName} expectedNetwork="Monad Testnet" />
+        <NetworkWarning currentNetwork="Current Network" expectedNetwork="Monad Testnet" />
 
         {/* Rate Limit Alert */}
-        {rateLimitAlert && (
+        {rateLimited && (
           <RateLimitAlert 
             isVisible={true}
             onDismiss={() => {}}
-            onRetry={() => {}}
+            onRetry={handleRefresh}
           />
         )}
 
@@ -379,7 +370,7 @@ const App: React.FC = () => {
                             currentUser={account || ''}
                             onAction={(action) => {
                               handleNotification('success', `${action} completed successfully`);
-                              refetchEscrows();
+                              handleRefresh(); // Simple refresh instead of refetch
                             }}
                           />
                         ))}
@@ -402,7 +393,7 @@ const App: React.FC = () => {
                       </Card.Header>
                       <Card.Body>
                         <p>Enhanced create form coming soon...</p>
-                        {isCreating && <LoadingIndicator />}
+                        {loading && <LoadingIndicator />}
                       </Card.Body>
                     </Card>
                   </div>
