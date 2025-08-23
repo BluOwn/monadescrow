@@ -91,3 +91,397 @@ body.dark-mode .placeholder-glow .placeholder {
     transform: translateX(100%);
   }
 }
+
+/* Enhanced Wallet Connection Styles - Add to src/components/components.css */
+
+/* Wallet Connected State */
+.wallet-connected {
+  padding: var(--space-3);
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: var(--radius-xl);
+  backdrop-filter: blur(10px);
+}
+
+.wallet-address {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--success-600);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+/* Connection State */
+.wallet-connection-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 70vh;
+  padding: var(--space-8);
+}
+
+.connection-buttons {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: var(--space-6);
+}
+
+.quick-connect-button {
+  position: relative;
+  overflow: hidden;
+}
+
+.quick-connect-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transition: left 0.5s;
+}
+
+.quick-connect-button:hover::before {
+  left: 100%;
+}
+
+/* Wallet Selection Modal */
+.wallet-modal .modal-content {
+  border-radius: var(--radius-3xl) !important;
+  border: none !important;
+  box-shadow: var(--shadow-2xl) !important;
+  overflow: hidden;
+}
+
+.wallet-modal .modal-header {
+  background: linear-gradient(135deg, var(--primary-50), var(--secondary-50));
+  border-bottom: 1px solid var(--border-primary);
+  padding: var(--space-6);
+}
+
+.wallet-modal .modal-body {
+  padding: var(--space-6);
+}
+
+.wallet-providers {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.wallet-provider-card {
+  cursor: pointer;
+  border: 2px solid var(--border-primary) !important;
+  border-radius: var(--radius-xl) !important;
+  transition: var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+}
+
+.wallet-provider-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, var(--primary-500), var(--secondary-500));
+  opacity: 0;
+  transition: var(--transition-normal);
+}
+
+.wallet-provider-card:hover::before {
+  opacity: 0.1;
+}
+
+.wallet-provider-card.disabled {
+  opacity: 0.6;
+  cursor: not-allowed !important;
+}
+
+.wallet-provider-card.disabled:hover::before {
+  opacity: 0;
+}
+
+.wallet-provider-card .card-body {
+  position: relative;
+  z-index: 1;
+  padding: var(--space-5);
+}
+
+.provider-icon {
+  width: 48px;
+  height: 48px;
+  background: var(--primary-100);
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-2xl);
+  flex-shrink: 0;
+}
+
+.wallet-provider-card h5 {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.wallet-provider-card p {
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+/* Instructions Modal */
+.instructions-modal .modal-content {
+  border-radius: var(--radius-2xl) !important;
+  border: none !important;
+  box-shadow: var(--shadow-xl) !important;
+}
+
+.instructions-modal .modal-header {
+  background: var(--primary-50);
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.setup-instructions {
+  padding: var(--space-4) 0;
+}
+
+.instruction-step {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+  padding: var(--space-4);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-primary);
+}
+
+.step-number {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, var(--primary-500), var(--secondary-500));
+  color: white;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: var(--text-lg);
+  flex-shrink: 0;
+}
+
+.instruction-step h6 {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.instruction-step p {
+  color: var(--text-secondary);
+  margin-bottom: var(--space-3);
+}
+
+.network-details {
+  background: var(--bg-tertiary);
+  padding: var(--space-3);
+  border-radius: var(--radius);
+  border: 1px solid var(--border-secondary);
+  margin-top: var(--space-2);
+}
+
+.network-details ul {
+  margin-bottom: 0;
+  padding-left: var(--space-4);
+}
+
+.network-details li {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-1);
+}
+
+/* Connection Attempt Warnings */
+.connection-attempts-warning {
+  background: linear-gradient(135deg, var(--warning-50), var(--warning-100));
+  border: 1px solid var(--warning-300);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.connection-attempts-warning ul {
+  margin-bottom: 0;
+  padding-left: var(--space-4);
+}
+
+.connection-attempts-warning li {
+  font-size: var(--text-sm);
+  margin-bottom: var(--space-1);
+}
+
+/* Responsive Wallet Connection */
+@media (max-width: 768px) {
+  .wallet-connection-section {
+    min-height: 60vh;
+    padding: var(--space-4);
+  }
+  
+  .connection-buttons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .connect-button,
+  .quick-connect-button {
+    width: 100%;
+    margin: 0 !important;
+  }
+  
+  .wallet-modal .modal-dialog {
+    margin: var(--space-3);
+  }
+  
+  .wallet-provider-card .card-body {
+    padding: var(--space-4);
+  }
+  
+  .provider-icon {
+    width: 40px;
+    height: 40px;
+    font-size: var(--text-xl);
+  }
+  
+  .instruction-step {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .step-number {
+    align-self: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .wallet-connected {
+    flex-direction: column;
+    gap: var(--space-3);
+    text-align: center;
+  }
+  
+  .wallet-connected .d-flex {
+    flex-direction: column;
+    align-items: center !important;
+  }
+  
+  .wallet-address {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .instructions-modal .modal-dialog {
+    margin: var(--space-2);
+  }
+}
+
+/* Dark Mode Wallet Styles */
+.dark-mode .wallet-connected {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: rgba(16, 185, 129, 0.4);
+}
+
+.dark-mode .wallet-address {
+  background: rgba(16, 185, 129, 0.2);
+  color: var(--success-400);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.dark-mode .wallet-modal .modal-header,
+.dark-mode .instructions-modal .modal-header {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(6, 182, 212, 0.1));
+}
+
+.dark-mode .wallet-provider-card {
+  background: var(--dark-bg-secondary) !important;
+  border-color: var(--dark-border-primary) !important;
+}
+
+.dark-mode .provider-icon {
+  background: rgba(99, 102, 241, 0.2);
+}
+
+.dark-mode .instruction-step {
+  background: var(--dark-bg-tertiary);
+  border-color: var(--dark-border-primary);
+}
+
+.dark-mode .network-details {
+  background: var(--dark-bg-primary);
+  border-color: var(--dark-border-secondary);
+}
+
+.dark-mode .connection-attempts-warning {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+/* Animation for connection success */
+@keyframes connectionSuccess {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+.wallet-connected.success-animation {
+  animation: connectionSuccess 0.8s ease-out;
+}
+
+/* Loading spinner for connection */
+.wallet-connecting {
+  position: relative;
+}
+
+.wallet-connecting::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 20px;
+  border: 2px solid transparent;
+  border-top: 2px solid var(--primary-500);
+  border-radius: var(--radius-full);
+  animation: spin 1s linear infinite;
+}
+
+/* Pulse effect for waiting states */
+.connection-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
