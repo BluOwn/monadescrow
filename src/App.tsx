@@ -1,4 +1,4 @@
-// src/App.tsx - Minimal Working Version Using Only Existing Hook Properties
+// src/App.tsx - Updated with Enhanced Wallet Connection
 import React, { Suspense, useState, useEffect, useContext, useCallback } from 'react';
 import { Button, Container, Alert, Modal, Badge, Card, Row, Col, ProgressBar, Navbar, Nav } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -7,7 +7,7 @@ import './App.css';
 // Import contexts
 import { ThemeContext } from './contexts/ThemeContext';
 
-// Import hooks (using only existing properties)
+// Import hooks
 import useWallet from './hooks/useWallet';
 import useRobustEscrowLoader from './hooks/useRobustEscrowLoader';
 import useEscrowOperations from './hooks/useEscrowOperations';
@@ -16,6 +16,7 @@ import useEscrowOperations from './hooks/useEscrowOperations';
 import EnhancedNavPills from './components/EnhancedNavPills';
 import EscrowDashboard from './components/EscrowDashboard';
 import EnhancedEscrowCard from './components/EnhancedEscrowCard';
+import EnhancedWalletConnection from './components/EnhancedWalletConnection';
 import { OnboardingTour } from './components/OnboardingTour';
 import { FloatingActionButton } from './components/FloatingActionButton';
 import { AnimatedLoader } from './components/AnimatedLoader';
@@ -46,7 +47,6 @@ import {
 type TabType = 'dashboard' | 'my-escrows' | 'create' | 'activity';
 type SortBy = 'date' | 'amount' | 'status';
 
-// Extended Escrow interface that matches what components expect
 interface ExtendedEscrow {
   id: string;
   buyer: string;
@@ -85,16 +85,17 @@ const convertToExtendedEscrow = (escrow: any): ExtendedEscrow => {
 const App: React.FC = () => {
   const { darkMode, toggleDarkMode } = useContext(ThemeContext);
   
-  // Wallet hook - using only existing properties
+  // Wallet hook
+  const walletHook = useWallet();
   const {
     account,
     connected,
     error: walletError,
     connectWallet,
     disconnectWallet
-  } = useWallet();
+  } = walletHook;
 
-  // Escrow loader hook - using only existing properties
+  // Escrow loader hook
   const {
     activeEscrows,
     loading,
@@ -103,7 +104,7 @@ const App: React.FC = () => {
     stats
   } = useRobustEscrowLoader();
 
-  // Escrow operations hook - using only existing properties
+  // Escrow operations hook
   const {
     createEscrow,
     rateLimited
@@ -118,27 +119,30 @@ const App: React.FC = () => {
   const [sortBy, setSortBy] = useState<SortBy>('date');
   const [isFirstVisit, setIsFirstVisit] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [connectionSuccess, setConnectionSuccess] = useState(false);
 
   // Convert escrows to the format expected by components
   const convertedEscrows = activeEscrows?.map(convertToExtendedEscrow) || [];
-  
-  // Derive connecting state
-  const isConnecting = !connected && !walletError && !account;
 
   // Enhanced Effects
   useEffect(() => {
-    const firstVisit = !localStorage.getItem('monad-escrow-visited');
-    if (firstVisit && connected) {
-      setIsFirstVisit(true);
-      setShowOnboarding(true);
-      localStorage.setItem('monad-escrow-visited', 'true');
-    }
+    if (connected && connectionSuccess) {
+      const firstVisit = !localStorage.getItem('monad-escrow-visited');
+      if (firstVisit) {
+        setIsFirstVisit(true);
+        setShowOnboarding(true);
+        localStorage.setItem('monad-escrow-visited', 'true');
+      }
 
-    const securityAccepted = localStorage.getItem('security-warning-accepted');
-    if (!securityAccepted && connected) {
-      setShowSecurityWarning(true);
+      const securityAccepted = localStorage.getItem('security-warning-accepted');
+      if (!securityAccepted) {
+        setShowSecurityWarning(true);
+      }
+
+      // Show success notification
+      handleNotification('success', '🎉 Wallet connected successfully!');
     }
-  }, [connected]);
+  }, [connected, connectionSuccess]);
 
   // Enhanced Handlers
   const handleSecurityAccept = useCallback(() => {
@@ -164,7 +168,15 @@ const App: React.FC = () => {
     setActiveTab(tab as TabType);
   };
 
-  // Simple refresh function
+  const handleConnectionSuccess = () => {
+    setConnectionSuccess(true);
+    handleNotification('success', 'Wallet connected successfully! 🎉');
+  };
+
+  const handleConnectionError = (error: string) => {
+    handleNotification('error', `Connection failed: ${error}`);
+  };
+
   const handleRefresh = () => {
     window.location.reload();
   };
@@ -193,53 +205,45 @@ const App: React.FC = () => {
     { id: 'activity', label: 'Activity', icon: '📈', description: 'Recent transactions' }
   ];
 
-  // Loading States
-  if (loading && !activeEscrows?.length) {
-    return (
-      <DarkModeWrapper>
-        <div className="app-wrapper">
-          <Container className="main-container">
-            <div className="loading-state">
-              <AnimatedLoader size="large" message="Loading your escrows..." />
-              <EscrowDetailsSkeleton />
-            </div>
-          </Container>
-        </div>
-      </DarkModeWrapper>
-    );
-  }
-
   return (
     <DarkModeWrapper>
       <div className="app-wrapper">
-        {/* Enhanced Header */}
-        <Navbar className="enhanced-navbar" expand="lg">
-          <Container>
-            <Navbar.Brand className="brand-logo">
-              <div className="logo-container">
-                <div className="logo-icon">🔐</div>
-                <div className="brand-text">
-                  <h1>Monad Escrow</h1>
-                  <span className="tagline">Secure. Trustless. Simple.</span>
+        {/* Enhanced Header - Only show when connected */}
+        {connected && (
+          <Navbar className="enhanced-navbar" expand="lg">
+            <Container>
+              <Navbar.Brand className="brand-logo">
+                <div className="logo-container">
+                  <div className="logo-icon">🔐</div>
+                  <div className="brand-text">
+                    <h1>Monad Escrow</h1>
+                    <span className="tagline">Secure. Trustless. Simple.</span>
+                  </div>
                 </div>
+              </Navbar.Brand>
+              
+              <div className="navbar-controls">
+                <TrustIndicators contractAddress="0x44f703203A65b6b11ea3b4540cC30337F0630927" />
+                <EnhancedThemeToggle />
+                <EnhancedWalletConnection
+                  connected={connected}
+                  account={account}
+                  error={walletError}
+                  connectWallet={connectWallet}
+                  disconnectWallet={disconnectWallet}
+                  onConnectionSuccess={handleConnectionSuccess}
+                  onConnectionError={handleConnectionError}
+                />
               </div>
-            </Navbar.Brand>
-            
-            <div className="navbar-controls">
-              <TrustIndicators contractAddress="0x44f703203A65b6b11ea3b4540cC30337F0630927" />
-              <EnhancedThemeToggle />
-              {connected && account && (
-                <AddressDisplay address={account} />
-              )}
-            </div>
-          </Container>
-        </Navbar>
+            </Container>
+          </Navbar>
+        )}
 
-        {/* Security Banner */}
-        <SecurityBanner />
+        {/* Security Banner - Only show when connected */}
+        {connected && <SecurityBanner />}
 
-        {/* Network Warning */}
-        <NetworkWarning currentNetwork="Current Network" expectedNetwork="Monad Testnet" />
+        {/* Network Warning - Only show when connected */}
+        {connected && <NetworkWarning currentNetwork="Current Network" expectedNetwork="Monad Testnet" />}
 
         {/* Rate Limit Alert */}
         {rateLimited && (
@@ -270,141 +274,112 @@ const App: React.FC = () => {
           {!connected ? (
             // Enhanced Connection State
             <div className="connection-state">
-              <Card className="welcome-card">
-                <Card.Body className="text-center">
-                  <div className="welcome-icon">🌟</div>
-                  <h2>Welcome to Monad Escrow</h2>
-                  <p className="lead">
-                    The most secure and user-friendly escrow service on Monad Testnet
-                  </p>
-                  <div className="features-grid">
-                    <div className="feature-item">
-                      <div className="feature-icon">🔒</div>
-                      <h5>Secure</h5>
-                      <p>Smart contract protection</p>
-                    </div>
-                    <div className="feature-item">
-                      <div className="feature-icon">⚡</div>
-                      <h5>Fast</h5>
-                      <p>Lightning-fast transactions</p>
-                    </div>
-                    <div className="feature-item">
-                      <div className="feature-icon">🌍</div>
-                      <h5>Trustless</h5>
-                      <p>No intermediaries needed</p>
-                    </div>
-                  </div>
-                  <Button 
-                    variant="primary" 
-                    size="lg"
-                    onClick={connectWallet}
-                    disabled={isConnecting}
-                    className="connect-button"
-                  >
-                    {isConnecting ? (
-                      <>
-                        <div className="spinner-border spinner-border-sm me-2" />
-                        Connecting...
-                      </>
-                    ) : (
-                      <>
-                        <span className="me-2">🦊</span>
-                        Connect Wallet
-                      </>
-                    )}
-                  </Button>
-                  <div className="supported-wallets">
-                    <small className="text-muted">Supports MetaMask and WalletConnect</small>
-                  </div>
-                </Card.Body>
-              </Card>
+              <EnhancedWalletConnection
+                connected={connected}
+                account={account}
+                error={walletError}
+                connectWallet={connectWallet}
+                disconnectWallet={disconnectWallet}
+                onConnectionSuccess={handleConnectionSuccess}
+                onConnectionError={handleConnectionError}
+              />
             </div>
           ) : (
             // Enhanced Main Application
             <>
-              {/* Enhanced Navigation */}
-              <EnhancedNavPills 
-                activeTab={activeTab}
-                onTabChange={handleTabChange}
-                tabs={tabs}
-              />
+              {/* Loading State */}
+              {loading && !activeEscrows?.length ? (
+                <div className="loading-state">
+                  <AnimatedLoader size="large" message="Loading your escrows..." />
+                  <EscrowDetailsSkeleton />
+                </div>
+              ) : (
+                <>
+                  {/* Enhanced Navigation */}
+                  <EnhancedNavPills 
+                    activeTab={activeTab}
+                    onTabChange={handleTabChange}
+                    tabs={tabs}
+                  />
 
-              {/* Main Content */}
-              <div className="main-content">
-                {activeTab === 'dashboard' && (
-                  <div className="dashboard-view">
-                    <EscrowStats escrows={convertedEscrows} />
-                    <Row className="g-4">
-                      <Col lg={8}>
-                        <EscrowDashboard 
-                          escrows={filteredEscrows} 
-                          onEscrowAction={(action, escrowId) => {
-                            handleNotification('info', `${action} action triggered for escrow ${escrowId}`);
-                          }}
-                        />
-                      </Col>
-                      <Col lg={4}>
-                        <ActivityFeed activities={[]} />
-                      </Col>
-                    </Row>
-                  </div>
-                )}
-
-                {activeTab === 'my-escrows' && (
-                  <div className="escrows-view">
-                    <SearchAndFilter 
-                      searchQuery={searchQuery}
-                      onSearchChange={setSearchQuery}
-                      filterStatus={filterStatus}
-                      onFilterChange={setFilterStatus}
-                      sortBy={sortBy}
-                      onSortChange={setSortBy}
-                    />
-                    
-                    {filteredEscrows?.length ? (
-                      <div className="escrows-grid">
-                        {filteredEscrows.map((escrow: ExtendedEscrow) => (
-                          <EnhancedEscrowCard 
-                            key={escrow.id}
-                            escrow={escrow}
-                            currentUser={account || ''}
-                            onAction={(action) => {
-                              handleNotification('success', `${action} completed successfully`);
-                              handleRefresh(); // Simple refresh instead of refetch
-                            }}
-                          />
-                        ))}
+                  {/* Main Content */}
+                  <div className="main-content">
+                    {activeTab === 'dashboard' && (
+                      <div className="dashboard-view">
+                        <EscrowStats escrows={convertedEscrows} />
+                        <Row className="g-4">
+                          <Col lg={8}>
+                            <EscrowDashboard 
+                              escrows={filteredEscrows} 
+                              onEscrowAction={(action, escrowId) => {
+                                handleNotification('info', `${action} action triggered for escrow ${escrowId}`);
+                              }}
+                            />
+                          </Col>
+                          <Col lg={4}>
+                            <ActivityFeed activities={[]} />
+                          </Col>
+                        </Row>
                       </div>
-                    ) : (
-                      <EmptyStateIllustration 
-                        type="escrows"
-                        onAction={() => setActiveTab('create')}
-                      />
+                    )}
+
+                    {activeTab === 'my-escrows' && (
+                      <div className="escrows-view">
+                        <SearchAndFilter 
+                          searchQuery={searchQuery}
+                          onSearchChange={setSearchQuery}
+                          filterStatus={filterStatus}
+                          onFilterChange={setFilterStatus}
+                          sortBy={sortBy}
+                          onSortChange={setSortBy}
+                        />
+                        
+                        {filteredEscrows?.length ? (
+                          <div className="escrows-grid">
+                            {filteredEscrows.map((escrow: ExtendedEscrow) => (
+                              <EnhancedEscrowCard 
+                                key={escrow.id}
+                                escrow={escrow}
+                                currentUser={account || ''}
+                                onAction={(action) => {
+                                  handleNotification('success', `${action} completed successfully`);
+                                  handleRefresh();
+                                }}
+                              />
+                            ))}
+                          </div>
+                        ) : (
+                          <EmptyStateIllustration 
+                            type="escrows"
+                            onAction={() => setActiveTab('create')}
+                          />
+                        )}
+                      </div>
+                    )}
+
+                    {activeTab === 'create' && (
+                      <div className="create-view">
+                        <Card className="create-card">
+                          <Card.Header>
+                            <h4>Create New Escrow</h4>
+                            <p className="text-muted">Set up a secure transaction between parties</p>
+                          </Card.Header>
+                          <Card.Body>
+                            <p>Enhanced create form coming soon...</p>
+                            {loading && <LoadingIndicator />}
+                          </Card.Body>
+                        </Card>
+                      </div>
+                    )}
+
+                    {activeTab === 'activity' && (
+                      <div className="activity-view">
+                        <ActivityFeed activities={[]} expanded={true} />
+                      </div>
                     )}
                   </div>
-                )}
-
-                {activeTab === 'create' && (
-                  <div className="create-view">
-                    <Card className="create-card">
-                      <Card.Header>
-                        <h4>Create New Escrow</h4>
-                        <p className="text-muted">Set up a secure transaction between parties</p>
-                      </Card.Header>
-                      <Card.Body>
-                        <p>Enhanced create form coming soon...</p>
-                        {loading && <LoadingIndicator />}
-                      </Card.Body>
-                    </Card>
-                  </div>
-                )}
-
-                {activeTab === 'activity' && (
-                  <div className="activity-view">
-                    <ActivityFeed activities={[]} expanded={true} />
-                  </div>
-                )}
-              </div>
+                </>
+              )}
             </>
           )}
         </Container>
