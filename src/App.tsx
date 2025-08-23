@@ -1,4 +1,4 @@
-// src/App.tsx - Complete Enhanced Version with Fixed TypeScript Errors
+// src/App.tsx - Final Fixed Version Matching Your Actual Hook Interfaces
 import React, { Suspense, useState, useEffect, useContext, useCallback } from 'react';
 import { Button, Container, Alert, Modal, Badge, Card, Row, Col, ProgressBar, Navbar, Nav } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -7,7 +7,7 @@ import './App.css';
 // Import contexts
 import { ThemeContext } from './contexts/ThemeContext';
 
-// Import hooks (keeping your existing hooks)
+// Import hooks (using your actual hook interfaces)
 import useWallet from './hooks/useWallet';
 import useRobustEscrowLoader from './hooks/useRobustEscrowLoader';
 import useEscrowOperations from './hooks/useEscrowOperations';
@@ -26,7 +26,7 @@ import EscrowStats from './components/EscrowStats';
 import SearchAndFilter from './components/SearchAndFilter';
 import { EmptyStateIllustration } from './components/EmptyStateIllustration';
 
-// Import existing components (enhanced versions)
+// Import existing components
 import DarkModeWrapper from './components/DarkModeWrapper';
 import LoadingIndicator from './components/LoadingIndicator';
 import AddressDisplay from './components/AddressDisplay';
@@ -42,20 +42,24 @@ import {
   NetworkWarning
 } from './components/SecurityComponents';
 
-// Types
+// Types - Matching your actual Escrow type
 type TabType = 'dashboard' | 'my-escrows' | 'create' | 'activity';
-type EscrowStatus = 'pending' | 'funded' | 'completed' | 'disputed' | 'resolved';
 type SortBy = 'date' | 'amount' | 'status';
 
-interface EscrowData {
+// Use your actual Escrow type and extend it if needed
+interface ExtendedEscrow {
   id: string;
   buyer: string;
   seller: string;
   arbiter: string;
   amount: string;
-  status: EscrowStatus;
+  status: 'pending' | 'funded' | 'completed' | 'disputed' | 'resolved';
   createdAt: Date;
   description?: string;
+  // Add any other properties from your actual Escrow type
+  escrowId?: string;
+  state?: number;
+  timestamp?: number;
 }
 
 interface Notification {
@@ -65,34 +69,57 @@ interface Notification {
   timestamp: Date;
 }
 
+// Helper function to convert your Escrow type to ExtendedEscrow
+const convertToExtendedEscrow = (escrow: any): ExtendedEscrow => {
+  return {
+    id: escrow.escrowId || escrow.id || '',
+    buyer: escrow.buyer || '',
+    seller: escrow.seller || '',
+    arbiter: escrow.arbiter || '',
+    amount: escrow.amount || '0',
+    status: escrow.state === 0 ? 'pending' : 
+            escrow.state === 1 ? 'funded' : 
+            escrow.state === 2 ? 'completed' : 
+            escrow.state === 3 ? 'disputed' : 'resolved',
+    createdAt: escrow.timestamp ? new Date(escrow.timestamp * 1000) : new Date(),
+    description: escrow.description || '',
+    ...escrow
+  };
+};
+
 const App: React.FC = () => {
   const { darkMode, toggleDarkMode } = useContext(ThemeContext);
   
-  // Wallet and Escrow hooks - using correct property names
+  // Wallet hook - using actual property names from your hook
   const {
     account,
-    connected: isConnected,
-    connecting: isConnecting,
+    connected,
     error: walletError,
     connectWallet,
     disconnectWallet,
-    chainId: network
+    provider,
+    signer,
+    chainName,
+    balance
   } = useWallet();
 
+  // Escrow loader hook - using actual property names
   const {
-    activeEscrows: escrows,
-    loading: escrowsLoading,
+    activeEscrows,
+    loading,
     error: escrowError,
-    refetchActiveEscrows: refetchEscrows
+    refetchEscrows,
+    progress,
+    stats
   } = useRobustEscrowLoader();
 
+  // Escrow operations hook - using actual property names
   const {
     createEscrow,
-    // fundEscrow, - commented out as it doesn't exist in the hook
-    // releaseEscrow, - commented out as it doesn't exist in the hook
-    // raiseDispute, - commented out as it doesn't exist in the hook
-    // resolveDispute, - commented out as it doesn't exist in the hook
-    isLoading: isOperating
+    isCreating,
+    isOperating: operationInProgress,
+    operationError,
+    rateLimitAlert
   } = useEscrowOperations();
 
   // Enhanced State Management
@@ -105,20 +132,26 @@ const App: React.FC = () => {
   const [isFirstVisit, setIsFirstVisit] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
+  // Convert escrows to the format expected by components
+  const convertedEscrows = activeEscrows?.map(convertToExtendedEscrow) || [];
+  
+  // Check if wallet is connecting (derived from state)
+  const isConnecting = !connected && !walletError && account === null;
+
   // Enhanced Effects
   useEffect(() => {
     const firstVisit = !localStorage.getItem('monad-escrow-visited');
-    if (firstVisit && isConnected) {
+    if (firstVisit && connected) {
       setIsFirstVisit(true);
       setShowOnboarding(true);
       localStorage.setItem('monad-escrow-visited', 'true');
     }
 
     const securityAccepted = localStorage.getItem('security-warning-accepted');
-    if (!securityAccepted && isConnected) {
+    if (!securityAccepted && connected) {
       setShowSecurityWarning(true);
     }
-  }, [isConnected]);
+  }, [connected]);
 
   // Enhanced Handlers
   const handleSecurityAccept = useCallback(() => {
@@ -145,12 +178,12 @@ const App: React.FC = () => {
     setActiveTab(tab as TabType);
   };
 
-  const filteredEscrows = escrows?.filter((escrow: EscrowData) => {
+  const filteredEscrows = convertedEscrows?.filter((escrow: ExtendedEscrow) => {
     const matchesSearch = escrow.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          escrow.id.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesFilter = filterStatus === 'all' || escrow.status === filterStatus;
     return matchesSearch && matchesFilter;
-  }).sort((a: EscrowData, b: EscrowData) => {
+  }).sort((a: ExtendedEscrow, b: ExtendedEscrow) => {
     switch (sortBy) {
       case 'amount':
         return parseFloat(b.amount) - parseFloat(a.amount);
@@ -170,7 +203,7 @@ const App: React.FC = () => {
   ];
 
   // Loading States
-  if (escrowsLoading && !escrows?.length) {
+  if (loading && !activeEscrows?.length) {
     return (
       <DarkModeWrapper>
         <div className="app-wrapper">
@@ -204,11 +237,8 @@ const App: React.FC = () => {
             <div className="navbar-controls">
               <TrustIndicators contractAddress="0x44f703203A65b6b11ea3b4540cC30337F0630927" />
               <EnhancedThemeToggle />
-              {isConnected && account && (
-                <AddressDisplay 
-                  address={account} 
-                  className="enhanced-address"
-                />
+              {connected && account && (
+                <AddressDisplay address={account} />
               )}
             </div>
           </Container>
@@ -218,7 +248,16 @@ const App: React.FC = () => {
         <SecurityBanner />
 
         {/* Network Warning */}
-        <NetworkWarning currentNetwork={network?.toString()} expectedNetwork="Monad Testnet" />
+        <NetworkWarning currentNetwork={chainName} expectedNetwork="Monad Testnet" />
+
+        {/* Rate Limit Alert */}
+        {rateLimitAlert && (
+          <RateLimitAlert 
+            isVisible={true}
+            onDismiss={() => {}}
+            onRetry={() => {}}
+          />
+        )}
 
         {/* Main Container */}
         <Container className="main-container">
@@ -237,7 +276,7 @@ const App: React.FC = () => {
             ))}
           </div>
 
-          {!isConnected ? (
+          {!connected ? (
             // Enhanced Connection State
             <div className="connection-state">
               <Card className="welcome-card">
@@ -303,11 +342,11 @@ const App: React.FC = () => {
               <div className="main-content">
                 {activeTab === 'dashboard' && (
                   <div className="dashboard-view">
-                    <EscrowStats escrows={escrows || []} />
+                    <EscrowStats escrows={convertedEscrows} />
                     <Row className="g-4">
                       <Col lg={8}>
                         <EscrowDashboard 
-                          escrows={filteredEscrows || []} 
+                          escrows={filteredEscrows} 
                           onEscrowAction={(action, escrowId) => {
                             handleNotification('info', `${action} action triggered for escrow ${escrowId}`);
                           }}
@@ -333,7 +372,7 @@ const App: React.FC = () => {
                     
                     {filteredEscrows?.length ? (
                       <div className="escrows-grid">
-                        {filteredEscrows.map((escrow: EscrowData) => (
+                        {filteredEscrows.map((escrow: ExtendedEscrow) => (
                           <EnhancedEscrowCard 
                             key={escrow.id}
                             escrow={escrow}
@@ -363,6 +402,7 @@ const App: React.FC = () => {
                       </Card.Header>
                       <Card.Body>
                         <p>Enhanced create form coming soon...</p>
+                        {isCreating && <LoadingIndicator />}
                       </Card.Body>
                     </Card>
                   </div>
@@ -379,7 +419,7 @@ const App: React.FC = () => {
         </Container>
 
         {/* Floating Action Button */}
-        {isConnected && activeTab !== 'create' && (
+        {connected && activeTab !== 'create' && (
           <FloatingActionButton 
             onClick={() => setActiveTab('create')}
             icon="+"
