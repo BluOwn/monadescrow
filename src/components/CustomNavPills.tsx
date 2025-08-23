@@ -1,32 +1,38 @@
-// src/components/CustomNavPills.tsx
-import React from 'react';
+"use client"
 
-interface NavPillsProps {
-  activeTab: string;
-  onTabChange: (tab: string) => void;
-  tabs: Array<{
-    id: string;
-    label: string;
-    icon?: string;
-  }>;
+import type React from "react"
+
+interface Tab {
+  id: string
+  label: string
+  icon: string
 }
 
-const CustomNavPills: React.FC<NavPillsProps> = ({ activeTab, onTabChange, tabs }) => {
+interface CustomNavPillsProps {
+  activeTab: string
+  onTabChange: (tabId: string) => void
+  tabs: Tab[]
+}
+
+const CustomNavPills: React.FC<CustomNavPillsProps> = ({ activeTab, onTabChange, tabs }) => {
   return (
-    <div className="custom-nav-pills">
+    <div className="flex flex-wrap gap-2 p-1 bg-muted rounded-lg">
       {tabs.map((tab) => (
         <button
           key={tab.id}
-          className={`nav-pill ${activeTab === tab.id ? 'active' : ''}`}
           onClick={() => onTabChange(tab.id)}
-          type="button"
+          className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg font-medium transition-all duration-200 ${
+            activeTab === tab.id
+              ? "bg-primary text-primary-foreground shadow-sm"
+              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+          }`}
         >
-          {tab.icon && <span className="me-2">{tab.icon}</span>}
-          {tab.label}
+          <span className="text-lg">{tab.icon}</span>
+          <span className="text-sm">{tab.label}</span>
         </button>
       ))}
     </div>
-  );
-};
+  )
+}
 
-export default CustomNavPills;
+export default CustomNavPills

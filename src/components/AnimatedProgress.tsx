@@ -1,74 +1,38 @@
-// src/components/AnimatedProgress.tsx
-import React, { useEffect, useState } from 'react';
+"use client"
+
+import type React from "react"
 
 interface AnimatedProgressProps {
-  value: number;
-  max?: number;
-  label?: string;
-  showPercentage?: boolean;
-  variant?: 'primary' | 'success' | 'warning' | 'danger' | 'info';
-  animated?: boolean;
-  striped?: boolean;
+  value: number
+  variant?: "primary" | "warning" | "success" | "danger"
+  label?: string
+  className?: string
 }
 
-const AnimatedProgress: React.FC<AnimatedProgressProps> = ({ 
-  value, 
-  max = 100, 
-  label, 
-  showPercentage = true,
-  variant = 'primary',
-  animated = true,
-  striped = false
-}) => {
-  const [animatedValue, setAnimatedValue] = useState(0);
-  const percentage = Math.min((value / max) * 100, 100);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setAnimatedValue(percentage);
-    }, 100);
-
-    return () => clearTimeout(timer);
-  }, [percentage]);
-
-  const getVariantClass = () => {
-    switch (variant) {
-      case 'success': return 'bg-success';
-      case 'warning': return 'bg-warning';
-      case 'danger': return 'bg-danger';
-      case 'info': return 'bg-info';
-      default: return 'bg-primary';
-    }
-  };
+const AnimatedProgress: React.FC<AnimatedProgressProps> = ({ value, variant = "primary", label, className = "" }) => {
+  const variantClasses = {
+    primary: "bg-primary",
+    warning: "bg-amber-500",
+    success: "bg-green-500",
+    danger: "bg-red-500",
+  }
 
   return (
-    <div className="animated-progress-container mb-3">
+    <div className={`space-y-2 ${className}`}>
       {label && (
-        <div className="d-flex justify-content-between align-items-center mb-2">
-          <span className="progress-label fw-medium">{label}</span>
-          {showPercentage && (
-            <span className="progress-percentage text-muted small">
-              {Math.round(percentage)}%
-            </span>
-          )}
+        <div className="flex justify-between items-center text-sm">
+          <span className="text-muted-foreground">{label}</span>
+          <span className="text-foreground font-medium">{Math.round(value)}%</span>
         </div>
       )}
-      <div className="progress">
-        <div 
-          className={`progress-bar ${getVariantClass()} ${animated ? 'progress-bar-animated' : ''} ${striped ? 'progress-bar-striped' : ''}`}
-          role="progressbar"
-          style={{ width: `${animatedValue}%` }}
-          aria-valuenow={value}
-          aria-valuemin={0}
-          aria-valuemax={max}
-        >
-          {!showPercentage && (
-            <span className="visually-hidden">{Math.round(percentage)}% Complete</span>
-          )}
-        </div>
+      <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+        <div
+          className={`h-full ${variantClasses[variant]} transition-all duration-300 ease-out rounded-full`}
+          style={{ width: `${Math.min(100, Math.max(0, value))}%` }}
+        />
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default AnimatedProgress;
+export default AnimatedProgress

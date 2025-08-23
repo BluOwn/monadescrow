@@ -1,237 +1,222 @@
-// src/components/HowToUseTab.tsx - Simple guide for new users
-import React from 'react';
-import { Card, Row, Col, Alert, Badge } from 'react-bootstrap';
+"use client"
+
+import type React from "react"
 
 const HowToUseTab: React.FC = () => {
+  const steps = [
+    {
+      number: "1",
+      title: "Connect Your Wallet",
+      description: "Connect your MetaMask wallet to the Monad Testnet to get started.",
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+          />
+        </svg>
+      ),
+    },
+    {
+      number: "2",
+      title: "Create an Escrow",
+      description: "Set up a new escrow with seller and arbiter addresses, plus the amount to hold.",
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+        </svg>
+      ),
+    },
+    {
+      number: "3",
+      title: "Fund the Escrow",
+      description: "Send the agreed amount to the escrow contract to secure the transaction.",
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
+          />
+        </svg>
+      ),
+    },
+    {
+      number: "4",
+      title: "Complete Transaction",
+      description: "Once conditions are met, release funds to the seller or resolve any disputes.",
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+        </svg>
+      ),
+    },
+  ]
+
+  const features = [
+    {
+      title: "Secure Transactions",
+      description: "Smart contracts ensure funds are held safely until conditions are met.",
+      icon: (
+        <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+          />
+        </svg>
+      ),
+    },
+    {
+      title: "Dispute Resolution",
+      description: "Neutral arbiters can resolve conflicts and ensure fair outcomes.",
+      icon: (
+        <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"
+          />
+        </svg>
+      ),
+    },
+    {
+      title: "Transparent Process",
+      description: "All transactions are recorded on the blockchain for full transparency.",
+      icon: (
+        <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+          />
+        </svg>
+      ),
+    },
+  ]
+
   return (
-    <div className="how-to-use">
-      {/* Header */}
-      <Card className="mb-4">
-        <Card.Body className="text-center">
-          <h2>🚀 How to Use Monad Escrow</h2>
-          <p className="lead">
-            Simple, secure escrow transactions on Monad Testnet
+    <div className="space-y-8">
+      <div className="bg-card border border-border rounded-lg p-8 shadow-sm">
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold text-card-foreground mb-4">How to Use Monad Escrow</h2>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            Secure your transactions with our decentralized escrow service. Follow these simple steps to get started.
           </p>
-        </Card.Body>
-      </Card>
+        </div>
 
-      {/* What is Escrow */}
-      <Card className="mb-4">
-        <Card.Header>
-          <h4>🤔 What is Escrow?</h4>
-        </Card.Header>
-        <Card.Body>
-          <p>
-            Escrow is a secure way to trade where funds are held by a trusted third party until both parties fulfill their obligations.
-          </p>
-          <div className="text-center my-3">
-            <Badge bg="info" className="me-2">Buyer</Badge>
-            <span>→</span>
-            <Badge bg="warning" className="mx-2">Escrow</Badge>
-            <span>→</span>
-            <Badge bg="success" className="ms-2">Seller</Badge>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {steps.map((step) => (
+            <div key={step.number} className="text-center">
+              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="text-primary">{step.icon}</div>
+              </div>
+              <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center mx-auto mb-3 text-sm font-bold">
+                {step.number}
+              </div>
+              <h3 className="text-lg font-semibold text-card-foreground mb-2">{step.title}</h3>
+              <p className="text-sm text-muted-foreground">{step.description}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="bg-card border border-border rounded-lg p-8 shadow-sm">
+        <h3 className="text-2xl font-bold text-card-foreground mb-6 text-center">Key Features</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {features.map((feature, index) => (
+            <div key={index} className="text-center">
+              <div className="flex justify-center mb-4">{feature.icon}</div>
+              <h4 className="text-lg font-semibold text-card-foreground mb-2">{feature.title}</h4>
+              <p className="text-muted-foreground">{feature.description}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="bg-card border border-border rounded-lg p-8 shadow-sm">
+        <h3 className="text-2xl font-bold text-card-foreground mb-6">Important Notes</h3>
+        <div className="space-y-4">
+          <div className="flex items-start space-x-3">
+            <div className="w-6 h-6 bg-amber-100 dark:bg-amber-900/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+              <svg
+                className="w-4 h-4 text-amber-600 dark:text-amber-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                />
+              </svg>
+            </div>
+            <div>
+              <h4 className="font-medium text-card-foreground">Testnet Only</h4>
+              <p className="text-sm text-muted-foreground">
+                This application runs on Monad Testnet. Do not use real funds.
+              </p>
+            </div>
           </div>
-          <p className="text-muted">
-            <small>💡 Perfect for buying/selling digital goods, services, or any transaction where trust is needed.</small>
-          </p>
-        </Card.Body>
-      </Card>
-
-      {/* Step-by-Step Guide */}
-      <Card className="mb-4">
-        <Card.Header>
-          <h4>📋 Step-by-Step Guide</h4>
-        </Card.Header>
-        <Card.Body>
-          <Row>
-            <Col md={6}>
-              <div className="step-card mb-3">
-                <h5>
-                  <Badge bg="primary" className="me-2">1</Badge>
-                  Connect Wallet
-                </h5>
-                <p>Connect your MetaMask wallet to Monad Testnet</p>
-                <Alert variant="info" className="py-2">
-                  <small>
-                    <strong>Need testnet MON?</strong><br/>
-                    Get free testnet tokens from the Monad faucet
-                  </small>
-                </Alert>
-              </div>
-
-              <div className="step-card mb-3">
-                <h5>
-                  <Badge bg="primary" className="me-2">2</Badge>
-                  Create Escrow
-                </h5>
-                <p>Fill in the details:</p>
-                <ul>
-                  <li><strong>Seller Address:</strong> Who receives the funds</li>
-                  <li><strong>Arbiter Address:</strong> Trusted dispute resolver</li>
-                  <li><strong>Amount:</strong> How much MON to escrow</li>
-                </ul>
-              </div>
-
-              <div className="step-card mb-3">
-                <h5>
-                  <Badge bg="primary" className="me-2">3</Badge>
-                  Complete Transaction
-                </h5>
-                <p>Once both parties are satisfied:</p>
-                <ul>
-                  <li>Buyer clicks <strong>"Release Funds"</strong></li>
-                  <li>Seller receives the MON</li>
-                  <li>Escrow is completed ✅</li>
-                </ul>
-              </div>
-            </Col>
-
-            <Col md={6}>
-              <div className="roles-explanation">
-                <h5>👥 Understanding Roles</h5>
-                
-                <div className="role-card mb-3">
-                  <h6>
-                    <Badge bg="info" className="me-2">🛒 Buyer</Badge>
-                  </h6>
-                  <p>
-                    <strong>You are the buyer</strong> when you create an escrow.
-                    You send MON to the escrow contract and can release it to the seller.
-                  </p>
-                </div>
-
-                <div className="role-card mb-3">
-                  <h6>
-                    <Badge bg="success" className="me-2">💰 Seller</Badge>
-                  </h6>
-                  <p>
-                    <strong>You are the seller</strong> when someone creates an escrow with your address.
-                    You receive MON when the buyer releases funds.
-                  </p>
-                </div>
-
-                <div className="role-card mb-3">
-                  <h6>
-                    <Badge bg="warning" className="me-2">⚖️ Arbiter</Badge>
-                  </h6>
-                  <p>
-                    <strong>You are the arbiter</strong> when chosen as a dispute resolver.
-                    You can refund the buyer or resolve disputes fairly.
-                  </p>
-                </div>
-              </div>
-            </Col>
-          </Row>
-        </Card.Body>
-      </Card>
-
-      {/* Common Actions */}
-      <Card className="mb-4">
-        <Card.Header>
-          <h4>⚡ Common Actions</h4>
-        </Card.Header>
-        <Card.Body>
-          <Row>
-            <Col md={4}>
-              <div className="action-card">
-                <h6>🟢 Release Funds</h6>
-                <p><strong>As Buyer:</strong> Release funds to seller when satisfied with goods/services</p>
-              </div>
-            </Col>
-            <Col md={4}>
-              <div className="action-card">
-                <h6>🔴 Refund Buyer</h6>
-                <p><strong>As Seller/Arbiter:</strong> Return funds to buyer if issues arise</p>
-              </div>
-            </Col>
-            <Col md={4}>
-              <div className="action-card">
-                <h6>⚠️ Raise Dispute</h6>
-                <p><strong>As Buyer/Seller:</strong> Ask arbiter to resolve disagreements</p>
-              </div>
-            </Col>
-          </Row>
-        </Card.Body>
-      </Card>
-
-      {/* Safety Tips */}
-      <Card className="mb-4">
-        <Card.Header>
-          <h4>🛡️ Safety Tips</h4>
-        </Card.Header>
-        <Card.Body>
-          <Row>
-            <Col md={6}>
-              <Alert variant="success">
-                <h6>✅ Do This</h6>
-                <ul className="mb-0">
-                  <li>Verify all addresses before creating escrow</li>
-                  <li>Choose a trusted arbiter both parties agree on</li>
-                  <li>Communicate clearly about expectations</li>
-                  <li>Keep transaction records</li>
-                </ul>
-              </Alert>
-            </Col>
-            <Col md={6}>
-              <Alert variant="danger">
-                <h6>❌ Don't Do This</h6>
-                <ul className="mb-0">
-                  <li>Never share your private keys</li>
-                  <li>Don't use untrusted arbiters</li>
-                  <li>Avoid escrows without clear terms</li>
-                  <li>Don't ignore disputes</li>
-                </ul>
-              </Alert>
-            </Col>
-          </Row>
-        </Card.Body>
-      </Card>
-
-      {/* FAQ */}
-      <Card className="mb-4">
-        <Card.Header>
-          <h4>❓ Quick FAQ</h4>
-        </Card.Header>
-        <Card.Body>
-          <div className="faq-item mb-3">
-            <h6>Q: What happens if the seller doesn't deliver?</h6>
-            <p>A: You can raise a dispute, and the arbiter will decide whether to refund you or release funds to the seller.</p>
+          <div className="flex items-start space-x-3">
+            <div className="w-6 h-6 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+              <svg
+                className="w-4 h-4 text-blue-600 dark:text-blue-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+            <div>
+              <h4 className="font-medium text-card-foreground">Choose Arbiters Carefully</h4>
+              <p className="text-sm text-muted-foreground">
+                Select trusted, neutral parties as arbiters who can resolve disputes fairly.
+              </p>
+            </div>
           </div>
-
-          <div className="faq-item mb-3">
-            <h6>Q: Can I cancel an escrow?</h6>
-            <p>A: Once created, escrows can only be resolved by releasing funds, refunding, or arbiter decision. Choose carefully!</p>
+          <div className="flex items-start space-x-3">
+            <div className="w-6 h-6 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+              <svg
+                className="w-4 h-4 text-green-600 dark:text-green-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+            <div>
+              <h4 className="font-medium text-card-foreground">Smart Contract Security</h4>
+              <p className="text-sm text-muted-foreground">
+                All transactions are secured by audited smart contracts on the blockchain.
+              </p>
+            </div>
           </div>
-
-          <div className="faq-item mb-3">
-            <h6>Q: How do I choose a good arbiter?</h6>
-            <p>A: Pick someone both parties trust - could be a mutual friend, reputable community member, or our website arbiter service.</p>
-          </div>
-
-          <div className="faq-item mb-0">
-            <h6>Q: Are there any fees?</h6>
-            <p>A: Only standard Monad network gas fees. The escrow contract itself is free to use!</p>
-          </div>
-        </Card.Body>
-      </Card>
-
-      {/* Get Started */}
-      <Card className="mb-4">
-        <Card.Body className="text-center">
-          <h4>🎉 Ready to Get Started?</h4>
-          <p>
-            Connect your wallet and create your first secure escrow transaction!
-          </p>
-          <Alert variant="info" className="mt-3">
-            <small>
-              <strong>New to Monad Testnet?</strong><br/>
-              Add network: RPC URL, Chain ID 10143, Currency: MON
-            </small>
-          </Alert>
-        </Card.Body>
-      </Card>
+        </div>
+      </div>
     </div>
-  );
-};
+  )
+}
 
-export default HowToUseTab;
+export default HowToUseTab
