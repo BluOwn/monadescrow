@@ -1,134 +1,215 @@
-"use client"
+// src/components/CreateEscrowTab.tsx
+import React, { useState } from 'react';
+import { Card, Form, Button, Spinner, Alert, Badge, Collapse } from 'react-bootstrap';
+import { ContractInfo } from './SecurityComponents';
+import { CreateEscrowTabProps } from '../types';
 
-import type React from "react"
-import LoadingIndicator from "./LoadingIndicator"
-
-interface CreateEscrowTabProps {
-  handleCreateEscrow: (e: React.FormEvent<HTMLFormElement>) => Promise<void>
-  sellerAddress: string
-  setSellerAddress: (address: string) => void
-  arbiterAddress: string
-  setArbiterAddress: (address: string) => void
-  amount: string
-  setAmount: (amount: string) => void
-  loading: boolean
-  currentAccount: string
-}
-
-const CreateEscrowTab: React.FC<CreateEscrowTabProps> = ({
-  handleCreateEscrow,
-  sellerAddress,
+const CreateEscrowTab: React.FC<CreateEscrowTabProps> = ({ 
+  handleCreateEscrow, 
+  sellerAddress, 
   setSellerAddress,
-  arbiterAddress,
+  arbiterAddress, 
   setArbiterAddress,
-  amount,
+  amount, 
   setAmount,
   loading,
-  currentAccount,
+  currentAccount
 }) => {
-  return (
-    <div className="bg-card border border-border rounded-lg p-8 shadow-sm">
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold text-card-foreground mb-2">Create New Escrow</h2>
-        <p className="text-muted-foreground">
-          Set up a secure escrow transaction with a seller and arbiter. You will be the buyer.
-        </p>
-      </div>
+  const [showArbiterHelper, setShowArbiterHelper] = useState<boolean>(false);
+  
+  // Website's recommended arbiter address
+  const WEBSITE_ARBITER = "0xC4E06Cd628D1ABA8436a812D8a1fA49a4b3BbC47";
+  
+  // Helper to check if an address matches the current account
+  const isCurrentAccount = (address: string): boolean => {
+    if (!address || !currentAccount) return false;
+    return address.toLowerCase() === currentAccount.toLowerCase();
+  };
 
-      <form onSubmit={handleCreateEscrow} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <label htmlFor="seller" className="text-sm font-medium text-foreground">
-              Seller Address
-            </label>
-            <input
-              id="seller"
+  // Check if seller and arbiter are the same
+  const isSellerArbiterSame = (seller: string, arbiter: string): boolean => {
+    if (!seller || !arbiter) return false;
+    return seller.toLowerCase() === arbiter.toLowerCase();
+  };
+
+  // Check if form is valid
+  const isFormValid = (): boolean => {
+    return (
+      !isCurrentAccount(sellerAddress) && 
+      !isCurrentAccount(arbiterAddress) && 
+      !isSellerArbiterSame(sellerAddress, arbiterAddress) &&
+      !!sellerAddress &&
+      !!arbiterAddress &&
+      !!amount
+    );
+  };
+
+  // Copy website arbiter address to clipboard and set it
+  const useWebsiteArbiter = (): void => {
+    setArbiterAddress(WEBSITE_ARBITER);
+    navigator.clipboard.writeText(WEBSITE_ARBITER);
+  };
+
+  // Calculate validation states for form controls
+  const sellerAddressInvalid: boolean = 
+    sellerAddress ? isCurrentAccount(sellerAddress) : false;
+
+  const arbiterAddressInvalid: boolean = 
+    arbiterAddress ? (
+      isCurrentAccount(arbiterAddress) || 
+      Boolean(sellerAddress && isSellerArbiterSame(sellerAddress, arbiterAddress))
+    ) : false;
+
+  // Booleans to control specific error message display
+  const isArbiterSameAsBuyer: boolean = 
+    arbiterAddress ? isCurrentAccount(arbiterAddress) : false;
+
+  const isArbiterSameAsSeller: boolean = 
+    Boolean(arbiterAddress && sellerAddress && isSellerArbiterSame(sellerAddress, arbiterAddress));
+
+  return (
+    <Card>
+      <Card.Body>
+        <Card.Title>Create New Escrow</Card.Title>
+        <ContractInfo />
+        
+        <Alert variant="info" className="mb-3">
+          <strong>Role Requirements:</strong>
+          <p className="mb-0">The buyer (you), seller, and arbiter must be different accounts. Your account will be the buyer.</p>
+        </Alert>
+        
+        <Form onSubmit={handleCreateEscrow}>
+          <Form.Group className="mb-3">
+            <Form.Label>Seller Address</Form.Label>
+            <Form.Control
               type="text"
+              placeholder="0x..."
               value={sellerAddress}
               onChange={(e) => setSellerAddress(e.target.value)}
-              placeholder="0x..."
-              className="input-field w-full"
+              isInvalid={sellerAddressInvalid}
               required
             />
-            <p className="text-xs text-muted-foreground">The address that will receive funds upon completion</p>
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="arbiter" className="text-sm font-medium text-foreground">
-              Arbiter Address
-            </label>
-            <input
-              id="arbiter"
+            {sellerAddressInvalid && (
+              <Form.Control.Feedback type="invalid">
+                Seller cannot be the same as buyer (your account)
+              </Form.Control.Feedback>
+            )}
+            <Form.Text className="text-muted">
+              The address of the party who will receive the funds
+            </Form.Text>
+          </Form.Group>
+          
+          <Form.Group className="mb-3">
+            <div className="d-flex justify-content-between align-items-center mb-2">
+              <Form.Label className="mb-0">Arbiter Address</Form.Label>
+              <Button 
+                variant="outline-info" 
+                size="sm"
+                onClick={() => setShowArbiterHelper(!showArbiterHelper)}
+              >
+                Need an Arbiter? {showArbiterHelper ? '▲' : '▼'}
+              </Button>
+            </div>
+            
+            <Collapse in={showArbiterHelper}>
+              <div>
+                <Alert variant="light" className="mb-3">
+                  <div className="d-flex justify-content-between align-items-start">
+                    <div style={{ flex: 1 }}>
+                      <h6 className="mb-2">🏛️ Website Arbiter Service</h6>
+                      <p className="mb-2">
+                        Use our trusted arbiter service for dispute resolution:
+                      </p>
+                      <div className="mb-2">
+                        <code 
+                          style={{ 
+                            fontSize: '0.9rem', 
+                            padding: '4px 8px', 
+                            backgroundColor: '#f8f9fa',
+                            border: '1px solid #dee2e6',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            display: 'inline-block',
+                            wordBreak: 'break-all'
+                          }}
+                          onClick={() => navigator.clipboard.writeText(WEBSITE_ARBITER)}
+                          title="Click to copy"
+                        >
+                          {WEBSITE_ARBITER}
+                        </code>
+                        <Badge bg="secondary" className="ms-2">Click to copy</Badge>
+                      </div>
+                      <div className="mb-2">
+                        <Button 
+                          variant="success" 
+                          size="sm" 
+                          className="me-2"
+                          onClick={useWebsiteArbiter}
+                        >
+                          Use This Arbiter
+                        </Button>
+                      </div>
+                      <div>
+                        <small className="text-muted">
+                          <strong>Contact for arbiter services:</strong><br/>
+                          📞 Telegram: <a href="https://t.me/oprimedev" target="_blank" rel="noopener noreferrer">@oprimedev</a><br/>
+                          📝 Request Form: <a href="https://forms.gle/oxkvRCLJNvC4vXjb7" target="_blank" rel="noopener noreferrer">Google Form</a>
+                        </small>
+                      </div>
+                    </div>
+                  </div>
+                </Alert>
+              </div>
+            </Collapse>
+            
+            <Form.Control
               type="text"
+              placeholder="0x... or use website arbiter above"
               value={arbiterAddress}
               onChange={(e) => setArbiterAddress(e.target.value)}
-              placeholder="0x..."
-              className="input-field w-full"
+              isInvalid={arbiterAddressInvalid}
               required
             />
-            <p className="text-xs text-muted-foreground">Neutral party who can resolve disputes</p>
-          </div>
-        </div>
+            {isArbiterSameAsBuyer && (
+              <Form.Control.Feedback type="invalid">
+                Arbiter cannot be the same as buyer (your account)
+              </Form.Control.Feedback>
+            )}
+            {isArbiterSameAsSeller && (
+              <Form.Control.Feedback type="invalid">
+                Arbiter cannot be the same as seller
+              </Form.Control.Feedback>
+            )}
+            <Form.Text className="text-muted">
+              A trusted third party who can resolve disputes and refund funds if needed
+            </Form.Text>
+          </Form.Group>
+          
+          <Form.Group className="mb-3">
+            <Form.Label>Amount (MON)</Form.Label>
+            <Form.Control
+              type="text"
+              placeholder="0.01"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              required
+            />
+            <Form.Text className="text-muted">
+              The amount to place in escrow (Max: 1000 MON)
+            </Form.Text>
+          </Form.Group>
+          
+          <Button 
+            variant="primary" 
+            type="submit" 
+            disabled={loading || !isFormValid()}
+          >
+            {loading ? <Spinner animation="border" size="sm" /> : 'Create Escrow'}
+          </Button>
+        </Form>
+      </Card.Body>
+    </Card>
+  );
+};
 
-        <div className="space-y-2">
-          <label htmlFor="amount" className="text-sm font-medium text-foreground">
-            Amount (ETH)
-          </label>
-          <input
-            id="amount"
-            type="number"
-            step="0.001"
-            min="0"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            placeholder="0.0"
-            className="input-field w-full"
-            required
-          />
-          <p className="text-xs text-muted-foreground">Amount to be held in escrow</p>
-        </div>
-
-        <div className="bg-muted p-4 rounded-lg">
-          <h4 className="font-medium text-foreground mb-2">Transaction Summary</h4>
-          <div className="space-y-1 text-sm text-muted-foreground">
-            <div className="flex justify-between">
-              <span>Buyer (You):</span>
-              <span className="font-mono">
-                {currentAccount ? `${currentAccount.slice(0, 6)}...${currentAccount.slice(-4)}` : "Not connected"}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span>Seller:</span>
-              <span className="font-mono">{sellerAddress || "Not set"}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Arbiter:</span>
-              <span className="font-mono">{arbiterAddress || "Not set"}</span>
-            </div>
-            <div className="flex justify-between font-medium text-foreground">
-              <span>Amount:</span>
-              <span>{amount || "0"} ETH</span>
-            </div>
-          </div>
-        </div>
-
-        <button
-          type="submit"
-          disabled={loading || !sellerAddress || !arbiterAddress || !amount}
-          className={`btn-primary w-full ${loading || !sellerAddress || !arbiterAddress || !amount ? "opacity-50 cursor-not-allowed" : ""}`}
-        >
-          {loading ? (
-            <div className="flex items-center justify-center space-x-2">
-              <LoadingIndicator size={"sm" as const} />
-              <span>Creating Escrow...</span>
-            </div>
-          ) : (
-            "Create Escrow"
-          )}
-        </button>
-      </form>
-    </div>
-  )
-}
-
-export default CreateEscrowTab
+export default CreateEscrowTab;
