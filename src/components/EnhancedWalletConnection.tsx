@@ -181,6 +181,8 @@ const EnhancedWalletConnection: React.FC<EnhancedWalletConnectionProps> = ({
       }, 5000);
       return () => clearTimeout(timer);
     }
+    // Add return statement for when there's no connectionError
+    return undefined;
   }, [connectionError]);
 
   if (connected && account) {
