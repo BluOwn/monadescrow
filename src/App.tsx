@@ -392,7 +392,7 @@ const App: React.FC = () => {
                 loadingEscrows={escrowLoader.loading}
                 retryLoadingEscrows={() => escrowLoader.forceRefresh(wallet.contract!, wallet.account)}
                 account={wallet.account}
-                onAction={async (action, escrowId, recipient = null) => {
+                onAction={async (action, escrowId, recipient = undefined) => {
                   if (!wallet.contract) return
                   const success = await escrowOps.handleEscrowAction(wallet.contract, action, escrowId, recipient)
                   if (success) {
@@ -488,7 +488,7 @@ const App: React.FC = () => {
                         <EscrowDetails
                           escrow={escrowOps.selectedEscrow}
                           account={wallet.account}
-                          onAction={async (action, escrowId, recipient = null) => {
+                          onAction={async (action, escrowId, recipient = undefined) => {
                             if (!wallet.contract) return
                             const success = await escrowOps.handleEscrowAction(
                               wallet.contract,
