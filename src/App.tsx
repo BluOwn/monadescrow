@@ -1,4 +1,4 @@
-// src/App.tsx - Complete Enhanced Version with Modern UI/UX
+// src/App.tsx - Complete Enhanced Version with Fixed TypeScript Errors
 import React, { Suspense, useState, useEffect, useContext, useCallback } from 'react';
 import { Button, Container, Alert, Modal, Badge, Card, Row, Col, ProgressBar, Navbar, Nav } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -12,19 +12,19 @@ import useWallet from './hooks/useWallet';
 import useRobustEscrowLoader from './hooks/useRobustEscrowLoader';
 import useEscrowOperations from './hooks/useEscrowOperations';
 
-// Enhanced Components
+// Enhanced Components - Fixed imports
 import EnhancedNavPills from './components/EnhancedNavPills';
 import EscrowDashboard from './components/EscrowDashboard';
 import EnhancedEscrowCard from './components/EnhancedEscrowCard';
-import OnboardingTour from './components/OnboardingTour';
-import FloatingActionButton from './components/FloatingActionButton';
-import AnimatedLoader from './components/AnimatedLoader';
-import EnhancedThemeToggle from './components/EnhancedThemeToggle';
-import TrustIndicators from './components/TrustIndicators';
-import ActivityFeed from './components/ActivityFeed';
+import { OnboardingTour } from './components/OnboardingTour';
+import { FloatingActionButton } from './components/FloatingActionButton';
+import { AnimatedLoader } from './components/AnimatedLoader';
+import { EnhancedThemeToggle } from './components/EnhancedThemeToggle';
+import { TrustIndicators } from './components/TrustIndicators';
+import { ActivityFeed } from './components/ActivityFeed';
 import EscrowStats from './components/EscrowStats';
 import SearchAndFilter from './components/SearchAndFilter';
-import EmptyStateIllustration from './components/EmptyStateIllustration';
+import { EmptyStateIllustration } from './components/EmptyStateIllustration';
 
 // Import existing components (enhanced versions)
 import DarkModeWrapper from './components/DarkModeWrapper';
@@ -43,61 +43,67 @@ import {
 } from './components/SecurityComponents';
 
 // Types
+type TabType = 'dashboard' | 'my-escrows' | 'create' | 'activity';
+type EscrowStatus = 'pending' | 'funded' | 'completed' | 'disputed' | 'resolved';
+type SortBy = 'date' | 'amount' | 'status';
+
 interface EscrowData {
   id: string;
   buyer: string;
   seller: string;
   arbiter: string;
   amount: string;
-  status: 'pending' | 'funded' | 'completed' | 'disputed' | 'resolved';
+  status: EscrowStatus;
   createdAt: Date;
   description?: string;
+}
+
+interface Notification {
+  id: string;
+  type: 'success' | 'error' | 'warning' | 'info';
+  message: string;
+  timestamp: Date;
 }
 
 const App: React.FC = () => {
   const { darkMode, toggleDarkMode } = useContext(ThemeContext);
   
-  // Wallet and Escrow hooks
+  // Wallet and Escrow hooks - using correct property names
   const {
     account,
-    isConnected,
-    isConnecting,
+    connected: isConnected,
+    connecting: isConnecting,
     error: walletError,
     connectWallet,
     disconnectWallet,
-    network
+    chainId: network
   } = useWallet();
 
   const {
-    escrows,
-    isLoading: escrowsLoading,
+    activeEscrows: escrows,
+    loading: escrowsLoading,
     error: escrowError,
-    refetch: refetchEscrows
-  } = useRobustEscrowLoader(account);
+    refetchActiveEscrows: refetchEscrows
+  } = useRobustEscrowLoader();
 
   const {
     createEscrow,
-    fundEscrow,
-    releaseEscrow,
-    raiseDispute,
-    resolveDispute,
-    isOperating
+    // fundEscrow, - commented out as it doesn't exist in the hook
+    // releaseEscrow, - commented out as it doesn't exist in the hook
+    // raiseDispute, - commented out as it doesn't exist in the hook
+    // resolveDispute, - commented out as it doesn't exist in the hook
+    isLoading: isOperating
   } = useEscrowOperations();
 
   // Enhanced State Management
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'my-escrows' | 'create' | 'activity'>('dashboard');
+  const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showSecurityWarning, setShowSecurityWarning] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
-  const [sortBy, setSortBy] = useState<'date' | 'amount' | 'status'>('date');
+  const [sortBy, setSortBy] = useState<SortBy>('date');
   const [isFirstVisit, setIsFirstVisit] = useState(false);
-  const [notifications, setNotifications] = useState<Array<{
-    id: string;
-    type: 'success' | 'error' | 'warning' | 'info';
-    message: string;
-    timestamp: Date;
-  }>>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
 
   // Enhanced Effects
   useEffect(() => {
@@ -121,7 +127,7 @@ const App: React.FC = () => {
   }, []);
 
   const handleNotification = useCallback((type: 'success' | 'error' | 'warning' | 'info', message: string) => {
-    const notification = {
+    const notification: Notification = {
       id: Date.now().toString(),
       type,
       message,
@@ -135,12 +141,16 @@ const App: React.FC = () => {
     }, 5000);
   }, []);
 
-  const filteredEscrows = escrows?.filter(escrow => {
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab as TabType);
+  };
+
+  const filteredEscrows = escrows?.filter((escrow: EscrowData) => {
     const matchesSearch = escrow.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          escrow.id.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesFilter = filterStatus === 'all' || escrow.status === filterStatus;
     return matchesSearch && matchesFilter;
-  }).sort((a, b) => {
+  }).sort((a: EscrowData, b: EscrowData) => {
     switch (sortBy) {
       case 'amount':
         return parseFloat(b.amount) - parseFloat(a.amount);
@@ -167,7 +177,7 @@ const App: React.FC = () => {
           <Container className="main-container">
             <div className="loading-state">
               <AnimatedLoader size="large" message="Loading your escrows..." />
-              <EscrowDetailsSkeleton count={3} />
+              <EscrowDetailsSkeleton />
             </div>
           </Container>
         </div>
@@ -194,11 +204,9 @@ const App: React.FC = () => {
             <div className="navbar-controls">
               <TrustIndicators contractAddress="0x44f703203A65b6b11ea3b4540cC30337F0630927" />
               <EnhancedThemeToggle />
-              {isConnected && (
+              {isConnected && account && (
                 <AddressDisplay 
-                  address={account!} 
-                  showCopy={true} 
-                  showQR={true}
+                  address={account} 
                   className="enhanced-address"
                 />
               )}
@@ -210,7 +218,7 @@ const App: React.FC = () => {
         <SecurityBanner />
 
         {/* Network Warning */}
-        <NetworkWarning currentNetwork={network} expectedNetwork="Monad Testnet" />
+        <NetworkWarning currentNetwork={network?.toString()} expectedNetwork="Monad Testnet" />
 
         {/* Main Container */}
         <Container className="main-container">
@@ -287,7 +295,7 @@ const App: React.FC = () => {
               {/* Enhanced Navigation */}
               <EnhancedNavPills 
                 activeTab={activeTab}
-                onTabChange={setActiveTab}
+                onTabChange={handleTabChange}
                 tabs={tabs}
               />
 
@@ -325,11 +333,11 @@ const App: React.FC = () => {
                     
                     {filteredEscrows?.length ? (
                       <div className="escrows-grid">
-                        {filteredEscrows.map(escrow => (
+                        {filteredEscrows.map((escrow: EscrowData) => (
                           <EnhancedEscrowCard 
                             key={escrow.id}
                             escrow={escrow}
-                            currentUser={account!}
+                            currentUser={account || ''}
                             onAction={(action) => {
                               handleNotification('success', `${action} completed successfully`);
                               refetchEscrows();
@@ -348,14 +356,13 @@ const App: React.FC = () => {
 
                 {activeTab === 'create' && (
                   <div className="create-view">
-                    {/* Enhanced Create Escrow Form will be implemented */}
                     <Card className="create-card">
                       <Card.Header>
                         <h4>Create New Escrow</h4>
                         <p className="text-muted">Set up a secure transaction between parties</p>
                       </Card.Header>
                       <Card.Body>
-                        <p>Enhanced create form coming in next component...</p>
+                        <p>Enhanced create form coming soon...</p>
                       </Card.Body>
                     </Card>
                   </div>
