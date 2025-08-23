@@ -1,813 +1,150 @@
-/* Enhanced Responsive.css - Complete Mobile-First Design */
+/* src/Responsive.css
+   Create this file with the following content: */
 
-/* Mobile-First Base Styles */
-/* These styles apply to all devices by default */
-.main-container {
-  padding: 0 var(--space-4) !important;
-  margin: var(--space-4) auto !important;
-}
+/* Enhanced responsive styles */
 
-.enhanced-nav-pills {
-  grid-template-columns: 1fr;
-  gap: var(--space-2);
-}
-
-.stats-grid {
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: var(--space-3);
-}
-
-.escrows-grid {
-  grid-template-columns: 1fr;
-  gap: var(--space-4);
-}
-
-.search-filter-container {
-  grid-template-columns: 1fr;
-  gap: var(--space-3);
-  padding: var(--space-4);
-}
-
-/* Extra Small Devices (phones < 576px) */
-@media (max-width: 575.98px) {
-  /* Layout Adjustments */
-  .app-wrapper {
-    padding: 0;
+/* Base mobile styles (for phones < 480px) */
+@media (max-width: 480px) {
+  .container {
+    padding: 15px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    border-radius: 8px;
   }
   
-  .main-container {
-    margin: var(--space-2) auto !important;
-    padding: 0 var(--space-3) !important;
+  .app-header h1 {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
   }
   
-  /* Navbar Adjustments */
-  .enhanced-navbar {
-    padding: var(--space-3) 0;
+  .app-header p {
+    font-size: 0.9rem;
   }
   
-  .logo-container {
-    gap: var(--space-2);
-  }
-  
-  .logo-icon {
-    width: 40px;
-    height: 40px;
-    font-size: var(--text-lg);
-  }
-  
-  .brand-text h1 {
-    font-size: var(--text-xl);
-    line-height: 1.2;
-  }
-  
-  .tagline {
-    font-size: var(--text-xs);
-    display: none; /* Hide tagline on very small screens */
-  }
-  
-  .navbar-controls {
-    gap: var(--space-2);
-    flex-wrap: wrap;
-  }
-  
-  /* Card Adjustments */
-  .welcome-card,
-  .enhanced-card,
-  .enhanced-escrow-card {
-    margin-bottom: var(--space-4);
-    border-radius: var(--radius-xl) !important;
-  }
-  
-  .enhanced-card-header,
-  .escrow-card-header {
-    padding: var(--space-4) !important;
-  }
-  
-  .enhanced-card-body {
-    padding: var(--space-4) !important;
-  }
-  
-  /* Welcome Card Mobile */
-  .welcome-icon {
-    font-size: 3rem;
-    margin-bottom: var(--space-4);
-  }
-  
-  .features-grid {
-    grid-template-columns: 1fr;
-    gap: var(--space-3);
-    margin: var(--space-4) 0;
-    padding: var(--space-4) 0;
-  }
-  
-  .feature-item {
-    padding: var(--space-3);
-    text-align: left;
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-  }
-  
-  .feature-icon {
-    font-size: var(--text-xl);
-    margin-bottom: 0;
-    flex-shrink: 0;
-  }
-  
-  .feature-item h5 {
-    font-size: var(--text-base);
-    margin-bottom: var(--space-1);
-  }
-  
-  .feature-item p {
-    font-size: var(--text-sm);
-    margin: 0;
-  }
-  
-  /* Navigation Pills Mobile */
-  .enhanced-nav-pills {
-    padding: var(--space-3);
-    margin-bottom: var(--space-4);
-  }
-  
-  .enhanced-nav-pill {
-    padding: var(--space-3) var(--space-4);
-    text-align: center;
-  }
-  
-  .enhanced-nav-pill-content {
-    flex-direction: column;
-    gap: var(--space-2);
-  }
-  
-  .enhanced-nav-pill-icon {
-    font-size: var(--text-2xl);
-  }
-  
-  .enhanced-nav-pill-description {
-    display: none; /* Hide descriptions on mobile */
-  }
-  
-  /* Stats Grid Mobile */
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--space-2);
-  }
-  
-  .stat-card {
-    padding: var(--space-3) !important;
-  }
-  
-  .stat-icon {
-    font-size: var(--text-2xl);
-    margin-bottom: var(--space-2);
-  }
-  
-  .stat-value {
-    font-size: var(--text-xl);
-  }
-  
-  .stat-label {
-    font-size: var(--text-xs);
-  }
-  
-  .stat-trend {
-    position: static;
-    margin-top: var(--space-1);
-    font-size: var(--text-xs);
-  }
-  
-  /* Escrow Card Mobile */
-  .escrow-card-header {
+  .wallet-info {
     flex-direction: column;
     align-items: flex-start;
-    gap: var(--space-3);
   }
   
-  .escrow-id {
-    font-size: var(--text-xs);
-    padding: var(--space-1) var(--space-2);
+  .wallet-info button {
+    margin-top: 10px;
   }
   
-  .escrow-amount {
-    font-size: var(--text-xl);
+  .address-display {
+    max-width: 120px;
   }
   
-  .escrow-description {
-    font-size: var(--text-sm);
+  .nav-tabs .nav-link {
+    padding: 8px 10px;
+    font-size: 0.85rem;
   }
   
-  .escrow-status-badge {
-    font-size: var(--text-xs) !important;
-    padding: var(--space-1) var(--space-2) !important;
+  .card-title {
+    font-size: 1.2rem;
   }
   
-  .participant-row {
+  .escrow-item {
     flex-direction: column;
     align-items: flex-start;
-    gap: var(--space-2);
-    padding: var(--space-2);
   }
   
-  .participant-address {
-    font-size: var(--text-xs);
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  
-  .escrow-timeline {
-    grid-template-columns: 1fr;
-    gap: var(--space-3);
-    margin: var(--space-3) 0;
-    padding: var(--space-3);
-  }
-  
-  .timeline-item {
-    justify-content: flex-start;
-  }
-  
-  .timeline-icon {
-    width: 28px;
-    height: 28px;
-    font-size: var(--text-base);
-  }
-  
-  /* Search and Filter Mobile */
-  .search-input input {
-    font-size: 16px !important; /* Prevent iOS zoom */
-    padding: var(--space-3) var(--space-4) var(--space-3) var(--space-10);
-  }
-  
-  .filter-select {
-    font-size: 16px !important; /* Prevent iOS zoom */
-    padding: var(--space-3);
-  }
-  
-  /* Buttons Mobile */
-  .btn {
-    font-size: 16px !important; /* Prevent iOS zoom */
-    padding: var(--space-3) var(--space-5) !important;
-    border-radius: var(--radius-xl) !important;
-  }
-  
-  .btn-enhanced {
-    padding: var(--space-3) var(--space-4) !important;
-  }
-  
-  .connect-button {
+  .escrow-item button {
+    margin-top: 10px;
     width: 100%;
-    font-size: var(--text-base) !important;
-    padding: var(--space-4) var(--space-6) !important;
   }
   
-  /* Floating Action Button Mobile */
-  .floating-action-button {
-    width: 56px;
-    height: 56px;
-    bottom: var(--space-4);
-    right: var(--space-4);
-    font-size: var(--text-xl);
+  /* Make form elements larger for touch */
+  .form-control {
+    padding: 12px;
+    font-size: 16px; /* prevents iOS zoom on focus */
   }
   
-  /* Activity Feed Mobile */
-  .activity-icon {
-    width: 32px;
-    height: 32px;
-    font-size: var(--text-base);
+  .btn {
+    padding: 12px;
+    font-size: 16px;
   }
   
-  .activity-description {
-    font-size: var(--text-sm);
+  /* Adjust modal content for small screens */
+  .modal-body {
+    padding: 15px;
   }
   
-  /* Footer Mobile */
-  .enhanced-footer {
-    padding: var(--space-6) 0 var(--space-4);
-    text-align: center;
-  }
-  
-  .footer-links {
-    flex-direction: column;
-    gap: var(--space-3);
-    margin-top: var(--space-4);
-  }
-  
-  /* Modal Mobile */
-  .modal-dialog {
-    margin: var(--space-3);
-  }
-  
-  .modal-content {
-    border-radius: var(--radius-2xl) !important;
-  }
-  
-  .modal-header,
-  .modal-body,
-  .modal-footer {
-    padding: var(--space-4);
-  }
-  
-  /* Onboarding Modal Mobile */
-  .onboarding-modal .modal-body {
-    min-height: 200px;
-    padding: var(--space-4);
-  }
-  
-  .welcome-animation,
-  .completion-animation {
-    font-size: 3rem !important;
-  }
-  
-  .process-steps,
-  .security-features {
-    gap: var(--space-3);
-  }
-  
-  .step-number {
-    width: 28px;
-    height: 28px;
-    font-size: var(--text-xs);
-  }
-  
-  .security-features .feature-icon {
-    width: 32px;
-    height: 32px;
-    font-size: var(--text-base);
-  }
-  
-  /* Notifications Mobile */
-  .notifications-container {
-    top: var(--space-3);
-    right: var(--space-3);
-    left: var(--space-3);
-    max-width: none;
-  }
-  
-  .notification-alert {
-    font-size: var(--text-sm);
-    padding: var(--space-3);
-  }
-  
-  /* Address Display Mobile */
-  .enhanced-address {
-    max-width: 100px;
-    font-size: var(--text-xs) !important;
-  }
-  
-  /* Trust Indicators Mobile */
-  .trust-indicators {
-    gap: var(--space-1);
-  }
-  
-  .trust-indicators .badge {
-    padding: var(--space-1) var(--space-2) !important;
-    font-size: var(--text-xs) !important;
-  }
-  
-  .trust-indicators .badge span:not(.d-none) {
-    display: none !important;
-  }
-  
-  /* Theme Toggle Mobile */
-  .theme-toggle-btn .d-none {
-    display: none !important;
-  }
-  
-  /* Dropdown Mobile */
-  .dropdown-menu {
-    width: 100% !important;
-    max-width: none !important;
-  }
-  
-  .dropdown-item {
-    padding: var(--space-3) !important;
+  .modal-footer, 
+  .modal-header {
+    padding: 10px 15px;
   }
 }
 
-/* Small Devices (landscape phones, 576px and up) */
-@media (min-width: 576px) {
-  .main-container {
-    padding: 0 var(--space-5) !important;
-  }
-  
-  .tagline {
-    display: inline !important;
-  }
-  
-  .stats-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-  
-  .features-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-  
-  .enhanced-nav-pill-description {
-    display: block;
-  }
-  
-  .search-filter-container {
-    grid-template-columns: 2fr 1fr;
+/* Small mobile landscape orientation */
+@media (max-width: 767px) and (orientation: landscape) {
+  .container {
+    max-width: 100%;
+    margin-top: 5px;
+    margin-bottom: 5px;
   }
 }
 
-/* Medium Devices (tablets, 768px and up) */
-@media (min-width: 768px) {
-  .main-container {
-    padding: 0 var(--space-6) !important;
-    margin: var(--space-6) auto !important;
+/* Very small devices (less than 360px) */
+@media (max-width: 360px) {
+  .container {
+    padding: 10px;
   }
   
-  /* Navbar Improvements */
-  .enhanced-navbar {
-    padding: var(--space-4) 0;
+  .app-header h1 {
+    font-size: 1.3rem;
   }
   
-  .logo-icon {
-    width: 48px;
-    height: 48px;
-    font-size: var(--text-xl);
+  .app-header p {
+    font-size: 0.8rem;
   }
   
-  .brand-text h1 {
-    font-size: var(--text-2xl);
+  .nav-tabs .nav-link {
+    padding: 6px 8px;
+    font-size: 0.8rem;
   }
   
-  .navbar-controls {
-    gap: var(--space-4);
+  .card-title {
+    font-size: 1.1rem;
   }
   
-  /* Navigation Pills */
-  .enhanced-nav-pills {
-    grid-template-columns: repeat(2, 1fr);
-    padding: var(--space-4);
-  }
-  
-  .enhanced-nav-pill {
-    padding: var(--space-4) var(--space-5);
-  }
-  
-  .enhanced-nav-pill-content {
-    flex-direction: row;
-    text-align: left;
-  }
-  
-  /* Stats Grid */
-  .stats-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-  
-  .stat-card {
-    padding: var(--space-5) !important;
-  }
-  
-  .stat-icon {
-    font-size: var(--text-3xl);
-  }
-  
-  .stat-value {
-    font-size: var(--text-2xl);
-  }
-  
-  .stat-trend {
-    position: absolute;
-    top: var(--space-3);
-    right: var(--space-3);
-  }
-  
-  /* Escrow Grid */
-  .escrows-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
-  /* Search and Filter */
-  .search-filter-container {
-    grid-template-columns: 2fr 1fr 1fr;
-  }
-  
-  /* Escrow Card */
-  .escrow-card-header {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-  }
-  
-  .escrow-timeline {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
-  .participant-row {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-  }
-  
-  /* Activity Feed */
-  .activity-icon {
-    width: 40px;
-    height: 40px;
-    font-size: var(--text-lg);
-  }
-  
-  /* Footer */
-  .enhanced-footer {
-    text-align: left;
-  }
-  
-  .footer-links {
-    flex-direction: row;
-    justify-content: flex-end;
-    margin-top: 0;
-  }
-  
-  /* Floating Action Button */
-  .floating-action-button {
-    width: 64px;
-    height: 64px;
-    bottom: var(--space-8);
-    right: var(--space-8);
-  }
-  
-  /* Address Display */
-  .enhanced-address {
-    max-width: 150px;
+  .btn {
+    padding: 8px 12px;
   }
 }
 
-/* Large Devices (desktops, 992px and up) */
-@media (min-width: 992px) {
-  .main-container {
-    max-width: 1200px !important;
-    padding: 0 var(--space-8) !important;
-  }
-  
-  /* Navigation Pills */
-  .enhanced-nav-pills {
-    grid-template-columns: repeat(4, 1fr);
-  }
-  
-  /* Stats Grid */
-  .stats-grid {
-    grid-template-columns: repeat(5, 1fr);
-  }
-  
-  /* Escrow Grid */
-  .escrows-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--space-6);
-  }
-  
-  /* Dashboard Layout */
-  .dashboard-view .row {
-    align-items: flex-start;
-  }
-  
-  /* Escrow Card */
-  .escrow-amount {
-    font-size: var(--text-3xl);
-  }
-  
-  .enhanced-address {
+/* Optimize address display component */
+.address-display-container {
+  display: inline-flex;
+  align-items: center;
+}
+
+.address-display {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Different max-width based on screen size */
+@media (min-width: 769px) {
+  .address-display {
     max-width: 200px;
   }
 }
 
-/* Extra Large Devices (large desktops, 1200px and up) */
-@media (min-width: 1200px) {
-  .main-container {
-    max-width: 1400px !important;
-  }
-  
-  /* Escrow Grid */
-  .escrows-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-  
-  /* Welcome Card */
-  .welcome-card {
-    max-width: 800px;
-  }
-  
-  .features-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: var(--space-8);
+@media (min-width: 481px) and (max-width: 768px) {
+  .address-display {
+    max-width: 150px;
   }
 }
 
-/* Ultra Wide Screens (1400px and up) */
-@media (min-width: 1400px) {
-  .main-container {
-    max-width: 1600px !important;
-  }
-  
-  .escrows-grid {
-    grid-template-columns: repeat(4, 1fr);
+@media (max-width: 480px) {
+  .address-display {
+    max-width: 120px;
   }
 }
 
-/* Touch Device Optimizations */
-@media (hover: none) and (pointer: coarse) {
-  /* Increase touch targets */
-  .btn,
-  .enhanced-nav-pill,
-  .dropdown-item {
-    min-height: 44px;
-    padding: var(--space-3) var(--space-4);
+@media (max-width: 360px) {
+  .address-display {
+    max-width: 90px;
   }
-  
-  /* Remove hover effects on touch devices */
-  .enhanced-card:hover,
-  .enhanced-escrow-card:hover,
-  .stat-card:hover,
-  .btn:hover {
-    transform: none !important;
-  }
-  
-  /* Simplify animations for better performance */
-  * {
-    transition: none !important;
-  }
-  
-  /* Keep essential transitions */
-  .enhanced-nav-pill,
-  .btn,
-  .modal {
-    transition: all 0.2s ease !important;
-  }
-}
-
-/* High DPI Displays */
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 2dppx) {
-  /* Sharper borders */
-  .enhanced-card,
-  .enhanced-escrow-card,
-  .btn,
-  .form-control {
-    border-width: 0.5px;
-  }
-}
-
-/* Landscape Orientation */
-@media (orientation: landscape) and (max-height: 500px) {
-  /* Compact header for landscape phones */
-  .enhanced-navbar {
-    padding: var(--space-2) 0;
-  }
-  
-  .logo-icon {
-    width: 36px;
-    height: 36px;
-  }
-  
-  .brand-text h1 {
-    font-size: var(--text-lg);
-  }
-  
-  .tagline {
-    display: none;
-  }
-  
-  /* Reduce vertical spacing */
-  .main-container {
-    margin: var(--space-2) auto !important;
-  }
-  
-  .enhanced-nav-pills {
-    margin-bottom: var(--space-3);
-    padding: var(--space-2);
-  }
-  
-  .enhanced-nav-pill {
-    padding: var(--space-2) var(--space-3);
-  }
-  
-  /* Modal adjustments for landscape */
-  .modal-dialog {
-    max-height: calc(100vh - var(--space-4));
-    margin: var(--space-2);
-  }
-  
-  .onboarding-modal .modal-body {
-    min-height: auto;
-    max-height: 60vh;
-    overflow-y: auto;
-  }
-}
-
-/* Print Styles */
-@media print {
-  .floating-action-button,
-  .enhanced-navbar,
-  .enhanced-footer,
-  .btn,
-  .notifications-container {
-    display: none !important;
-  }
-  
-  .enhanced-card,
-  .enhanced-escrow-card {
-    break-inside: avoid;
-    box-shadow: none !important;
-    border: 1px solid #000 !important;
-  }
-  
-  .main-container {
-    max-width: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-  
-  .escrows-grid {
-    grid-template-columns: 1fr !important;
-  }
-}
-
-/* Reduced Motion */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-  
-  .floating-action-button:hover,
-  .enhanced-card:hover,
-  .btn:hover {
-    transform: none !important;
-  }
-  
-  .welcome-animation,
-  .completion-animation {
-    animation: none !important;
-  }
-}
-
-/* High Contrast Mode */
-@media (prefers-contrast: high) {
-  .enhanced-card,
-  .enhanced-escrow-card,
-  .btn,
-  .form-control {
-    border-width: 2px !important;
-  }
-  
-  .btn {
-    font-weight: 700 !important;
-  }
-  
-  .text-muted {
-    color: var(--text-secondary) !important;
-  }
-}
-
-/* Focus Visible Enhancements */
-.enhanced-nav-pill:focus-visible,
-.btn:focus-visible,
-.form-control:focus-visible,
-.dropdown-item:focus-visible {
-  outline: 3px solid var(--primary-500);
-  outline-offset: 2px;
-}
-
-/* Keyboard Navigation Improvements */
-.enhanced-nav-pill:focus,
-.btn:focus,
-.dropdown-item:focus {
-  z-index: 1;
-  position: relative;
-}
-
-/* Skip Links for Accessibility */
-.skip-link {
-  position: absolute;
-  top: -40px;
-  left: 6px;
-  background: var(--primary-500);
-  color: white;
-  padding: 8px;
-  text-decoration: none;
-  border-radius: 4px;
-  z-index: 1000;
-  transition: top 0.3s;
-}
-
-.skip-link:focus {
-  top: 6px;
-}
-
-/* Screen Reader Only Content */
-.sr-only {
-  position: absolute !important;
-  width: 1px !important;
-  height: 1px !important;
-  padding: 0 !important;
-  margin: -1px !important;
-  overflow: hidden !important;
-  clip: rect(0, 0, 0, 0) !important;
-  white-space: nowrap !important;
-  border: 0 !important;
 }
