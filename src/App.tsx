@@ -17,6 +17,7 @@ import EnhancedNavPills from './components/EnhancedNavPills';
 import EscrowDashboard from './components/EscrowDashboard';
 import EnhancedEscrowCard from './components/EnhancedEscrowCard';
 import EnhancedWalletConnection from './components/EnhancedWalletConnection';
+import WalletDebugHelper from './components/WalletDebugHelper'; // Debug helper
 import { OnboardingTour } from './components/OnboardingTour';
 import { FloatingActionButton } from './components/FloatingActionButton';
 import { AnimatedLoader } from './components/AnimatedLoader';
@@ -92,7 +93,9 @@ const App: React.FC = () => {
     connected,
     error: walletError,
     connectWallet,
-    disconnectWallet
+    disconnectWallet,
+    provider,
+    signer
   } = walletHook;
 
   // Escrow loader hook
@@ -282,6 +285,16 @@ const App: React.FC = () => {
                 disconnectWallet={disconnectWallet}
                 onConnectionSuccess={handleConnectionSuccess}
                 onConnectionError={handleConnectionError}
+              />
+              
+              {/* Debug Helper - Remove this in production */}
+              <WalletDebugHelper 
+                account={account}
+                connected={connected}
+                error={walletError}
+                provider={provider}
+                signer={signer}
+                connectWallet={connectWallet}
               />
             </div>
           ) : (
