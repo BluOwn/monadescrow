@@ -1,93 +1,551 @@
-/* Styles for progress bars and new components */
+/* Component-specific styles - Minimalist additions */
 
-/* Escrow card styling */
-.escrow-card {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+/* Guide/How-to-use Components */
+.welcome-card .card-header {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: white;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
 
-.escrow-card:hover {
+.welcome-alert {
+  border: none;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(6, 182, 212, 0.05));
+  border-left: 4px solid var(--primary);
+}
+
+.feature-item {
+  padding: var(--space-4);
+}
+
+.feature-icon {
+  font-size: 2rem;
+  margin-bottom: var(--space-2);
+}
+
+.guide-sections {
+  margin: var(--space-6) 0;
+}
+
+.guide-section {
+  margin-bottom: var(--space-4);
+  border: 1px solid var(--border);
+  transition: var(--transition);
+}
+
+.guide-section:hover {
+  border-color: var(--primary);
+  box-shadow: var(--shadow-lg);
+}
+
+.step-icon {
+  font-size: 1.5rem;
+  width: 40px;
+  text-align: center;
+}
+
+.process-steps, .lifecycle-stages, .best-practices {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.step-item, .stage-item, .practice-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.step-number {
+  min-width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-xs);
+  border-radius: var(--radius-full);
+}
+
+.stage-content, .practice-item > div {
+  flex: 1;
+}
+
+.practice-icon {
+  font-size: 1.25rem;
+  color: var(--success);
+}
+
+.action-card {
+  border: 1px solid var(--border);
+  transition: var(--transition);
+}
+
+.action-card:hover {
+  border-color: var(--primary);
   transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* Progress bar labels */
-.progress-labels {
-  font-size: 0.7rem;
-  color: var(--text-secondary);
+.cta-card {
+  background: linear-gradient(135deg, var(--gray-50), var(--white));
+  border: 1px solid var(--border);
 }
 
-/* Address display component */
-.address-display-container button {
+.dark-mode .cta-card {
+  background: linear-gradient(135deg, var(--gray-800), var(--gray-900));
+}
+
+/* Create Escrow Components */
+.create-escrow-card {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.requirements-info {
+  background-color: var(--gray-50);
+  border: 1px solid var(--border);
+}
+
+.dark-mode .requirements-info {
+  background-color: var(--gray-800);
+}
+
+.helper-box {
+  margin-top: var(--space-3);
+  background-color: var(--primary-light);
+  border-color: var(--primary);
+}
+
+.dark-mode .helper-box {
+  background-color: rgba(99, 102, 241, 0.1);
+}
+
+.security-notice {
+  background-color: rgba(245, 158, 11, 0.1);
+  border-color: var(--warning);
+}
+
+/* My Escrows Components */
+.escrows-grid {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+}
+
+.escrow-progress {
+  margin: var(--space-3) 0;
+}
+
+.escrow-progress .progress {
+  background-color: var(--gray-200);
+  border-radius: var(--radius-full);
+}
+
+.dark-mode .escrow-progress .progress {
+  background-color: var(--gray-700);
+}
+
+/* Find Escrow Components */
+.search-info {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.05), rgba(59, 130, 246, 0.02));
+  border-left: 4px solid var(--info);
+}
+
+.recent-searches {
+  background-color: var(--gray-50);
+  padding: var(--space-4);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+.dark-mode .recent-searches {
+  background-color: var(--gray-800);
+}
+
+.recent-search-badge {
+  cursor: pointer;
+  transition: var(--transition);
+  background-color: var(--gray-200) !important;
+  color: var(--gray-700) !important;
+}
+
+.recent-search-badge:hover {
+  background-color: var(--primary) !important;
+  color: white !important;
+  transform: translateY(-1px);
+}
+
+.search-tips .card-body {
+  background-color: var(--gray-50);
+  border-radius: var(--radius);
+}
+
+.dark-mode .search-tips .card-body {
+  background-color: var(--gray-800);
+}
+
+.tip-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.tip-icon {
+  font-size: 1.25rem;
+  min-width: 24px;
+}
+
+.examples {
+  background-color: var(--gray-50);
+  border: 1px solid var(--border);
+}
+
+.dark-mode .examples {
+  background-color: var(--gray-800);
+}
+
+/* Toast Notifications */
+.toast-notification .alert {
+  margin-bottom: 0;
+  box-shadow: var(--shadow-lg);
+  border: none;
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(10px);
+}
+
+/* Loading States */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-12) var(--space-4);
+  text-align: center;
+}
+
+.loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid var(--gray-200);
+  border-top: 4px solid var(--primary);
+  border-radius: var(--radius-full);
+  animation: spin 1s linear infinite;
+  margin-bottom: var(--space-4);
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.dark-mode .loading-spinner {
+  border-color: var(--gray-700);
+  border-top-color: var(--primary);
+}
+
+/* Empty States */
+.empty-state {
+  text-align: center;
+  padding: var(--space-12) var(--space-4);
+}
+
+.empty-state-icon {
+  font-size: 3rem;
+  margin-bottom: var(--space-4);
   opacity: 0.6;
-  transition: opacity 0.2s ease;
 }
 
-.address-display-container:hover button {
-  opacity: 1;
+.empty-state h5 {
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
 }
 
-/* Skeleton loaders */
-.placeholder-glow .placeholder {
-  background-color: var(--border-color);
+.empty-state p {
+  color: var(--text-muted);
+  margin-bottom: var(--space-4);
 }
 
-/* Dark mode adjustments for skeleton loaders */
-body.dark-mode .placeholder-glow .placeholder {
-  background-color: rgba(255, 255, 255, 0.15);
-}
-
-/* Theme toggle button animation */
-.theme-toggle-btn {
-  transition: transform 0.3s ease;
-}
-
-.theme-toggle-btn:hover {
-  transform: rotate(15deg);
-}
-
-/* Escrow status badges */
-.escrow-status {
-  display: inline-block;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  margin-top: 5px;
-}
-
-/* Progress bar transitions */
-.progress-bar {
-  transition: width 0.5s ease;
-}
-
-/* Enhanced role badges */
-.role-badge {
-  display: inline-block;
-  padding: 3px 8px;
-  border-radius: 4px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  margin-right: 5px;
-  margin-top: 5px;
-  margin-bottom: 5px;
+/* Address Display Enhancements */
+.address-display {
   position: relative;
   overflow: hidden;
 }
 
-.role-badge::after {
+.address-display:hover {
+  background-color: var(--primary-light);
+  border-color: var(--primary);
+}
+
+.dark-mode .address-display:hover {
+  background-color: rgba(99, 102, 241, 0.2);
+}
+
+.address-copy-btn {
+  opacity: 0.7;
+  transition: var(--transition);
+  background: none;
+  border: none;
+  color: inherit;
+  padding: var(--space-1);
+  border-radius: var(--radius);
+}
+
+.address-copy-btn:hover {
+  opacity: 1;
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Status Badges */
+.status-badge {
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: var(--text-xs);
+  letter-spacing: 0.5px;
+}
+
+/* Role Badges */
+.role-badge {
+  font-size: var(--text-xs);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius);
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+/* Security Components */
+.security-banner {
+  position: relative;
+  overflow: hidden;
+}
+
+.security-banner::before {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(45deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0) 100%);
+  background: linear-gradient(45deg, transparent 0%, rgba(255, 255, 255, 0.1) 50%, transparent 100%);
   animation: shimmer 2s infinite;
-  transform: translateX(-100%);
+  pointer-events: none;
 }
 
 @keyframes shimmer {
-  100% {
-    transform: translateX(100%);
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.contract-info {
+  position: relative;
+  overflow: hidden;
+}
+
+.contract-info::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(to bottom, var(--info), var(--secondary));
+}
+
+/* Modal Enhancements */
+.modal-content {
+  backdrop-filter: blur(20px);
+  background-color: rgba(255, 255, 255, 0.95);
+}
+
+.dark-mode .modal-content {
+  background-color: rgba(30, 41, 59, 0.95);
+}
+
+.modal-backdrop {
+  backdrop-filter: blur(4px);
+}
+
+/* Form Enhancements */
+.form-control:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.form-control.is-invalid:focus {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+/* Button Enhancements */
+.btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn-lg {
+  padding: var(--space-4) var(--space-8);
+  font-size: var(--text-lg);
+  min-height: 56px;
+}
+
+/* Progress Bar Enhancements */
+.progress {
+  background-color: var(--gray-200);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.progress-bar {
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  transition: width 0.5s ease;
+  position: relative;
+}
+
+.progress-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, transparent 0%, rgba(255, 255, 255, 0.2) 50%, transparent 100%);
+  animation: progressShimmer 2s infinite;
+}
+
+@keyframes progressShimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Responsive Enhancements */
+@media (max-width: 768px) {
+  .escrows-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .header-content {
+    gap: var(--space-3);
+  }
+  
+  .nav-pills {
+    gap: var(--space-1);
+  }
+  
+  .nav-pill {
+    padding: var(--space-2) var(--space-3);
+    min-width: auto;
+    flex: 1;
+  }
+  
+  .wallet-info {
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  
+  .process-steps,
+  .lifecycle-stages,
+  .best-practices {
+    gap: var(--space-3);
+  }
+  
+  .tip-item,
+  .step-item,
+  .stage-item,
+  .practice-item {
+    flex-direction: column;
+    text-align: center;
+    gap: var(--space-2);
+  }
+}
+
+@media (max-width: 480px) {
+  .brand-title {
+    font-size: var(--text-xl);
+  }
+  
+  .brand-subtitle {
+    font-size: var(--text-xs);
+  }
+  
+  .nav-label {
+    display: none;
+  }
+  
+  .nav-pill {
+    padding: var(--space-2);
+    border-radius: var(--radius);
+    min-height: 40px;
+  }
+  
+  .create-escrow-card {
+    margin: 0;
+  }
+  
+  .escrow-actions {
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+  
+  .toast-notification {
+    left: var(--space-2);
+    right: var(--space-2);
+    min-width: auto;
+  }
+}
+
+/* Accessibility Improvements */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .card {
+    border-width: 2px;
+  }
+  
+  .btn {
+    border-width: 2px;
+  }
+  
+  .form-control {
+    border-width: 2px;
+  }
+}
+
+/* Focus indicators for keyboard navigation */
+.btn:focus-visible,
+.nav-pill:focus-visible,
+.form-control:focus-visible,
+.recent-search-badge:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Print styles */
+@media print {
+  .app-header,
+  .app-navigation,
+  .app-footer,
+  .btn,
+  .toast-notification {
+    display: none !important;
+  }
+  
+  .card {
+    break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid #000;
+  }
+  
+  body {
+    background: white !important;
+    color: black !important;
   }
 }
