@@ -1,4 +1,4 @@
-// src/components/EnhancedWalletConnection.tsx - Improved Wallet Connection
+// src/components/EnhancedWalletConnection.tsx
 import React, { useState, useEffect } from 'react';
 import { Button, Card, Alert, Modal, Spinner, Badge } from 'react-bootstrap';
 
@@ -38,7 +38,7 @@ const EnhancedWalletConnection: React.FC<EnhancedWalletConnectionProps> = ({
 
   // Check if MetaMask is installed
   const isMetaMaskInstalled = () => {
-    return typeof window !== 'undefined' && 
+    return typeof window !== 'undefined' &&
            typeof (window as any).ethereum !== 'undefined' &&
            (window as any).ethereum.isMetaMask;
   };
@@ -58,7 +58,7 @@ const EnhancedWalletConnection: React.FC<EnhancedWalletConnectionProps> = ({
     return false;
   };
 
-  // Switch to Monad Testnet
+  // Switch to Monad Testnet (without adding)
   const switchToMonadTestnet = async () => {
     if (typeof window !== 'undefined' && (window as any).ethereum) {
       try {
@@ -68,31 +68,6 @@ const EnhancedWalletConnection: React.FC<EnhancedWalletConnectionProps> = ({
         });
         return true;
       } catch (switchError: any) {
-        // If the chain hasn't been added to MetaMask, add it
-        if (switchError.code === 4902) {
-          try {
-            await (window as any).ethereum.request({
-              method: 'wallet_addEthereumChain',
-              params: [
-                {
-                  chainId: '0x2798',
-                  chainName: 'Monad Testnet',
-                  rpcUrls: ['https://rpc-testnet.monad.xyz'],
-                  nativeCurrency: {
-                    name: 'Monad',
-                    symbol: 'MON',
-                    decimals: 18,
-                  },
-                  blockExplorerUrls: ['https://testnet.monadexplorer.com'],
-                },
-              ],
-            });
-            return true;
-          } catch (addError) {
-            console.error('Failed to add Monad Testnet:', addError);
-            return false;
-          }
-        }
         console.error('Failed to switch network:', switchError);
         return false;
       }
@@ -123,7 +98,7 @@ const EnhancedWalletConnection: React.FC<EnhancedWalletConnectionProps> = ({
 
       // Step 2: Connect wallet
       const success = await connectWallet();
-      
+
       if (success) {
         setShowWalletModal(false);
         onConnectionSuccess?.();
@@ -181,7 +156,6 @@ const EnhancedWalletConnection: React.FC<EnhancedWalletConnectionProps> = ({
       }, 5000);
       return () => clearTimeout(timer);
     }
-    // Add return statement for when there's no connectionError
     return undefined;
   }, [connectionError]);
 
@@ -248,25 +222,7 @@ const EnhancedWalletConnection: React.FC<EnhancedWalletConnectionProps> = ({
               </Alert>
             )}
 
-            <div className="features-grid">
-              <div className="feature-item">
-                <div className="feature-icon">🔒</div>
-                <h5>Secure</h5>
-                <p>Smart contract protection</p>
-              </div>
-              <div className="feature-item">
-                <div className="feature-icon">⚡</div>
-                <h5>Fast</h5>
-                <p>Lightning-fast transactions</p>
-              </div>
-              <div className="feature-item">
-                <div className="feature-icon">🌍</div>
-                <h5>Trustless</h5>
-                <p>No intermediaries needed</p>
-              </div>
-            </div>
-
-            {/* Connection Buttons */}
+            {/* Connect buttons */}
             <div className="connection-buttons">
               <Button
                 variant="primary"
@@ -288,7 +244,6 @@ const EnhancedWalletConnection: React.FC<EnhancedWalletConnectionProps> = ({
                 )}
               </Button>
 
-              {/* Quick Connect for MetaMask */}
               {isMetaMaskInstalled() && (
                 <Button
                   variant="outline-primary"
@@ -302,145 +257,9 @@ const EnhancedWalletConnection: React.FC<EnhancedWalletConnectionProps> = ({
                 </Button>
               )}
             </div>
-
-            <div className="supported-wallets mt-3">
-              <small className="text-muted">
-                Supports MetaMask • WalletConnect coming soon
-              </small>
-            </div>
-
-            {/* Help Link */}
-            <div className="mt-3">
-              <Button
-                variant="link"
-                size="sm"
-                onClick={() => setShowInstructions(true)}
-              >
-                Need help? Click here for setup instructions
-              </Button>
-            </div>
           </Card.Body>
         </Card>
       </div>
-
-      {/* Wallet Selection Modal */}
-      <Modal 
-        show={showWalletModal} 
-        onHide={() => setShowWalletModal(false)}
-        centered
-        className="wallet-modal"
-      >
-        <Modal.Header closeButton>
-          <Modal.Title>
-            <span className="me-2">🔗</span>
-            Connect Your Wallet
-          </Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <div className="wallet-providers">
-            {walletProviders.map((provider) => (
-              <Card
-                key={provider.id}
-                className={`wallet-provider-card ${!provider.installed ? 'disabled' : ''}`}
-                onClick={provider.installed ? provider.connect : undefined}
-                style={{ cursor: provider.installed ? 'pointer' : 'not-allowed' }}
-              >
-                <Card.Body className="d-flex align-items-center gap-3">
-                  <div className="provider-icon">{provider.icon}</div>
-                  <div className="flex-grow-1">
-                    <h5 className="mb-1">{provider.name}</h5>
-                    <p className="text-muted mb-0">{provider.description}</p>
-                  </div>
-                  {!provider.installed && (
-                    <Badge bg="warning">Not Installed</Badge>
-                  )}
-                  {provider.installed && (
-                    <Badge bg="success">Available</Badge>
-                  )}
-                </Card.Body>
-              </Card>
-            ))}
-          </div>
-        </Modal.Body>
-        <Modal.Footer>
-          <small className="text-muted">
-            By connecting, you agree to our Terms of Service
-          </small>
-        </Modal.Footer>
-      </Modal>
-
-      {/* Instructions Modal */}
-      <Modal
-        show={showInstructions}
-        onHide={() => setShowInstructions(false)}
-        centered
-        size="lg"
-        className="instructions-modal"
-      >
-        <Modal.Header closeButton>
-          <Modal.Title>
-            <span className="me-2">📖</span>
-            Wallet Setup Instructions
-          </Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <div className="setup-instructions">
-            <h5>Getting Started with MetaMask</h5>
-            
-            <div className="instruction-step">
-              <div className="step-number">1</div>
-              <div>
-                <h6>Install MetaMask</h6>
-                <p>Download and install the MetaMask browser extension from <a href="https://metamask.io" target="_blank" rel="noopener noreferrer">metamask.io</a></p>
-              </div>
-            </div>
-
-            <div className="instruction-step">
-              <div className="step-number">2</div>
-              <div>
-                <h6>Create or Import Wallet</h6>
-                <p>Follow MetaMask's setup process to create a new wallet or import an existing one</p>
-              </div>
-            </div>
-
-            <div className="instruction-step">
-              <div className="step-number">3</div>
-              <div>
-                <h6>Add Monad Testnet</h6>
-                <p>We'll automatically add Monad Testnet to your MetaMask when you connect</p>
-                <div className="network-details">
-                  <strong>Network Details:</strong>
-                  <ul>
-                    <li>Network Name: Monad Testnet</li>
-                    <li>RPC URL: https://rpc-testnet.monad.xyz</li>
-                    <li>Chain ID: 10143</li>
-                    <li>Currency: MON</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            <div className="instruction-step">
-              <div className="step-number">4</div>
-              <div>
-                <h6>Get Test Tokens</h6>
-                <p>Visit the Monad faucet to get testnet MON tokens for testing</p>
-              </div>
-            </div>
-          </div>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowInstructions(false)}>
-            Close
-          </Button>
-          <Button variant="primary" onClick={() => {
-            setShowInstructions(false);
-            setShowWalletModal(true);
-          }}>
-            Try Connecting
-          </Button>
-        </Modal.Footer>
-      </Modal>
     </>
   );
 };
