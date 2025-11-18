@@ -102,54 +102,67 @@ body {
   background: rgba(139, 92, 246, 0.1);
 }
 
-/* App Wrapper */
+/* App Wrapper - Full Page Layout */
 .app-wrapper {
   min-height: 100vh;
-  padding: var(--space-8) var(--space-4);
-  display: grid;
-  place-items: center;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
-/* Container with Enhanced Grid Layout */
+/* Container with Full Page Layout */
 .container {
-  max-width: 1000px !important;
-  border-radius: 24px !important;
-  box-shadow: var(--shadow-lg) !important;
-  padding: var(--space-12) !important;
-  background: rgba(255, 255, 255, 0.8) !important;
-  backdrop-filter: blur(20px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  flex: 1;
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: var(--space-8) var(--space-6) !important;
+  background: transparent !important;
   position: relative;
-  overflow: hidden;
-  display: grid;
-  grid-template-rows: auto 1fr auto;
-  gap: var(--space-8);
-  transform: translateY(0);
-  animation: containerEntrance 0.8s var(--spring);
+  margin: 0 auto !important;
+}
+
+/* Add subtle background overlay for content area */
+.container::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    radial-gradient(circle at 20% 80%, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(6, 182, 212, 0.08) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.dark-mode .container::before {
+  background:
+    radial-gradient(circle at 20% 80%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(6, 182, 212, 0.15) 0%, transparent 50%);
+}
+
+/* Inner content wrapper with max-width for readability */
+.container > * {
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .dark-mode .container {
-  background: rgba(26, 26, 46, 0.8) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--dark-text) !important;
 }
 
-@keyframes containerEntrance {
-  0% {
-    opacity: 0;
-    transform: translateY(30px) scale(0.95);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
+/* Removed containerEntrance animation - no longer needed for full-page layout */
 
 /* Header with Better Typography */
 .app-header {
   text-align: center;
   position: relative;
   z-index: 10;
+  padding: var(--space-6) 0;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .app-header h1 {
