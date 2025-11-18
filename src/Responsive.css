@@ -237,6 +237,43 @@
     height: 48px !important;
   }
 
+  /* Security Components - Mobile Optimized */
+  .security-banner {
+    padding: 12px !important;
+    margin-bottom: 16px !important;
+  }
+
+  .security-banner p {
+    font-size: 0.8125rem !important;
+    margin-bottom: 8px !important;
+  }
+
+  .security-banner .btn {
+    width: 100%;
+    margin-top: 8px;
+  }
+
+  .contract-info {
+    padding: 16px !important;
+    margin-top: 16px !important;
+    margin-bottom: 16px !important;
+  }
+
+  .contract-info h6 {
+    font-size: 0.9375rem !important;
+    margin-bottom: 12px !important;
+  }
+
+  .contract-info code {
+    font-size: 0.75rem !important;
+    padding: 8px !important;
+  }
+
+  .contract-info .btn {
+    width: 100% !important;
+    margin-top: 12px;
+  }
+
   /* Prevent horizontal scroll */
   body {
     overflow-x: hidden !important;
