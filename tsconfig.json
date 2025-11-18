@@ -54,6 +54,10 @@
   "exclude": [
     "node_modules",
     "build",
-    "coverage"
+    "coverage",
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx",
+    "src/**/__tests__",
+    "src/test"
   ]
 }
