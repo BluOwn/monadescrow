@@ -20,27 +20,31 @@ export interface ThemeContextType {
   toggleDarkMode: () => void;
 }
 
-// Contract related types - simplified to avoid type conflicts
-export interface EscrowContract {
-  // Use indexed signature instead of extending Contract
-  [key: string]: any;
-  
-  // Define the methods with any type
-  createEscrow: any;
-  releaseFunds: any;  
-  refundBuyer: any;
-  raiseDispute: any;
-  resolveDispute: any;
-  getEscrow: any;
-  getEscrowCount: any;
-  getUserEscrows: any;
-  
-  // Include essential contract properties
-  interface: Interface;
-  runner?: ContractRunner;
-  connect: (runner: ContractRunner) => EscrowContract;
-  attach: (addressOrName: string) => EscrowContract;
-  getFunction: (key: string) => BaseContractMethod<any[], any, any>;
+// Contract related types - properly typed for better safety
+export interface EscrowContract extends Contract {
+  // Define the methods with proper types
+  createEscrow: (
+    seller: string,
+    arbiter: string,
+    options?: { value: bigint }
+  ) => Promise<ContractTransactionResponse>;
+
+  releaseFunds: (escrowId: bigint) => Promise<ContractTransactionResponse>;
+
+  refundBuyer: (escrowId: bigint) => Promise<ContractTransactionResponse>;
+
+  raiseDispute: (escrowId: bigint) => Promise<ContractTransactionResponse>;
+
+  resolveDispute: (
+    escrowId: bigint,
+    recipient: string
+  ) => Promise<ContractTransactionResponse>;
+
+  getEscrow: (escrowId: bigint) => Promise<[string, string, string, bigint, boolean, boolean]>;
+
+  getEscrowCount: () => Promise<bigint>;
+
+  getUserEscrows: (user: string) => Promise<bigint[]>;
 }
 
 // Helper function to create a typed escrow contract
@@ -155,6 +159,13 @@ export interface SkeletonProps {
 }
 
 // Define a custom Window interface to include ethereum
+export interface EthereumProvider {
+  request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
+  on: (event: string, callback: (...args: unknown[]) => void) => void;
+  removeListener: (event: string, callback: (...args: unknown[]) => void) => void;
+  isMetaMask?: boolean;
+}
+
 export interface ExtendedWindow extends Window {
-  ethereum?: any;
+  ethereum?: EthereumProvider;
 }

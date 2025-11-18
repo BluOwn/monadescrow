@@ -1,0 +1,285 @@
+/* src/components/ImprovedUX.css - Enhanced UI/UX styling */
+
+/* Smooth transitions for all interactive elements */
+.enhanced-button {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.enhanced-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.enhanced-button:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Focus styles for accessibility */
+.enhanced-button:focus-visible {
+  outline: 3px solid rgba(139, 92, 246, 0.5);
+  outline-offset: 2px;
+}
+
+/* Improved card hover effects */
+.escrow-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(139, 92, 246, 0.1);
+}
+
+.escrow-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.15);
+  border-color: rgba(139, 92, 246, 0.3);
+}
+
+/* Improved form inputs */
+.form-control:focus {
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 0.25rem rgba(139, 92, 246, 0.25);
+}
+
+/* Loading skeleton animation improvements */
+@keyframes shimmer-improved {
+  0% {
+    background-position: -468px 0;
+  }
+  100% {
+    background-position: 468px 0;
+  }
+}
+
+.skeleton-shimmer {
+  animation: shimmer-improved 1.5s infinite linear;
+  background: linear-gradient(
+    to right,
+    rgba(139, 92, 246, 0.05) 0%,
+    rgba(139, 92, 246, 0.15) 50%,
+    rgba(139, 92, 246, 0.05) 100%
+  );
+  background-size: 800px 100%;
+}
+
+/* Improved progress bar */
+.progress {
+  height: 8px;
+  border-radius: 8px;
+  background-color: rgba(139, 92, 246, 0.1);
+  overflow: hidden;
+}
+
+.progress-bar {
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  background: linear-gradient(90deg, #8b5cf6 0%, #06b6d4 100%);
+}
+
+/* Badge improvements */
+.badge {
+  padding: 0.5em 1em;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Improved tooltips */
+[title] {
+  cursor: help;
+}
+
+/* Status indicator animations */
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.status-active {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Improved alert animations */
+.alert {
+  animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Copy feedback animation */
+@keyframes copy-success {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.copy-success {
+  animation: copy-success 0.3s ease-in-out;
+}
+
+/* Improved address display */
+.address-display {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.9em;
+  padding: 2px 6px;
+  background-color: rgba(139, 92, 246, 0.1);
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.address-display:hover {
+  background-color: rgba(139, 92, 246, 0.2);
+}
+
+/* Improved modal transitions */
+.modal.fade .modal-dialog {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modal.show .modal-dialog {
+  transform: scale(1);
+}
+
+/* Scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Improved tab navigation */
+.nav-pills .nav-link {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 12px;
+}
+
+.nav-pills .nav-link:hover:not(.active) {
+  background-color: rgba(139, 92, 246, 0.1);
+  transform: translateX(4px);
+}
+
+.nav-pills .nav-link.active {
+  background: linear-gradient(135deg, #8b5cf6 0%, #06b6d4 100%);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+}
+
+/* Improved empty state */
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: rgba(139, 92, 246, 0.7);
+}
+
+.empty-state-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  opacity: 0.6;
+}
+
+/* Loading state improvements */
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+  z-index: 10;
+}
+
+.dark-mode .loading-overlay {
+  background: rgba(0, 0, 0, 0.9);
+}
+
+/* Improved success/error states */
+.success-feedback {
+  animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-left: 4px solid #10b981;
+}
+
+.error-feedback {
+  animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-left: 4px solid #ef4444;
+}
+
+/* Micro-interactions for buttons */
+.btn-micro {
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-micro:hover:not(:disabled) {
+  transform: scale(1.05);
+}
+
+.btn-micro:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+/* Improved focus indicators for keyboard navigation */
+*:focus-visible {
+  outline: 3px solid rgba(139, 92, 246, 0.5);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Skip to main content link for accessibility */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: #8b5cf6;
+  color: white;
+  padding: 8px;
+  text-decoration: none;
+  border-radius: 0 0 4px 0;
+  z-index: 100;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  .escrow-card {
+    break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid #000;
+  }
+}
+
+/* Reduced motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

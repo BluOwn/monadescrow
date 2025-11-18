@@ -24,32 +24,41 @@ const EscrowCard: React.FC<EscrowCardProps> = ({ escrow, onViewDetails, onAction
     return address.slice(0, 6) + '...' + address.slice(-4);
   };
   
+  const statusLabel = escrow.fundsDisbursed
+    ? 'Completed'
+    : escrow.disputeRaised
+      ? 'Disputed'
+      : 'Active';
+
   return (
-    <Card className="mb-3 escrow-card">
+    <Card className="mb-3 escrow-card" role="article" aria-labelledby={`escrow-${escrow.id}-title`}>
       <Card.Header className="d-flex justify-content-between align-items-center">
         <div>
-          <span className="escrow-id">Escrow #{escrow.id.toString()}</span>
+          <span id={`escrow-${escrow.id}-title`} className="escrow-id">
+            Escrow #{escrow.id.toString()}
+          </span>
         </div>
-        <Badge 
-          bg={escrow.fundsDisbursed 
-            ? 'success' 
-            : escrow.disputeRaised 
-              ? 'danger' 
+        <Badge
+          bg={escrow.fundsDisbursed
+            ? 'success'
+            : escrow.disputeRaised
+              ? 'danger'
               : 'primary'}
+          aria-label={`Escrow status: ${statusLabel}`}
         >
-          {escrow.fundsDisbursed 
-            ? 'Completed' 
-            : escrow.disputeRaised 
-              ? 'Disputed' 
-              : 'Active'}
+          {statusLabel}
         </Badge>
       </Card.Header>
-      
+
       <Card.Body>
         <div className="escrow-progress mb-3">
-          <ProgressBar 
-            now={getProgress()} 
+          <ProgressBar
+            now={getProgress()}
             variant={escrow.disputeRaised ? "warning" : "info"}
+            aria-valuenow={getProgress()}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label={`Escrow progress: ${getProgress()}%`}
           />
           <div className="progress-labels d-flex justify-content-between mt-1">
             <small>Created</small>
@@ -90,31 +99,34 @@ const EscrowCard: React.FC<EscrowCardProps> = ({ escrow, onViewDetails, onAction
       </Card.Body>
       
       <Card.Footer className="d-flex justify-content-between">
-        <Button 
-          variant="outline-primary" 
+        <Button
+          variant="outline-primary"
           size="sm"
           onClick={() => onViewDetails(escrow.id)}
+          aria-label={`View details for Escrow ${escrow.id}`}
         >
           View Details
         </Button>
-        
+
         {!escrow.fundsDisbursed && userRole && (
-          <div>
+          <div role="group" aria-label="Escrow actions">
             {userRole === 'buyer' && !escrow.disputeRaised && (
-              <Button 
-                variant="success" 
+              <Button
+                variant="success"
                 size="sm"
                 onClick={() => onAction('release', escrow.id)}
+                aria-label={`Release ${escrow.amount} MON to seller`}
               >
                 Release Funds
               </Button>
             )}
-            
+
             {userRole === 'arbiter' && !escrow.disputeRaised && (
-              <Button 
-                variant="warning" 
+              <Button
+                variant="warning"
                 size="sm"
                 onClick={() => onAction('refund', escrow.id)}
+                aria-label={`Refund ${escrow.amount} MON to buyer`}
               >
                 Refund Buyer
               </Button>
