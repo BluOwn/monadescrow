@@ -39,11 +39,11 @@ export function useWallet() {
 
     try {
       setWalletState(prev => ({ ...prev, loading: true, error: '' }));
-      
+
       // Request account access
-      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-      
-      if (accounts.length > 0) {
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' }) as string[];
+
+      if (accounts && accounts.length > 0) {
         const provider = new ethers.BrowserProvider(window.ethereum);
         
         // Validate network
@@ -116,27 +116,30 @@ export function useWallet() {
   // Setup wallet change listeners - Fixed to always return a function
   const setupWalletListeners = useCallback(() => {
     if (window.ethereum) {
-      const handleAccountsChanged = (accounts: string[]) => {
-        if (accounts.length > 0) {
+      const ethereum = window.ethereum;
+
+      const handleAccountsChanged = (...args: unknown[]) => {
+        const accounts = args[0] as string[];
+        if (accounts && accounts.length > 0) {
           setWalletState(prev => ({ ...prev, account: accounts[0] }));
         } else {
           disconnectWallet();
         }
       };
-      
+
       const handleChainChanged = () => {
         window.location.reload();
       };
-      
-      window.ethereum.on('accountsChanged', handleAccountsChanged);
-      window.ethereum.on('chainChanged', handleChainChanged);
-      
+
+      ethereum.on('accountsChanged', handleAccountsChanged);
+      ethereum.on('chainChanged', handleChainChanged);
+
       return () => {
-        window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
-        window.ethereum.removeListener('chainChanged', handleChainChanged);
+        ethereum.removeListener('accountsChanged', handleAccountsChanged);
+        ethereum.removeListener('chainChanged', handleChainChanged);
       };
     }
-    
+
     // Return an empty cleanup function when ethereum is not available
     return () => {
       // Empty cleanup function

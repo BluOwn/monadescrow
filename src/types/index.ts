@@ -20,9 +20,8 @@ export interface ThemeContextType {
   toggleDarkMode: () => void;
 }
 
-// Contract related types - properly typed for better safety
-export interface EscrowContract extends Contract {
-  // Define the methods with proper types
+// Contract related types - use type assertion approach to avoid index signature conflicts
+export type EscrowContract = Contract & {
   createEscrow: (
     seller: string,
     arbiter: string,
@@ -45,7 +44,7 @@ export interface EscrowContract extends Contract {
   getEscrowCount: () => Promise<bigint>;
 
   getUserEscrows: (user: string) => Promise<bigint[]>;
-}
+};
 
 // Helper function to create a typed escrow contract
 export function createEscrowContract(contract: Contract): EscrowContract {
